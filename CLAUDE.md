@@ -5,9 +5,11 @@
 
 ## Estado
 
-- **Fase:** implementación completa, pendiente de presentar en el campus.
+- **Fase: ENTREGADA** el 2026-08-10 a las 15:20 (PDF adjunto en el campus,
+  estado "Enviado para calificar"). Pendiente de calificación.
 - **Entregable:** repo + `Entrega_Modulo_3.3_Juan_Archidona.pdf`.
 - **Repo GitHub:** https://github.com/JuanArchidona/master_ia_entrega_3.3
+  (rama `master`, 5 commits, CI en verde).
 - Material del profesor en `../Documentación/01_Evaluación de agentes.pptx` y los
   notebooks de clase (`02_Evaluación_de_modelos_con_DeepEval.ipynb`,
   `03_Evaluando_el_retrieved_de_nuestro_RAG.ipynb`).
@@ -93,7 +95,12 @@ Ver [`docs/VALORACION_MVP.md`](docs/VALORACION_MVP.md) para el detalle. En corto
 6. ~~Runner, informes y barrido.~~ Hecho.
 7. ~~Tests y CI.~~ Hecho (322 pruebas sin API).
 8. ~~Ejecución real, set sintético y valoración.~~ Hecho.
-9. PDF de entrega y presentación en el campus virtual. **Pendiente.**
+9. ~~PDF de entrega y presentación en el campus virtual.~~ Hecho el 2026-08-10.
+
+**Roadmap cerrado.** Lo que quedaría por delante, si se retomara: observabilidad
+en producción (bloque B del roadmap de la 3.1), evaluación conversacional
+multivuelta, juez de familia distinta a la del generador, y anotación humana de
+una muestra para medir el acuerdo con el juez LLM.
 
 ## Memoria de sesiones
 

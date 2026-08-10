@@ -53,5 +53,12 @@ los resultados es sobreajustar el banco (slide 15 del material del módulo). Se
 narra como hallazgo en la valoración, señalando que es una barrera accidental y
 frágil, no un diseño.
 
-**Estado al cerrar.** Implementación completa y ejecutada. Pendiente: PDF de
-entrega y presentación en el campus virtual.
+**Estado al cerrar.** Entrega presentada en el campus el 2026-08-10 a las 15:20
+con el PDF adjunto ("Enviado para calificar"). Repo en `master` con CI en verde.
+Gasto de API de la jornada: unos 6 USD.
+
+**Para la próxima sesión.** Nada pendiente en esta entrega. Si se retoma el tema,
+lo siguiente por orden de valor: observabilidad en producción (bloque B del
+roadmap de la 3.1), evaluación multivuelta, y anotar a mano una muestra para
+medir el acuerdo entre el juez LLM y criterio humano — hoy la calidad del juez
+es una suposición razonable, no un dato.
