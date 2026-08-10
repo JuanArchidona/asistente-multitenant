@@ -1,0 +1,30 @@
+{
+  "casos": 5,
+  "casos_ok": 4,
+  "medias": {
+    "titulo": 0.8343,
+    "fecha": 1.0,
+    "asistentes_f1": 1.0,
+    "decisiones_f1": 0.7333,
+    "tareas_f1": 0.9333,
+    "sin_fuga": 1.0
+  },
+  "meta": {
+    "fecha": "2026-08-10T12:52:00+00:00",
+    "dataset": "evals/datasets/golden_transcripcion.jsonl",
+    "modelo": "claude-haiku-4-5-20251001",
+    "uso": {
+      "llamadas": 5,
+      "tokens_entrada": 1822,
+      "tokens_salida": 1212,
+      "coste_usd_estimado": 0.007882,
+      "por_modelo": {
+        "claude-haiku-4-5-20251001": {
+          "llamadas": 5,
+          "tokens_entrada": 1822,
+          "tokens_salida": 1212
+        }
+      }
+    }
+  }
+}

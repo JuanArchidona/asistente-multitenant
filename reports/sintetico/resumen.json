@@ -1,0 +1,238 @@
+{
+  "casos": 57,
+  "casos_ok": 55,
+  "tasa_casos_ok": 0.9649,
+  "fallback_enrutador": 0,
+  "tasa_fallback": 0.0,
+  "latencia_media_s": 3.77,
+  "latencia_p95_s": 5.276,
+  "por_metrica": {
+    "contiene": {
+      "n": 46,
+      "media": 0.9565,
+      "tasa_exito": 0.9565
+    },
+    "hit_rate": {
+      "n": 46,
+      "media": 0.9783,
+      "tasa_exito": 0.9783
+    },
+    "mrr": {
+      "n": 46,
+      "media": 0.9565,
+      "tasa_exito": 0.9783
+    },
+    "precision_at_k": {
+      "n": 46,
+      "media": 0.6413,
+      "tasa_exito": 0.9783
+    },
+    "recall_at_k": {
+      "n": 46,
+      "media": 0.9783,
+      "tasa_exito": 0.9783
+    },
+    "routing": {
+      "n": 57,
+      "media": 0.9825,
+      "tasa_exito": 0.9825
+    }
+  },
+  "por_dimension": {
+    "conocimiento": {
+      "casos": 22,
+      "ok": 20,
+      "metricas": {
+        "routing": {
+          "n": 22,
+          "media": 0.9545,
+          "tasa_exito": 0.9545
+        },
+        "hit_rate": {
+          "n": 22,
+          "media": 0.9545,
+          "tasa_exito": 0.9545
+        },
+        "recall_at_k": {
+          "n": 22,
+          "media": 0.9545,
+          "tasa_exito": 0.9545
+        },
+        "precision_at_k": {
+          "n": 22,
+          "media": 0.5227,
+          "tasa_exito": 0.9545
+        },
+        "mrr": {
+          "n": 22,
+          "media": 0.9091,
+          "tasa_exito": 0.9545
+        },
+        "contiene": {
+          "n": 22,
+          "media": 0.9091,
+          "tasa_exito": 0.9091
+        }
+      },
+      "tasa_ok": 0.9091
+    },
+    "fuera_de_alcance": {
+      "casos": 11,
+      "ok": 11,
+      "metricas": {
+        "routing": {
+          "n": 11,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        }
+      },
+      "tasa_ok": 1.0
+    },
+    "robustez": {
+      "casos": 24,
+      "ok": 24,
+      "metricas": {
+        "routing": {
+          "n": 24,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "hit_rate": {
+          "n": 24,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "recall_at_k": {
+          "n": 24,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "precision_at_k": {
+          "n": 24,
+          "media": 0.75,
+          "tasa_exito": 1.0
+        },
+        "mrr": {
+          "n": 24,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "contiene": {
+          "n": 24,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        }
+      },
+      "tasa_ok": 1.0
+    }
+  },
+  "confusion_enrutador": {
+    "actas": {
+      "actas": 11,
+      "rrhh": 1
+    },
+    "desarrollo": {
+      "desarrollo": 15
+    },
+    "marca": {
+      "marca": 6
+    },
+    "rrhh": {
+      "rrhh": 24
+    }
+  },
+  "fallos": [
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "routing",
+      "valor": 0.0,
+      "razon": "esperada=actas obtenida=rrhh",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "hit_rate",
+      "valor": 0.0,
+      "razon": "0/1 ficheros",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "recall_at_k",
+      "valor": 0.0,
+      "razon": "recall=0.00",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "precision_at_k",
+      "valor": 0.0,
+      "razon": "precision=0.00",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "mrr",
+      "valor": 0.0,
+      "razon": "mrr=0.00",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-006",
+      "dimension": "conocimiento",
+      "metrica": "contiene",
+      "valor": 0.0,
+      "razon": "faltan: ['Data Engineer']",
+      "consulta": "¿Qué perfil se va a contratar para reforzar el equipo en el tercer trimestre?"
+    },
+    {
+      "id": "syn-cono-actas-010",
+      "dimension": "conocimiento",
+      "metrica": "contiene",
+      "valor": 0.0,
+      "razon": "faltan: ['31/7']",
+      "consulta": "¿Para cuándo tiene que tener Carlos listo el pip-audit en el pipeline de CI?"
+    }
+  ],
+  "errores_metrica": [],
+  "meta": {
+    "etiqueta": "sintetico",
+    "dataset": "evals/datasets/sinteticos_consultas.jsonl",
+    "fecha": "2026-08-10T12:33:50+00:00",
+    "duracion_s": 56.0,
+    "con_juez": false,
+    "configuracion": {
+      "provider": "anthropic",
+      "model_router": "claude-haiku-4-5-20251001",
+      "model_generator": "claude-haiku-4-5-20251001",
+      "embed_model": "gemini-embedding-001",
+      "embed_dims": 768,
+      "chunk_strategy": "chars",
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "top_k": 4,
+      "distance_threshold": null,
+      "gen_policy": "base",
+      "judge_model": "claude-sonnet-5",
+      "collection": "corpus_chars_800_768_d0ee24aa40"
+    },
+    "uso_sistema": {
+      "llamadas": 114,
+      "tokens_entrada": 68948,
+      "tokens_salida": 11222,
+      "coste_usd_estimado": 0.125058,
+      "por_modelo": {
+        "claude-haiku-4-5-20251001": {
+          "llamadas": 114,
+          "tokens_entrada": 68948,
+          "tokens_salida": 11222
+        }
+      }
+    }
+  }
+}
