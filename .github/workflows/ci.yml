@@ -1,0 +1,34 @@
+name: CI
+
+# Puerta de calidad en cada push: linting y las pruebas que no gastan API.
+# La evaluación con llamadas reales (evals/) NO corre aquí a propósito: cuesta
+# dinero, tarda minutos y necesita claves. Un gate caro acaba desactivándose;
+# este tarda segundos y por eso sigue vivo. La evaluación completa se lanza a
+# mano antes de un pase a producción, que es justo lo que pedía la corrección
+# de la 3.1 ("validar los pases a producción").
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sincronizar dependencias
+        run: uv sync --frozen
+
+      - name: Linting
+        run: uv run ruff check .
+
+      - name: Pruebas (sin llamadas a API)
+        run: uv run pytest
