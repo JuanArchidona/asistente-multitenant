@@ -1,0 +1,211 @@
+/* Estilos de impresión del PDF de entrega.
+   Pensado para A4 con Chrome headless: tipografía legible en papel, tablas que
+   no se desbordan y saltos de página que no parten un encabezado de su texto. */
+
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm 18mm;
+}
+
+:root {
+  --tinta: #1a1a1a;
+  --tinta-suave: #4a4a4a;
+  --acento: #2c3e50;
+  --linea: #d8d8d8;
+  --fondo-codigo: #f4f4f4;
+}
+
+html {
+  font-size: 10.5pt;
+}
+
+body {
+  font-family: Georgia, "Times New Roman", serif;
+  color: var(--tinta);
+  line-height: 1.5;
+  max-width: none;
+  margin: 0;
+  hyphens: auto;
+  text-align: justify;
+}
+
+/* --- Encabezados --- */
+
+h1, h2, h3, h4 {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  color: var(--acento);
+  line-height: 1.25;
+  break-after: avoid;
+  page-break-after: avoid;
+  text-align: left;
+  hyphens: none;
+}
+
+h1 {
+  font-size: 20pt;
+  margin: 0 0 0.2em;
+  border-bottom: 2px solid var(--acento);
+  padding-bottom: 0.25em;
+}
+
+h2 {
+  font-size: 14pt;
+  margin: 1.6em 0 0.5em;
+  border-bottom: 1px solid var(--linea);
+  padding-bottom: 0.15em;
+}
+
+h3 {
+  font-size: 11.5pt;
+  margin: 1.3em 0 0.35em;
+}
+
+h4 {
+  font-size: 10.5pt;
+  margin: 1.1em 0 0.3em;
+  color: var(--tinta-suave);
+}
+
+/* Cabecera del documento generada por pandoc */
+header#title-block-header {
+  margin-bottom: 1.6em;
+}
+
+.subtitle {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  color: var(--tinta-suave);
+  margin: 0.3em 0 0;
+}
+
+.author, .date {
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 9.5pt;
+  color: var(--tinta-suave);
+  margin: 0.15em 0 0;
+}
+
+/* --- Texto --- */
+
+p {
+  margin: 0 0 0.7em;
+  orphans: 3;
+  widows: 3;
+}
+
+ul, ol {
+  margin: 0 0 0.7em;
+  padding-left: 1.4em;
+}
+
+li {
+  margin-bottom: 0.25em;
+}
+
+strong {
+  color: #000;
+}
+
+blockquote {
+  margin: 0.9em 0;
+  padding: 0.5em 0.9em;
+  border-left: 3px solid var(--linea);
+  color: var(--tinta-suave);
+  font-size: 0.95em;
+  break-inside: avoid;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- Código --- */
+
+code {
+  font-family: "Cascadia Mono", Consolas, "Courier New", monospace;
+  font-size: 0.86em;
+  background: var(--fondo-codigo);
+  padding: 0.1em 0.3em;
+  border-radius: 2px;
+  hyphens: none;
+}
+
+pre {
+  background: var(--fondo-codigo);
+  border: 1px solid var(--linea);
+  border-radius: 3px;
+  padding: 0.7em 0.9em;
+  overflow-x: auto;
+  font-size: 0.82em;
+  line-height: 1.4;
+  break-inside: avoid;
+  text-align: left;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: 1em;
+}
+
+/* --- Tablas --- */
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.9em 0 1.1em;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  font-size: 8.8pt;
+  break-inside: avoid;
+  text-align: left;
+}
+
+/* Una tabla larga sí puede partirse, pero repitiendo la cabecera. */
+table.larga {
+  break-inside: auto;
+}
+
+thead {
+  display: table-header-group;
+}
+
+th {
+  background: var(--acento);
+  color: #fff;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.45em 0.6em;
+  border: 1px solid var(--acento);
+}
+
+td {
+  padding: 0.4em 0.6em;
+  border: 1px solid var(--linea);
+  vertical-align: top;
+  hyphens: none;
+}
+
+tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+/* --- Enlaces --- */
+
+a {
+  color: var(--acento);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(44, 62, 80, 0.3);
+}
+
+/* --- Saltos de página --- */
+
+.salto {
+  break-before: page;
+  page-break-before: always;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--linea);
+  margin: 1.6em 0;
+}
