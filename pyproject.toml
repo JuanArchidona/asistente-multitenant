@@ -1,0 +1,43 @@
+[project]
+name = "evaluacion-agentes"
+version = "0.1.0"
+description = "Banco de pruebas y evaluación del asistente RAG con enrutador - Módulo 3.3"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.40.0",
+    "google-genai>=1.73.0",
+    "chromadb>=0.5.0",
+    "pydantic>=2.9.0",
+    "python-dotenv>=1.0.1",
+    "pypdf>=6.14.2",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.3.0",
+]
+# Juez LLM. Se instala aparte porque arrastra bastante y el gate de CI
+# (ruff + pytest con proveedor mockeado) no lo necesita.
+judge = [
+    "deepeval>=3.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+extend-select = ["I"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+# Las pruebas importan `src` y `evals` del repo, no de un paquete instalado.
+pythonpath = ["."]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src", "evals"]

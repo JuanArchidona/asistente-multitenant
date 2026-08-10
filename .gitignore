@@ -1,0 +1,20 @@
+# Entorno
+.venv/
+__pycache__/
+*.pyc
+.python-version.local
+.ruff_cache/
+.pytest_cache/
+
+# Credenciales
+.env
+
+# Datos locales (el indice se reconstruye desde corpus/)
+data/
+!data/.gitkeep
+
+# Los informes de reports/ SI se versionan: son la evidencia de la entrega.
+
+# SO / editor
+.DS_Store
+Thumbs.db
