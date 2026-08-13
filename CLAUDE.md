@@ -5,8 +5,8 @@
 
 ## Estado
 
-- **Fase: ENTREGADA** el 2026-08-10 a las 15:20 (PDF adjunto en el campus,
-  estado "Enviado para calificar"). Pendiente de calificación.
+- **Fase: CERRADA Y CALIFICADA — 10,00 / 10,00** (corregida por Iraitz Montalbán
+  el 2026-08-10 a las 16:41, poco más de una hora después de presentarla).
 - **Entregable:** repo + `Entrega_Modulo_3.3_Juan_Archidona.pdf`.
 - **Repo GitHub:** https://github.com/JuanArchidona/master_ia_entrega_3.3
   (rama `master`, 5 commits, CI en verde).
@@ -97,10 +97,33 @@ Ver [`docs/VALORACION_MVP.md`](docs/VALORACION_MVP.md) para el detalle. En corto
 8. ~~Ejecución real, set sintético y valoración.~~ Hecho.
 9. ~~PDF de entrega y presentación en el campus virtual.~~ Hecho el 2026-08-10.
 
-**Roadmap cerrado.** Lo que quedaría por delante, si se retomara: observabilidad
-en producción (bloque B del roadmap de la 3.1), evaluación conversacional
-multivuelta, juez de familia distinta a la del generador, y anotación humana de
-una muestra para medir el acuerdo con el juez LLM.
+**Roadmap cerrado.** Lo que quedaría por delante está en
+[`docs/PROXIMOS_PASOS.md`](docs/PROXIMOS_PASOS.md), ya con el feedback del
+profesor incorporado.
+
+## Corrección del profesor (2026-08-10) — 10,00 / 10,00
+
+Valoración: profundidad del ejercicio, y en concreto **evaluar también al juez y
+su estabilidad**, "ya que los LLMs como juez tampoco son perfectos y sufren de
+los mismos problemas que los agentes como tal. Al ser tareas más acotadas,
+podemos ajustar el resultado pero siempre con esa holgura que has identificado
+correctamente".
+
+Dos líneas de mejora señaladas:
+
+1. **Un token de API para el agente y otro para el juez.** Permite separar en
+   facturación lo que cuesta el sistema de lo que cuesta evaluarlo, y con eso
+   "tener buenas estimaciones de incremento en costes ante nuevos despliegues".
+   Es un hueco real de esta entrega: `Uso` contabiliza los tokens del sistema
+   bajo prueba, pero el gasto del juez lo lleva DeepEval por dentro y no se
+   captura, así que el informe da coste por consulta y no coste por evaluación.
+2. **Revisar el sistema desde el punto de vista de la seguridad.** Es el
+   siguiente frente; el banco cubre confidencialidad e inyección como
+   dimensiones de calidad, no como una revisión de seguridad.
+
+Traducción a pasos concretos en [`docs/PROXIMOS_PASOS.md`](docs/PROXIMOS_PASOS.md).
+**No se implementan en este repo**, que está entregado y calificado: el valor
+está en aplicarlo hacia delante (mismo criterio que se siguió con la 3.1).
 
 ## Memoria de sesiones
 

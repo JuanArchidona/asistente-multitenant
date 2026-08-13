@@ -62,3 +62,26 @@ lo siguiente por orden de valor: observabilidad en producción (bloque B del
 roadmap de la 3.1), evaluación multivuelta, y anotar a mano una muestra para
 medir el acuerdo entre el juez LLM y criterio humano — hoy la calidad del juez
 es una suposición razonable, no un dato.
+
+## 2026-08-10 (tarde) — Corrección: 10,00 / 10,00
+
+Corregida por Iraitz Montalbán a las 16:41, poco más de una hora después de
+presentarla. Valoró la profundidad del ejercicio y, en concreto, **haber
+evaluado también al juez y su estabilidad**: "los LLMs como juez tampoco son
+perfectos y sufren de los mismos problemas que los agentes como tal".
+
+Dos líneas de mejora, archivadas en `docs/PROXIMOS_PASOS.md` sin implementarlas
+aquí (mismo criterio que con la 3.1: el repo está entregado y calificado, el
+valor está en aplicarlo hacia delante):
+
+1. **Un token de API para el agente y otro para el juez**, para separar en
+   facturación lo que cuesta el sistema de lo que cuesta evaluarlo y poder
+   estimar el incremento de coste ante nuevos despliegues. Es un hueco real: el
+   acumulador de `provider.py` solo ve los tokens del sistema bajo prueba; el
+   gasto del juez lo lleva DeepEval por dentro y no se captura.
+2. **Revisión desde el punto de vista de la seguridad.** El banco trata
+   confidencialidad e inyección como dimensiones de calidad, no como una
+   revisión de seguridad: quedan fuera la superficie expuesta, la custodia de
+   secretos, el corpus como vector de inyección y el control de acceso al
+   contenido (hoy la única barrera entre un empleado y los salarios es el
+   prompt, no un filtro por permisos en la recuperación).
