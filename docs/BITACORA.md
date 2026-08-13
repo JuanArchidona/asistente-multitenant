@@ -1,6 +1,47 @@
 # Bitácora — Entrega 3.3 (Evaluación de agentes)
 
-## 2026-08-10 — Sesión única: banco de pruebas completo
+> Entradas de más reciente a más antigua.
+
+## 2026-08-10 — Sesión 2: corrección 10/10 y cierre
+
+**Hecho:**
+
+- Corregida por Iraitz Montalbán a las 16:41, **10,00 / 10,00**, poco más de una
+  hora después de presentarla. Valoró la profundidad del ejercicio y en concreto
+  **haber evaluado también al juez y su estabilidad**: "los LLMs como juez tampoco
+  son perfectos y sufren de los mismos problemas que los agentes como tal".
+- Feedback archivado en `docs/PROXIMOS_PASOS.md`, con el mismo patrón que hizo
+  posible esta entrega (el roadmap de la 3.1 acabó siendo el enunciado de la 3.3).
+- Estado actualizado en el `CLAUDE.md` de la entrega y en el global del máster.
+
+**Decisiones:**
+
+- **No implementar el feedback en este repo.** Está entregado y calificado; el
+  valor está en aplicarlo hacia delante. Mismo criterio que se siguió con la 3.1.
+- **El bloque B (seguridad) se reserva para la entrega del Módulo 4**, que va
+  justamente de seguridad. La revisión que apunta Iraitz y el enunciado del
+  módulo son el mismo trabajo, así que hacerlo ahora sería hacerlo dos veces.
+- **Este repo será la base de la próxima entrega**, no la plantilla vacía: el
+  sistema bajo prueba, el corpus con material sensible y el banco ya están
+  montados, y el Módulo 4 necesita exactamente eso para tener algo que atacar.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Arrancar la entrega del Módulo 4 (seguridad) partiendo de este repo.** El
+      punto de entrada es el bloque B de `docs/PROXIMOS_PASOS.md`: superficie
+      expuesta, custodia de secretos, el corpus como vector de inyección, control
+      de acceso al contenido (hoy la única barrera entre un empleado y los
+      salarios es el prompt, no un filtro por permisos en la recuperación) y
+      trazabilidad. Punto de partida sugerido: OWASP Top 10 para aplicaciones LLM.
+- [ ] Bloque A del roadmap (token separado para agente y juez) — aplicarlo al
+      TFM desde el scaffold, no aquí.
+
+**Notas:**
+
+- Coste total de API de la jornada: unos 6 USD de los 19,85 recargados.
+- Las dos entregas del Módulo 3 cerradas con 10/10.
+
+## 2026-08-10 — Sesión 1: banco de pruebas completo
 
 **Punto de partida.** Análisis del repo de la 3.1 (calificada 10/10) y de su
 `docs/PROXIMOS_PASOS.md`. La corrección del profesor pedía tests automatizados

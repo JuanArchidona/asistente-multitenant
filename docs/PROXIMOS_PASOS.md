@@ -44,6 +44,15 @@ decisión de producción.
 
 ## Bloque B — Revisión de seguridad (prioridad 2)
 
+> **Destino: la entrega del Módulo 4**, que trata precisamente de seguridad. La
+> revisión que apunta la corrección y el enunciado del módulo son el mismo
+> trabajo, así que se hace allí y no aquí. La entrega del 4.x arrancará **a
+> partir de este repo**, no de la plantilla vacía: el sistema bajo prueba, el
+> corpus con material sensible y el banco ya están montados, y una entrega de
+> seguridad necesita exactamente eso para tener algo a lo que atacar. El banco
+> además sirve de red: cualquier medida que se añada se puede comprobar contra
+> los 109 casos para ver si rompe algo.
+
 "Ahora ya solo nos queda darle una vuelta desde el punto de vista de la
 seguridad". El banco trata confidencialidad e inyección como **dimensiones de
 calidad**: mide si el sistema filtra datos o se deja secuestrar. Una revisión de
