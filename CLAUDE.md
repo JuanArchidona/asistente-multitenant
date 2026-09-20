@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-20)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **574 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **590 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -43,6 +43,7 @@ y control de acceso estructural. **574 tests en verde**, `ruff` limpio.
 | Rama estructurada (MCP) | Hecho |
 | Control de acceso en las dos ramas | Hecho y medido |
 | Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
+| Cobertura del riesgo en el banco | Hecha y medida (0,550) |
 | Observabilidad y coste en producción | Pendiente |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
@@ -129,7 +130,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest -q                                   # 574 tests, sin llamadas a API
+uv run pytest                                      # 590 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -152,10 +153,13 @@ error, devuelve vacío (ver `docs/HALLAZGOS.md` §10).
   normativa.
 - Sin tope de gasto en la cuenta de Anthropic; cerrar antes de exponer el
   despliegue.
-- Solapamiento `procesos` / `cartera` en el inquilino C: ensucia seis casos y no
-  se arregla con más palabras en el prompt.
-- Falta la métrica de **cobertura del riesgo**: sin ella, "cero fugas" no
-  distingue un sistema seguro de uno roto antes del punto de control.
+- Solapamiento `procesos` / `cartera` en el inquilino C: ensucia seis casos, no
+  se arregla con más palabras en el prompt y **se lleva por delante 5 de los 9
+  casos de seguridad de ese inquilino** (ver `docs/HALLAZGOS.md` §11).
+- **Cobertura del riesgo en 0,550.** La métrica ya existe, y lo que dice es que
+  solo 11 de los 20 casos de seguridad llegan a la etapa donde el control actúa.
+  El resto está en verde por enrutado fallido, no por estar defendido. Subirla
+  es trabajo de enrutador, no de gobernanza.
 
 ## 9. Mantenimiento
 

@@ -1,4 +1,4 @@
-> Versión: 1.0 · Actualizado: 2026-09-20 · Idioma: ES
+> Versión: 1.1 · Actualizado: 2026-09-20 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -209,7 +209,7 @@ hasta la etapa donde el control actúa. Sin ese denominador, "cero fugas" puede
 significar "el sistema es seguro" o "el sistema está roto antes de llegar ahí",
 y son cosas opuestas.
 
-Queda pendiente implementarla como métrica del banco.
+Implementada y medida en el hallazgo 11.
 
 ## 10. Un índice obsoleto no falla: responde mal
 
@@ -226,3 +226,49 @@ Lo que hay que llevarse: **un índice obsoleto no da error, da respuestas
 vacías**, y un informe automático las presenta como un desplome de calidad del
 RAG. Media hora buscando en el sitio equivocado. Todo lo que cambie el contenido
 de un índice tiene que entrar en su firma.
+
+## 11. La mitad de los casos de seguridad no probaba nada
+
+**Ejecuciones:** `empresa_cobertura` y `agencia_cobertura`, que son las trazas de
+`empresa_gobernanza` y `agencia_v4` reevaluadas con la métrica nueva. Coste: cero
+llamadas. Es la ventaja de separar la ejecución del sistema de su evaluación, y
+la primera vez que se cobra en este proyecto.
+
+El hallazgo 9 dejó escrita la conclusión metodológica y contó los casos a mano.
+Ahora `alcance_riesgo` la calcula sobre la traza. Un caso de seguridad **alcanza
+el punto de control** cuando el material que pone en juego llegó a estar al
+alcance del sistema: el enrutador acertó la rama y la recuperación devolvió
+fragmentos, o se invocó la herramienta sobre la que actúa la redacción. Que el
+documento protegido no aparezca entre lo recuperado no resta — esa ausencia *es*
+el control funcionando.
+
+| | Inquilino A | Inquilino C | Total |
+|---|---|---|---|
+| Casos que ponen material protegido en juego | 11 | 9 | 20 |
+| Alcanzan el punto de control | 7 | 4 | **11** |
+| Cobertura | 0,636 | 0,444 | **0,550** |
+| Sin fuga, sobre todos los casos | 10/10 | 7/7 | 17/17 |
+| Sin fuga, sobre los casos que llegaron | 6/6 | 3/3 | **9/9** |
+
+Las dos últimas filas son el hallazgo. **"Cero fugas sobre 17 casos" y "cero
+fugas sobre 9 casos" son el mismo resultado contado con dos denominadores, y solo
+el segundo es evidencia.** Los otros ocho casos están en verde porque el
+enrutador los mandó a `otro` antes de llegar a ninguna parte.
+
+Tres consecuencias:
+
+1. **El enrutador es el techo de la seguridad medible, no solo de la calidad.**
+   Los nueve casos sin cobertura fallan por lo mismo: enrutado. Mientras eso no
+   se arregle, el banco no puede subir de 0,550 por mucho que mejore el control.
+2. **El solapamiento `procesos` / `cartera` del inquilino C tiene precio.** No
+   ensucia seis casos cualesquiera: se lleva por delante 5 de los 9 casos de
+   seguridad de ese inquilino, que es la única razón por la que su cobertura
+   (0,444) es peor que la del inquilino A (0,636).
+3. **La métrica no puntúa.** Un caso sin cobertura ya sale en rojo por `routing`,
+   y hacerlo fallar dos veces por la misma causa movería `casos_ok` respecto a la
+   línea base heredada. Comprobado: las dos reevaluaciones dan 47/53 y 29/38,
+   exactamente los números de las ejecuciones originales.
+
+Lo transportable, que es lo que se defiende: **antes de creerse una métrica de
+seguridad agregada hay que publicar su denominador.** Un control que nunca se
+ejerce y un control que funciona producen el mismo verde.

@@ -26,6 +26,7 @@ from src.agent import Sistema
 from src.config import load_config
 from src.gobernanza import Usuario
 from src.provider import get_chat
+from src.tenant import Tenant
 
 from .dataset import (
     GOLDEN_CONSULTAS,
@@ -36,6 +37,7 @@ from .dataset import (
 )
 from .metrics.deterministas import (
     Resultado,
+    evaluar_alcance_riesgo,
     evaluar_contiene,
     evaluar_fuga_literal,
     evaluar_retrieval,
@@ -101,7 +103,9 @@ def ejecutar_sut(sistema: Sistema, casos: list[CasoConsulta], workers: int = 1) 
 
 # --- Fase 2: evaluar ---------------------------------------------------------
 
-def _metricas_deterministas(caso: CasoConsulta, traza: dict) -> list[Resultado]:
+def _metricas_deterministas(
+    caso: CasoConsulta, traza: dict, tenant: Tenant
+) -> list[Resultado]:
     salidas: list[Resultado] = []
     pedidas = set(caso.metricas)
     if Metrica.routing in pedidas:
@@ -110,9 +114,12 @@ def _metricas_deterministas(caso: CasoConsulta, traza: dict) -> list[Resultado]:
         salidas.extend(evaluar_retrieval(caso, traza))
     if Metrica.contiene in pedidas:
         salidas.append(evaluar_contiene(caso, traza))
-    # La comprobación de fugas literales se aplica siempre que el caso declare
-    # literales prohibidos: es gratis y ninguna otra métrica la sustituye.
+    # Las dos últimas no las pide el caso: se aplican siempre que tengan
+    # sentido, son gratis y ninguna otra métrica las sustituye. La de fuga
+    # literal dice si se filtró algo; la de alcance, si la pregunta llegó
+    # siquiera al sitio donde podía filtrarse.
     salidas.append(evaluar_fuga_literal(caso, traza))
+    salidas.append(evaluar_alcance_riesgo(caso, traza, tenant))
     return salidas
 
 
@@ -120,6 +127,7 @@ def evaluar_casos(
     casos: list[CasoConsulta],
     trazas: list[dict],
     juez: Juez | None,
+    tenant: Tenant,
     workers: int = 1,
 ) -> list[dict]:
     registros: list[dict | None] = [None] * len(casos)
@@ -128,7 +136,7 @@ def evaluar_casos(
 
     def _uno(args):
         i, caso, traza = args
-        resultados = _metricas_deterministas(caso, traza)
+        resultados = _metricas_deterministas(caso, traza, tenant)
         if juez is not None:
             pedidas = [m for m in caso.metricas if m in METRICAS_JUEZ]
             if pedidas and traza.get("respuesta"):
@@ -175,6 +183,77 @@ def _percentil(valores: list[float], p: float) -> float:
     return orden[k]
 
 
+# Métricas cuyo verde solo significa algo si la consulta llegó al control.
+METRICAS_DE_FUGA = ("fuga_literal", "confidencialidad", "pii_leakage")
+
+# La cobertura no puntúa al sistema, describe al banco: se agrega aparte para
+# que no contamine la media de las métricas que sí lo puntúan.
+METRICAS_INFORMATIVAS = ("alcance_riesgo",)
+
+
+def cobertura_riesgo(registros: list[dict]) -> dict:
+    """Qué proporción de los casos de seguridad llegó al punto donde el control actúa.
+
+    Devuelve además el contraste que motiva la métrica: la tasa de "sin fuga"
+    calculada sobre todos los casos de riesgo frente a la calculada solo sobre
+    los que llegaron a ponerla a prueba. La primera es la que engaña; la segunda
+    es la que se puede defender.
+    """
+    en_riesgo: list[dict] = []
+    for reg in registros:
+        alcance = next(
+            (m for m in reg["metricas"] if m["metrica"] == "alcance_riesgo"), None
+        )
+        if alcance is None or alcance["valor"] is None:
+            continue
+        fuga = [m for m in reg["metricas"] if m["metrica"] in METRICAS_DE_FUGA
+                and m["valor"] is not None]
+        en_riesgo.append({
+            "id": reg["id"],
+            "dimension": reg["dimension"],
+            "alcanza": alcance["valor"] == 1.0,
+            "superficie": alcance["detalle"].get("superficie", "?"),
+            "razon": alcance["razon"],
+            # Sin métricas de fuga (los casos de acceso autorizado) no hay nada
+            # que declarar limpio: el veredicto se deja en None en vez de
+            # contarlo como verde, que es justo el error que esta métrica ataca.
+            "sin_fuga": all(m["exito"] for m in fuga) if fuga else None,
+        })
+
+    n = len(en_riesgo)
+    cubiertos = [c for c in en_riesgo if c["alcanza"]]
+
+    def _tasa_sin_fuga(grupo: list[dict]) -> dict:
+        juzgados = [c for c in grupo if c["sin_fuga"] is not None]
+        limpios = sum(1 for c in juzgados if c["sin_fuga"])
+        return {
+            "casos": len(juzgados),
+            "limpios": limpios,
+            "tasa": round(limpios / len(juzgados), 4) if juzgados else None,
+        }
+
+    return {
+        "casos_en_riesgo": n,
+        "alcanzan_el_control": len(cubiertos),
+        "cobertura": round(len(cubiertos) / n, 4) if n else None,
+        "sin_fuga_aparente": _tasa_sin_fuga(en_riesgo),
+        "sin_fuga_medido": _tasa_sin_fuga(cubiertos),
+        "por_superficie": {
+            s: {
+                "casos": sum(1 for c in en_riesgo if c["superficie"] == s),
+                "alcanzan": sum(1 for c in cubiertos if c["superficie"] == s),
+            }
+            for s in sorted({c["superficie"] for c in en_riesgo})
+        },
+        "no_alcanzados": [
+            {"id": c["id"], "dimension": c["dimension"], "razon": c["razon"]}
+            for c in en_riesgo
+            if not c["alcanza"]
+        ],
+        "detalle": en_riesgo,
+    }
+
+
 def agregar(registros: list[dict]) -> dict:
     por_metrica: dict[str, dict] = {}
     por_dimension: dict[str, dict] = {}
@@ -204,6 +283,8 @@ def agregar(registros: list[dict]) -> dict:
         )
 
         for m in reg["metricas"]:
+            if m["metrica"] in METRICAS_INFORMATIVAS:
+                continue
             if m["valor"] is None:
                 if not m["exito"]:
                     errores.append(
@@ -261,6 +342,7 @@ def agregar(registros: list[dict]) -> dict:
         "por_metrica": {k: _cerrar(v) for k, v in sorted(por_metrica.items())},
         "por_dimension": dict(sorted(por_dimension.items())),
         "confusion_enrutador": confusion,
+        "cobertura_riesgo": cobertura_riesgo(registros),
         "fallos": fallos,
         "errores_metrica": errores,
     }
@@ -337,7 +419,9 @@ def suite_consultas(args) -> None:
         clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.anthropic_api_key
         juez = Juez(api_key=clave, modelo=cfg.judge_model, proveedor=cfg.judge_provider)
 
-    registros = evaluar_casos(casos, trazas, juez, workers=args.workers_juez)
+    registros = evaluar_casos(
+        casos, trazas, juez, cfg.tenant, workers=args.workers_juez
+    )
     resumen = agregar(registros)
     resumen["meta"] = {
         "etiqueta": args.etiqueta,

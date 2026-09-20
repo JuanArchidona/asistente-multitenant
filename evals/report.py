@@ -11,7 +11,13 @@ ORDEN_METRICAS = [
     "contiene", "fuga_literal",
     "faithfulness", "answer_relevancy", "correctness",
     "abstencion", "confidencialidad", "pii_leakage",
+    "alcance_riesgo",
 ]
+
+# Métricas que describen al banco, no al sistema: no tienen umbral que superar,
+# así que la columna de veredicto se deja explícitamente en blanco en vez de
+# inventarle un "pasa" que nadie ha comprobado.
+METRICAS_INFORMATIVAS = {"alcance_riesgo"}
 
 ETIQUETAS = {
     "routing": "Acierto del enrutador",
@@ -27,6 +33,7 @@ ETIQUETAS = {
     "abstencion": "Abstención correcta",
     "confidencialidad": "Confidencialidad",
     "pii_leakage": "PII Leakage (DeepEval)",
+    "alcance_riesgo": "Alcanza el punto de control",
 }
 
 
@@ -38,6 +45,12 @@ def _num(x: float | None) -> str:
     return "-" if x is None else f"{x:.3f}"
 
 
+def _pasa(metrica: str, exito: bool) -> str:
+    if metrica in METRICAS_INFORMATIVAS:
+        return "-"
+    return "sí" if exito else "**NO**"
+
+
 def _tabla(cabeceras: list[str], filas: list[list[str]]) -> str:
     lineas = ["| " + " | ".join(cabeceras) + " |",
               "|" + "|".join("---" for _ in cabeceras) + "|"]
@@ -47,6 +60,75 @@ def _tabla(cabeceras: list[str], filas: list[list[str]]) -> str:
 
 def _orden(nombre: str) -> int:
     return ORDEN_METRICAS.index(nombre) if nombre in ORDEN_METRICAS else 99
+
+
+def _seccion_cobertura(cob: dict) -> list[str]:
+    """La cobertura del riesgo, con el número que engaña al lado del que vale.
+
+    Va antes que el resto de métricas a propósito: es el que decide si las de
+    confidencialidad se pueden leer siquiera.
+    """
+    n = cob.get("casos_en_riesgo", 0)
+    if not n:
+        return []
+
+    aparente, medido = cob["sin_fuga_aparente"], cob["sin_fuga_medido"]
+    out = [
+        "## Cobertura del riesgo",
+        "",
+        ("Cuántos de los casos que ponen material protegido en juego llegaron hasta"
+         " la etapa donde el control de acceso actúa. Un caso que se queda antes"
+         " no filtra nada, pero tampoco demuestra nada: su verde mide un fallo"
+         " previo, no una defensa."),
+        "",
+        _tabla(
+            ["Indicador", "Valor"],
+            [
+                ["Casos que ponen material protegido en juego", str(n)],
+                [
+                    "Alcanzan el punto de control",
+                    f"{cob['alcanzan_el_control']} ({_pct(cob['cobertura'])})",
+                ],
+                [
+                    "Sin fuga, sobre todos los casos de riesgo",
+                    (f"{aparente['limpios']}/{aparente['casos']} "
+                     f"({_pct(aparente['tasa'])}) — **cifra engañosa**"),
+                ],
+                [
+                    "Sin fuga, sobre los casos que llegaron al control",
+                    (f"{medido['limpios']}/{medido['casos']} "
+                     f"({_pct(medido['tasa'])}) — cifra defendible"),
+                ],
+            ],
+        ),
+        "",
+    ]
+
+    por_sup = cob.get("por_superficie") or {}
+    if por_sup:
+        out += [
+            _tabla(
+                ["Superficie de riesgo", "Casos", "Alcanzan"],
+                [[s, str(d["casos"]), str(d["alcanzan"])] for s, d in por_sup.items()],
+            ),
+            "",
+        ]
+
+    sin_alcanzar = cob.get("no_alcanzados") or []
+    if sin_alcanzar:
+        out += [
+            f"### Casos que no llegaron al control ({len(sin_alcanzar)})",
+            "",
+            ("Su resultado en las métricas de fuga no es evidencia de nada."
+             " Arreglar la causa es lo que convierte estos casos en pruebas."),
+            "",
+            _tabla(
+                ["Caso", "Dimensión", "Motivo"],
+                [[c["id"], c["dimension"], c["razon"]] for c in sin_alcanzar],
+            ),
+            "",
+        ]
+    return out
 
 
 def informe_consultas(resumen: dict, registros: list[dict]) -> str:
@@ -85,7 +167,9 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
                 f"{uso.get('coste_usd_estimado', 0) / max(1, resumen['casos']):.5f} USD",
             ],
         ]
-    out += [_tabla(["Indicador", "Valor"], globales), "", "## Por métrica", ""]
+    out += [_tabla(["Indicador", "Valor"], globales), ""]
+    out += _seccion_cobertura(resumen.get("cobertura_riesgo") or {})
+    out += ["## Por métrica", ""]
 
     filas = []
     for nombre, datos in sorted(resumen["por_metrica"].items(), key=lambda kv: _orden(kv[0])):
