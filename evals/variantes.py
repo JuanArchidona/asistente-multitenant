@@ -24,10 +24,36 @@ from src.ingest import construir_indice
 # Parámetros que condicionan el contenido del índice.
 CAMPOS_INDICE = ("chunk_strategy", "chunk_size", "chunk_overlap", "embed_model", "embed_dims")
 
+# Versión del esquema de metadatos que la ingesta escribe en cada fragmento.
+# Se sube al añadir o cambiar un metadato.
+#
+# Está aquí por un fallo real: al añadir el metadato de clasificación, el barrido
+# reutilizó un índice construido antes de que ese campo existiera. El filtro de
+# permisos no casaba con nada, la recuperación devolvía cero y el informe lo
+# presentaba como un desplome de calidad del RAG. Un índice obsoleto no falla,
+# responde mal, que es peor.
+VERSION_METADATOS = 2
+
 
 def firma_indice(cfg: Config) -> str:
-    crudo = "|".join(f"{c}={getattr(cfg, c)}" for c in CAMPOS_INDICE)
-    return hashlib.sha1(crudo.encode()).hexdigest()[:10]
+    """Firma de todo lo que, al cambiar, obliga a reindexar.
+
+    Además de los parámetros de troceado y embedding, incluye la política de
+    acceso del inquilino: si un documento pasa a estar restringido, su metadato
+    cambia y el índice viejo ya no sirve.
+    """
+    partes = [f"{c}={getattr(cfg, c)}" for c in CAMPOS_INDICE]
+    partes.append(f"metadatos=v{VERSION_METADATOS}")
+    partes.append(
+        "politica="
+        + ";".join(
+            sorted(
+                f"{d.archivo}:{d.requiere}"
+                for d in cfg.tenant.politica.documentos_restringidos
+            )
+        )
+    )
+    return hashlib.sha1("|".join(partes).encode()).hexdigest()[:10]
 
 
 def nombre_coleccion(cfg: Config) -> str:

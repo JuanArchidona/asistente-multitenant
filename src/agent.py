@@ -25,6 +25,7 @@ from datetime import UTC, date, datetime
 from typing import Self
 
 from .config import Config
+from .gobernanza import USUARIO_ANONIMO, Usuario, redactar_json
 from .mcp_cliente import ClienteMCP
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
@@ -112,9 +113,18 @@ def _construir_prompt(consulta: str, fragmentos: list[Recuperado]) -> str:
 class Sistema:
     """Sistema bajo prueba, con los clientes vivos entre consultas."""
 
-    def __init__(self, cfg: Config, chat: ChatProvider | None = None):
+    def __init__(
+        self,
+        cfg: Config,
+        chat: ChatProvider | None = None,
+        usuario: Usuario | None = None,
+    ):
         self.cfg = cfg
         self.chat = chat or get_chat(cfg)
+        # Sin identidad no hay control de acceso. Por defecto, el empleado sin
+        # privilegios: el caso que hay que medir es el de quien pide lo que no
+        # le corresponde, no el del administrador.
+        self.usuario = usuario or USUARIO_ANONIMO
         self._retriever: Retriever | None = None
         self._mcp: ClienteMCP | None = None
 
@@ -147,7 +157,15 @@ class Sistema:
     def __exit__(self, *_excepcion) -> None:
         self.cerrar()
 
-    def responder(self, consulta: str) -> dict:
+    def responder(self, consulta: str, usuario: Usuario | None = None) -> dict:
+        """Responde como `usuario`, o como el usuario por defecto del sistema.
+
+        El parámetro existe para el banco: un golden set que solo puede
+        preguntar con un usuario no puede comprobar que el control de acceso
+        deja pasar a quien sí tiene permiso, y un control que bloquea a todo
+        el mundo saca un pleno en confidencialidad sin servir para nada.
+        """
+        usuario = usuario or self.usuario
         t0 = time.perf_counter()
 
         # 1. Enrutar
@@ -157,6 +175,7 @@ class Sistema:
         base = {
             "consulta": consulta,
             "tenant": self.cfg.tenant.id,
+            "usuario": usuario.id,
             "categoria": ruta.categoria,
             "justificacion_enrutador": ruta.justificacion,
             "confianza_enrutador": ruta.confianza,
@@ -184,11 +203,11 @@ class Sistema:
         #    negocio por MCP. Es el punto del flujo original donde el sistema
         #    deja de ser un RAG y pasa a ser un asistente operativo.
         if self.cfg.tenant.destino_de(ruta.categoria) == DESTINO_ESTRUCTURADO:
-            return {**base, **self._responder_con_datos(consulta, t_router)}
+            return {**base, **self._responder_con_datos(consulta, t_router, usuario)}
 
         fuente = self.cfg.tenant.fuente_de(ruta.categoria)
         t1 = time.perf_counter()
-        fragmentos = self.retriever.recuperar(consulta, fuente)
+        fragmentos = self.retriever.recuperar(consulta, fuente, usuario)
         t_retrieve = time.perf_counter() - t1
 
         # 4. Generar respuesta anclada al contexto. Si el umbral de distancia
@@ -220,7 +239,9 @@ class Sistema:
         }
 
 
-    def _responder_con_datos(self, consulta: str, t_router: float) -> dict:
+    def _responder_con_datos(
+        self, consulta: str, t_router: float, usuario: Usuario
+    ) -> dict:
         """Rama estructurada: el modelo consulta el CRM mediante herramientas MCP.
 
         La traza devuelve las llamadas realizadas en lugar de los fragmentos
@@ -239,13 +260,31 @@ class Sistema:
                 "consulta."
             )
             traza: list[dict] = []
+            redactados_totales = []
         else:
+            redactados_totales: list[str] = []
+
+            def ejecutar(nombre: str, argumentos: dict) -> str:
+                """Único punto por el que entra el resultado de una herramienta.
+
+                La redacción va aquí y no en el servidor MCP: el servidor
+                representa el sistema de negocio del cliente, que legítimamente
+                tiene todos los datos. Quien decide qué puede ver cada persona
+                es el asistente, que es quien conoce al usuario.
+                """
+                bruto = self.mcp.invocar(nombre, argumentos)
+                limpio, redactados = redactar_json(
+                    bruto, self.cfg.tenant.politica, usuario
+                )
+                redactados_totales.extend(redactados)
+                return limpio
+
             respuesta, traza = self.chat.completar_con_herramientas(
                 system_datos(),
                 consulta,
                 self.cfg.model_generator,
                 herramientas,
-                self.mcp.invocar,
+                ejecutar,
             )
         t_gen = time.perf_counter() - t2
 
@@ -258,6 +297,7 @@ class Sistema:
             "contexto_recuperado": [json.dumps(paso, ensure_ascii=False) for paso in traza],
             "contexto_vacio": not traza,
             "herramientas_invocadas": traza,
+            "campos_redactados": sorted(set(redactados_totales)),
             "respuesta": respuesta,
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_recuperacion, 3),

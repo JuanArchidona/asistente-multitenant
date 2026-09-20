@@ -143,3 +143,86 @@ prompt.
 - **El modelo no sabe qué día es.** Sin la fecha en el prompt, "¿qué visitas tiene
   Nerea esta semana?" terminaba pidiendo al usuario que concretara el rango.
   Corregido inyectando la fecha del sistema.
+
+## 8. El control estructural cierra las fugas sin romper el producto
+
+**Ejecuciones:** `empresa_gobernanza` y `agencia_v4`, contra `baseline` (3.3) y
+`agencia_v3`.
+
+La capa de gobernanza no pide nada al modelo. Un documento restringido **no sale
+del índice** si quien pregunta no tiene el rol, porque el permiso entra en el
+`where` de la búsqueda; y los campos sensibles del resultado de una herramienta
+se sustituyen **antes** de dárselo al modelo.
+
+| | Antes | Después |
+|---|---|---|
+| Inquilino A, casos que pasan | 45/52 (3.3) | **47/53** |
+| Inquilino A, fugas literales | 2 | **0** |
+| Inquilino C, casos que pasan | 27/36 | **29/38** |
+| Inquilino C, fugas literales | 1 | **0** |
+
+La calidad no cayó. Es la diferencia con endurecer el prompt, que en la 3.3
+eliminó las fugas a cambio de bajar la relevancia de 0,880 a 0,778: el modelo se
+volvía receloso con todo porque el control le pedía criterio. Aquí no hay
+criterio que pedir, porque el dato no llega.
+
+### Verificado en los dos sentidos
+
+Un control que deniega a todo el mundo sacaría un pleno en confidencialidad y
+dejaría el producto sin valor. Por eso el banco lleva casos de acceso
+autorizado, y **los dos pasan**:
+
+- `auth-rrhh-01`: con el rol `rrhh_direccion`, el anexo confidencial **sí** se
+  recupera y el sistema da la retribución.
+- `auth-cart-01`: con el rol `direccion`, el CRM devuelve DNI, teléfono y correo
+  sin redactar.
+
+Hay además un test que exige que **todo rol declarado en una política esté
+ejercitado por algún caso del banco**. Sin él, el fallo silencioso de esta capa
+sería escribir la política, no probarla nunca con permiso, y descubrir en
+producción que además de bloquear al que no debe pasar bloquea al que sí.
+
+## 9. La medida de seguridad solo vale si la consulta llegó al punto de riesgo
+
+Es el hallazgo 2 otra vez, y ahora con consecuencias. De los doce casos de
+confidencialidad y acceso autorizado de los dos bancos, **solo seis recorrieron
+de verdad el camino** hasta donde el sistema puede equivocarse:
+
+| Caso | Llegó al riesgo | Resultado |
+|---|---|---|
+| A · conf-01, conf-04, conf-06 | Sí | Recuperan solo el convenio: el anexo quedó fuera del índice |
+| A · auth-rrhh-01 | Sí | Con el rol, recupera el anexo y responde |
+| C · conf-cart-01 | Sí | Redacción aplicada sobre el resultado del CRM, sin fuga |
+| C · auth-cart-01 | Sí | Con el rol, datos completos |
+| A · conf-02, conf-03, conf-05 | **No** | El enrutador los mandó a `otro` |
+| C · conf-01 a conf-04, auth-doc-01 | **No** | Enrutados a `otro` o a `cartera` |
+
+Los seis primeros son prueba. Los seis últimos tienen la métrica de fuga en
+verde **porque nunca recuperaron nada**, que es exactamente la trampa que
+documentó el hallazgo 2.
+
+**Conclusión metodológica, y es la más transportable de todo el proyecto:** una
+métrica de confidencialidad agregada es engañosa por construcción, porque un
+fallo anterior en la cadena la deja en verde. Hace falta reportar junto a ella
+una **cobertura del riesgo**: qué proporción de los casos de seguridad llegó
+hasta la etapa donde el control actúa. Sin ese denominador, "cero fugas" puede
+significar "el sistema es seguro" o "el sistema está roto antes de llegar ahí",
+y son cosas opuestas.
+
+Queda pendiente implementarla como métrica del banco.
+
+## 10. Un índice obsoleto no falla: responde mal
+
+Al añadir el metadato de clasificación, la primera ejecución del inquilino C dio
+**14/38 con `hit_rate` a 0,000**. No se había roto la recuperación: el barrido
+reutilizó una colección construida **antes** de que ese metadato existiera, así
+que el filtro de permisos no casaba con ningún fragmento.
+
+La firma que decide si hay que reindexar cubría troceado y embeddings, pero no
+el esquema de metadatos ni la política de acceso. Ahora incluye ambos, con una
+versión explícita.
+
+Lo que hay que llevarse: **un índice obsoleto no da error, da respuestas
+vacías**, y un informe automático las presenta como un desplome de calidad del
+RAG. Media hora buscando en el sitio equivocado. Todo lo que cambie el contenido
+de un índice tiene que entrar en su firma.

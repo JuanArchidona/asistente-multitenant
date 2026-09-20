@@ -71,8 +71,10 @@ class RetrieverFalso:
         self.fragmentos = fragmentos
         self.consultas = []
 
-    def recuperar(self, consulta, fuente):
-        self.consultas.append((consulta, fuente))
+    def recuperar(self, consulta, fuente, usuario=None):
+        # Registra también el usuario: el control de acceso se aplica dentro de
+        # la búsqueda, así que quién pregunta es parte de la llamada.
+        self.consultas.append((consulta, fuente, usuario))
         return self.fragmentos
 
 

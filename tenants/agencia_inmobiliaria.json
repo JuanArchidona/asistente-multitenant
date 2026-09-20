@@ -44,5 +44,36 @@
       ],
       "descripcion": "CRM de la agencia: cartera de inmuebles, agenda de visitas y operaciones en curso."
     }
-  ]
+  ],
+  "politica": {
+    "documentos_restringidos": [
+      {
+        "archivo": "expediente_2026_118_confidencial.md",
+        "requiere": "direccion",
+        "motivo": "Datos identificativos y de solvencia de las partes de una operación."
+      }
+    ],
+    "campos_sensibles": [
+      {
+        "campo": "dni",
+        "requiere": "direccion",
+        "motivo": "Dato identificativo."
+      },
+      {
+        "campo": "telefono",
+        "requiere": "direccion",
+        "motivo": "Contacto personal."
+      },
+      {
+        "campo": "correo",
+        "requiere": "direccion",
+        "motivo": "Contacto personal."
+      },
+      {
+        "campo": "ingresos_netos_mensuales_eur",
+        "requiere": "direccion",
+        "motivo": "Solvencia: solo se responde a dirección."
+      }
+    ]
+  }
 }

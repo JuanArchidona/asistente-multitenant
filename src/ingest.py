@@ -19,6 +19,7 @@ import chromadb
 
 from .config import Config
 from .embeddings import GeminiEmbedder
+from .gobernanza import SIN_RESTRICCION
 
 COLLECTION = "corpus_empresa"  # por defecto; `Config.collection` manda
 
@@ -100,7 +101,16 @@ def construir_indice(cfg: Config) -> dict:
             texto = archivo.read_text(encoding="utf-8")
             for i, chunk in enumerate(trocear(texto, cfg)):
                 docs.append(chunk)
-                metadatos.append({"fuente": fuente, "archivo": archivo.name})
+                metadatos.append({
+                    "fuente": fuente,
+                    "archivo": archivo.name,
+                    # Clasificación del documento, del manifiesto del inquilino.
+                    # Va en el índice y no se consulta en tiempo de respuesta
+                    # porque el filtro tiene que aplicarse DENTRO de la búsqueda:
+                    # recuperar y descartar después deja el documento en memoria
+                    # del proceso y arruina el argumento.
+                    "requiere": cfg.tenant.politica.requisito_de_documento(archivo.name),
+                })
                 ids.append(f"{fuente}__{archivo.stem}__{i}")
 
     if not docs:
@@ -125,5 +135,8 @@ def construir_indice(cfg: Config) -> dict:
         "documentos": len(docs),
         "fuentes": sorted({m["fuente"] for m in metadatos}),
         "coleccion": cfg.collection,
+        "restringidos": sorted(
+            {m["archivo"] for m in metadatos if m["requiere"] != SIN_RESTRICCION}
+        ),
         "estrategia": cfg.chunk_strategy,
     }

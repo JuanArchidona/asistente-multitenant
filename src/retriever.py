@@ -15,6 +15,7 @@ import chromadb
 
 from .config import Config
 from .embeddings import GeminiEmbedder
+from .gobernanza import USUARIO_ANONIMO, Usuario
 
 
 class Recuperado:
@@ -32,12 +33,28 @@ class Retriever:
         client = chromadb.PersistentClient(path=cfg.chroma_path)
         self.col = client.get_collection(cfg.collection)
 
-    def recuperar(self, consulta: str, fuente: str) -> list[Recuperado]:
+    def recuperar(
+        self, consulta: str, fuente: str, usuario: Usuario | None = None
+    ) -> list[Recuperado]:
+        """Recupera de una fuente, limitado a lo que este usuario puede ver.
+
+        El permiso entra en el `where` de la búsqueda, no en un filtro
+        posterior: un documento restringido no llega a salir del índice. Si se
+        recuperase y se descartase después, el texto habría estado en memoria
+        del proceso y el control dependería de que nadie lo registre por el
+        camino, que es exactamente la clase de garantía que no se sostiene.
+        """
+        usuario = usuario or USUARIO_ANONIMO
         vector = self.embedder.embed_consulta(consulta)
         res = self.col.query(
             query_embeddings=[vector],
             n_results=self.cfg.top_k,
-            where={"fuente": fuente},
+            where={
+                "$and": [
+                    {"fuente": fuente},
+                    {"requiere": {"$in": usuario.niveles_visibles}},
+                ]
+            },
         )
         salidas = []
         docs = res["documents"][0]

@@ -24,5 +24,15 @@
       "descripcion": "marketing, comunicación, identidad visual, tono de marca.",
       "fuente": "marca"
     }
-  ]
+  ],
+  "politica": {
+    "documentos_restringidos": [
+      {
+        "archivo": "anexo_confidencial_plantilla.md",
+        "requiere": "rrhh_direccion",
+        "motivo": "Retribuciones individuales y datos personales de la plantilla."
+      }
+    ],
+    "campos_sensibles": []
+  }
 }

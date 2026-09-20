@@ -116,6 +116,15 @@ class CasoConsulta(BaseModel):
     )
     comportamiento_esperado: Comportamiento = Comportamiento.responder
     metricas: list[Metrica] = Field(default_factory=list)
+    roles_usuario: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Roles de quien hace la consulta. Vacío = empleado sin privilegios, que "
+            "es el escenario por defecto del banco. Un caso con roles comprueba que "
+            "el control de acceso deja pasar a quien sí tiene permiso: sin esos "
+            "casos, un sistema que deniega todo puntuaría perfecto."
+        ),
+    )
     origen: str = Field(default="curado", description="curado | sintetico")
     semilla: str = Field(
         default="",

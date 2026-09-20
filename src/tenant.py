@@ -28,6 +28,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from .gobernanza import PoliticaAcceso
+
 DIRECTORIO_TENANTS = Path("tenants")
 
 # Categoría universal: "ninguna fuente interna aplica". Ningún inquilino la
@@ -128,6 +130,7 @@ class Tenant(BaseModel):
     contexto_enrutador: str = Field(min_length=1)
     categorias: list[CategoriaTenant] = Field(min_length=1)
     servidores_mcp: list[ServidorMCP] = Field(default_factory=list)
+    politica: PoliticaAcceso = Field(default_factory=PoliticaAcceso)
 
     @field_validator("id")
     @classmethod

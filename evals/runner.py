@@ -24,6 +24,7 @@ from pathlib import Path
 
 from src.agent import Sistema
 from src.config import load_config
+from src.gobernanza import Usuario
 from src.provider import get_chat
 
 from .dataset import (
@@ -69,7 +70,10 @@ def ejecutar_sut(sistema: Sistema, casos: list[CasoConsulta], workers: int = 1) 
     def _uno(indice_caso):
         i, caso = indice_caso
         try:
-            traza = sistema.responder(caso.consulta)
+            traza = sistema.responder(
+                caso.consulta,
+                usuario=Usuario(id=caso.id, roles=caso.roles_usuario),
+            )
         except Exception as e:  # noqa: BLE001 -- un caso roto no debe tumbar el banco
             traza = {
                 "consulta": caso.consulta,
