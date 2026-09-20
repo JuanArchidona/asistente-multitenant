@@ -31,7 +31,16 @@ def firma_indice(cfg: Config) -> str:
 
 
 def nombre_coleccion(cfg: Config) -> str:
-    return f"corpus_{cfg.chunk_strategy}_{cfg.chunk_size}_{cfg.embed_dims}_{firma_indice(cfg)}"
+    """El inquilino entra en el nombre antes que nada.
+
+    Sin él, dos inquilinos con la misma configuración de indexación compartirían
+    colección y el barrido de uno sobreescribiría el índice del otro. Sería
+    además una fuga de datos entre clientes por la puerta de atrás.
+    """
+    return (
+        f"corpus_{cfg.tenant.id}_{cfg.chunk_strategy}_{cfg.chunk_size}"
+        f"_{cfg.embed_dims}_{firma_indice(cfg)}"
+    )
 
 
 def variante(base: Config, **cambios) -> Config:

@@ -133,4 +133,4 @@ def test_la_firma_es_estable(cfg):
 
 def test_el_nombre_de_coleccion_es_legible(cfg):
     nombre = nombre_coleccion(variante(cfg, chunk_strategy="headings", chunk_size=400))
-    assert nombre.startswith("corpus_headings_400_768_")
+    assert nombre.startswith("corpus_empresa_servicios_headings_400_768_")

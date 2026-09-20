@@ -9,14 +9,13 @@ mediría dos veces lo mismo).
 from src.agent import SYSTEM_GEN_BASE, SYSTEM_GEN_HARDENED, Sistema, system_generador
 from src.retriever import Recuperado
 from src.router import enrutar
-from src.schema import Categoria
 
 # --- Enrutador ---
 
 def test_enrutador_parsea_json_limpio(cfg, chat_falso):
     chat = chat_falso(['{"categoria": "rrhh", "justificacion": "vacaciones", "confianza": 0.95}'])
     ruta = enrutar(cfg, chat, "¿cuántos días de vacaciones tengo?")
-    assert ruta.categoria is Categoria.rrhh
+    assert ruta.categoria == "rrhh"
     assert ruta.confianza == 0.95
     assert ruta.fallback is False
 
@@ -24,7 +23,7 @@ def test_enrutador_parsea_json_limpio(cfg, chat_falso):
 def test_enrutador_tolera_fences_de_markdown(cfg, chat_falso):
     chat = chat_falso(['```json\n{"categoria": "marca", "justificacion": "x", "confianza": 0.8}\n```'])
     ruta = enrutar(cfg, chat, "¿color corporativo?")
-    assert ruta.categoria is Categoria.marca
+    assert ruta.categoria == "marca"
     assert ruta.fallback is False
 
 
@@ -32,7 +31,7 @@ def test_enrutador_marca_el_fallback_ante_json_roto(cfg, chat_falso):
     """El fallo de parseo debe quedar registrado, no absorbido como 'otro'."""
     chat = chat_falso(["lo siento, no puedo clasificar eso"])
     ruta = enrutar(cfg, chat, "consulta")
-    assert ruta.categoria is Categoria.otro
+    assert ruta.categoria == "otro"
     assert ruta.confianza == 0.0
     assert ruta.fallback is True
 
@@ -40,7 +39,7 @@ def test_enrutador_marca_el_fallback_ante_json_roto(cfg, chat_falso):
 def test_enrutador_marca_el_fallback_ante_categoria_invalida(cfg, chat_falso):
     chat = chat_falso(['{"categoria": "legal", "justificacion": "x", "confianza": 0.9}'])
     ruta = enrutar(cfg, chat, "consulta")
-    assert ruta.categoria is Categoria.otro
+    assert ruta.categoria == "otro"
     assert ruta.fallback is True
 
 
@@ -48,7 +47,7 @@ def test_otro_legitimo_no_se_confunde_con_fallback(cfg, chat_falso):
     """Distinguir 'no encaja' de 'me rompí' es el motivo de existir del flag."""
     chat = chat_falso(['{"categoria": "otro", "justificacion": "ajena", "confianza": 0.9}'])
     ruta = enrutar(cfg, chat, "¿qué tiempo hace?")
-    assert ruta.categoria is Categoria.otro
+    assert ruta.categoria == "otro"
     assert ruta.fallback is False
 
 

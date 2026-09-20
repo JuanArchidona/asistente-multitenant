@@ -25,7 +25,7 @@ from .config import Config
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
 from .router import enrutar
-from .schema import CATEGORIA_A_FUENTE, Categoria, Enrutamiento
+from .schema import Enrutamiento
 
 # Prompt tal cual salió de la 3.1: es la línea base que el banco tiene que medir.
 SYSTEM_GEN_BASE = """Eres un asistente interno de empresa. Responde a la consulta del usuario
@@ -101,14 +101,15 @@ class Sistema:
 
         base = {
             "consulta": consulta,
-            "categoria": ruta.categoria.value,
+            "tenant": self.cfg.tenant.id,
+            "categoria": ruta.categoria,
             "justificacion_enrutador": ruta.justificacion,
             "confianza_enrutador": ruta.confianza,
             "fallback_enrutador": ruta.fallback,
         }
 
         # 2. Si es 'otro', no hay fuente interna: respondemos sin RAG.
-        if ruta.categoria == Categoria.otro:
+        if ruta.sin_fuente:
             t1 = time.perf_counter()
             respuesta = self.chat.completar(
                 SYSTEM_SIN_FUENTE, consulta, self.cfg.model_generator
@@ -125,7 +126,7 @@ class Sistema:
             }
 
         # 3. Recuperar de la fuente que dictó el enrutador
-        fuente = CATEGORIA_A_FUENTE[ruta.categoria]
+        fuente = self.cfg.tenant.fuente_de(ruta.categoria)
         t1 = time.perf_counter()
         fragmentos = self.retriever.recuperar(consulta, fuente)
         t_retrieve = time.perf_counter() - t1

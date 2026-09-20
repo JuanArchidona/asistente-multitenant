@@ -7,13 +7,22 @@ llamadas reales vive en `evals/` y se lanza a mano antes de un pase a producció
 acaba desactivándose.
 """
 from dataclasses import replace
+from pathlib import Path
 
 import pytest
 
 from src.config import Config
 from src.provider import ChatProvider
+from src.tenant import cargar_tenant
+
+RAIZ = Path(__file__).resolve().parents[1]
+
+# El inquilino real, no uno de juguete: si el manifiesto de `empresa_servicios`
+# se rompe, estas pruebas tienen que enterarse. Es el que sostiene el banco.
+TENANT_BASE = cargar_tenant("empresa_servicios", raiz=RAIZ / "tenants")
 
 CONFIG_BASE = Config(
+    tenant=TENANT_BASE,
     provider="anthropic",
     anthropic_api_key="clave-de-prueba",
     model_router="modelo-router",
@@ -24,7 +33,7 @@ CONFIG_BASE = Config(
     embed_dims=768,
     chroma_path="data/chroma-test",
     collection="coleccion_test",
-    corpus_path="corpus",
+    corpus_path="corpus/empresa_servicios",
     chunk_strategy="chars",
     chunk_size=800,
     chunk_overlap=100,

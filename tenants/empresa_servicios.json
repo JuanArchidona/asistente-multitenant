@@ -1,0 +1,28 @@
+{
+  "id": "empresa_servicios",
+  "nombre": "Empresa de servicios",
+  "descripcion": "Inquilino heredado de las entregas 2.3, 3.1 y 3.3. Su corpus y sus categorias no se tocan: sostienen el banco de 109 casos como suite de regresion del sistema.",
+  "contexto_enrutador": "el asistente interno de una empresa",
+  "categorias": [
+    {
+      "nombre": "rrhh",
+      "descripcion": "convenio colectivo, vacaciones, nóminas, políticas de personal, permisos.",
+      "fuente": "rrhh"
+    },
+    {
+      "nombre": "desarrollo",
+      "descripcion": "estándares de código, guías técnicas, buenas prácticas de ingeniería.",
+      "fuente": "desarrollo"
+    },
+    {
+      "nombre": "actas",
+      "descripcion": "preguntas sobre decisiones, acuerdos o tareas de reuniones pasadas.",
+      "fuente": "actas"
+    },
+    {
+      "nombre": "marca",
+      "descripcion": "marketing, comunicación, identidad visual, tono de marca.",
+      "fuente": "marca"
+    }
+  ]
+}

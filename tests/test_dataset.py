@@ -12,10 +12,11 @@ import pytest
 
 from evals.dataset import RAIZ_DATASETS, cargar_consultas, cargar_transcripciones
 from evals.schema import Comportamiento, Dimension
-from src.schema import Categoria
+from src.tenant import cargar_tenant
 
 RAIZ = Path(__file__).resolve().parents[1]
-CORPUS = RAIZ / "corpus"
+TENANT = cargar_tenant("empresa_servicios", raiz=RAIZ / "tenants")
+CORPUS = RAIZ / "corpus" / TENANT.id
 
 CASOS = cargar_consultas(RAIZ_DATASETS / "golden_consultas.jsonl")
 ARCHIVOS_CORPUS = {p.name for p in CORPUS.rglob("*.md")}
@@ -38,12 +39,12 @@ def test_todas_las_dimensiones_estan_cubiertas():
 
 def test_todas_las_categorias_del_enrutador_estan_cubiertas():
     presentes = {c.categoria_esperada for c in CASOS}
-    assert presentes == {c.value for c in Categoria}
+    assert presentes == TENANT.categorias_validas
 
 
 @pytest.mark.parametrize("caso", CASOS, ids=lambda c: c.id)
 def test_categoria_valida(caso):
-    assert caso.categoria_esperada in {c.value for c in Categoria}
+    assert caso.categoria_esperada in TENANT.categorias_validas
 
 
 @pytest.mark.parametrize("caso", CASOS, ids=lambda c: c.id)

@@ -13,7 +13,11 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 
+from .tenant import Tenant, cargar_tenant
+
 load_dotenv()
+
+TENANT_POR_DEFECTO = "empresa_servicios"
 
 ESTRATEGIAS_CHUNK = ("chars", "headings")
 POLITICAS_GEN = ("base", "hardened")
@@ -22,6 +26,12 @@ PROVEEDORES_JUEZ = ("anthropic", "gemini")
 
 @dataclass(frozen=True)
 class Config:
+    # --- Inquilino al que pertenece esta ejecución ---
+    # Determina corpus, categorías de enrutado y colección del índice. Va en la
+    # Config y no como parámetro suelto para que sea imposible ejecutar una
+    # consulta sin haber decidido de quién es.
+    tenant: Tenant
+
     # --- Proveedor de chat (enrutador + generador) ---
     provider: str
     anthropic_api_key: str
@@ -73,7 +83,21 @@ def load_config() -> Config:
 
     umbral = os.getenv("DISTANCE_THRESHOLD", "").strip()
 
+    tenant_id = os.getenv("TENANT_ID", TENANT_POR_DEFECTO).strip()
+    try:
+        tenant = cargar_tenant(tenant_id)
+    except ValueError as error:
+        sys.exit(f"[config] {error}")
+
+    # El corpus y la colección se derivan del inquilino. CORPUS_PATH y
+    # CHROMA_COLLECTION son la raíz común, no el destino final: si fueran el
+    # destino, dos inquilinos con la misma configuración compartirían índice y
+    # el aislamiento sería mentira.
+    raiz_corpus = os.getenv("CORPUS_PATH", "corpus")
+    base_coleccion = os.getenv("CHROMA_COLLECTION", "corpus_empresa")
+
     cfg = Config(
+        tenant=tenant,
         provider=provider,
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
         model_router=os.getenv("ANTHROPIC_MODEL_ROUTER", "claude-haiku-4-5-20251001"),
@@ -83,8 +107,8 @@ def load_config() -> Config:
         embed_model=os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001"),
         embed_dims=int(os.getenv("EMBED_DIMS", "768")),
         chroma_path=os.getenv("CHROMA_PATH", "data/chroma"),
-        collection=os.getenv("CHROMA_COLLECTION", "corpus_empresa"),
-        corpus_path=os.getenv("CORPUS_PATH", "corpus"),
+        collection=tenant.coleccion(base_coleccion),
+        corpus_path=tenant.corpus(raiz_corpus),
         chunk_strategy=estrategia,
         chunk_size=int(os.getenv("CHUNK_SIZE", "800")),
         chunk_overlap=int(os.getenv("CHUNK_OVERLAP", "100")),
