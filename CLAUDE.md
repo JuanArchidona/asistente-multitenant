@@ -1,130 +1,163 @@
-# CLAUDE.md — Entrega Módulo 3.3: Evaluación de agentes
+# CLAUDE.md — Asistente multi-tenant (TFM)
 
-> Contexto de esta entrega. El contexto global del máster (alumno, convenciones,
-> patrón técnico) se carga automáticamente desde `Master/CLAUDE.md` — no repetirlo aquí.
+> Fuente única de verdad del proyecto. Si algo de una conversación contradice
+> este documento o `docs/ALCANCE.md`, gana el documento.
+>
+> Este repositorio **parte de la entrega 3.3 del máster** y conserva su historia
+> de commits. Los ficheros del banco de evaluación, el corpus del inquilino
+> heredado y buena parte de `src/` vienen de allí. Lo anterior a
+> `docs: add TFM scope and closed decisions` es la 3.3, no este proyecto.
 
-## Estado
+## 1. Qué es
 
-- **Fase: CERRADA Y CALIFICADA — 10,00 / 10,00** (corregida por Iraitz Montalbán
-  el 2026-08-10 a las 16:41, poco más de una hora después de presentarla).
-- **Entregable:** repo + `Entrega_Modulo_3.3_Juan_Archidona.pdf`.
-- **Repo GitHub:** https://github.com/JuanArchidona/master_ia_entrega_3.3
-  (rama `master`, 5 commits, CI en verde).
-- Material del profesor en `../Documentación/01_Evaluación de agentes.pptx` y los
-  notebooks de clase (`02_Evaluación_de_modelos_con_DeepEval.ipynb`,
-  `03_Evaluando_el_retrieved_de_nuestro_RAG.ipynb`).
+**Asistente interno multi-tenant de conocimiento y datos para empresas de
+servicios profesionales.** Responde consultas combinando dos fuentes:
 
-## Enunciado (resumen)
+- **Documental**: RAG sobre el corpus propio de cada cliente.
+- **Estructurada**: datos de negocio consultados por **MCP**.
 
-Validar que el agente hace lo que debe. Crear ejemplos con tarea y respuesta
-esperada, elegir métricas según el caso (RAG, filtrado de información privada…)
-y, si se puede, ejecutar y valorar el MVP. Cuatro niveles: banco de pruebas
-(mínimo), selección de métricas (medio), ejecución y valoración (pro), pruebas
-sintéticas que expanden las iniciales (Peter Steinberger). Referencia sugerida
-—no obligatoria—: el tutorial de DeepEval sobre el agente de resumen.
+```
+entrada → clasificador → recuperación (documental | estructurada)
+        → generación anclada → gobernanza → salida
+```
 
-## Relación con las entregas anteriores
+Es el Trabajo Fin de Máster de Juan Archidona Ahijado (Máster en IA Generativa
+Avanzada, The Bridge). Se defiende en **octubre de 2026**.
 
-El sistema evaluado es el MVP de la **3.1** (calificada 10/10), que a su vez
-integra el agente de transcripción de la **2.1** y el asistente RAG con
-enrutador de la **2.3**. La corrección de la 3.1 pidió explícitamente tests
-automatizados que puntúen cambios de modelo, embedder y chunking; el plan quedó
-escrito en `Módulo 3/3.1/Entrega/docs/PROXIMOS_PASOS.md` (bloque A) y esta
-entrega lo ejecuta.
+El criterio con el que se evalúa, del programa del máster: *"el objetivo del
+proyecto no está únicamente en que el sistema funcione, sino en justificar cada
+decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
+mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
+Una afirmación sin número no vale.**
 
-## Decisiones de esta entrega
+## 2. Estado (2026-09-20)
 
-- **Stack híbrido**: DeepEval para las métricas de juez LLM (es lo que enseñó el
-  profesor y lo que enlaza el enunciado) y harness propio para las deterministas
-  de enrutado y recuperación. Una librería de juez en las deterministas solo
-  añadiría coste y varianza.
-- **Sistema bajo prueba vendorizado** (`src/` + `corpus/` copiados de la 3.1) en
-  lugar de submódulo: el repo es autocontenido y evaluable de un `uv sync`.
-- **Parámetros de calidad subidos a `Config`** (chunking, dims, top_k, umbral de
-  distancia, política del prompt). Sin esto no hay barrido posible.
-- **Corpus ampliado** con un anexo confidencial ficticio (salarios, DNIs, IBANs,
-  datos de salud) y un acta con una inyección de prompt embebida. Sin material
-  sensible, las métricas de PII darían cero fugas por ausencia de datos, no por
-  mérito del sistema.
-- **Juez ≠ modelo evaluado**, validado en `Config`. Genera `claude-haiku-4-5`,
-  juzga `claude-sonnet-5`. Cambiar además de familia (Gemini) sería mejor y está
-  soportado (`JUDGE_PROVIDER=gemini`), pero la cuota gratuita de Gemini son 20
-  generaciones al día. Limitación declarada en el informe.
-- **El barrido de configuraciones no genera respuestas ni usa juez**: compara
-  solo recuperación, saltándose el enrutador para no meter su varianza en la
-  comparación. Once configuraciones cuestan céntimos.
-- **`GEN_POLICY=base|hardened`**: la línea base es el prompt literal de la 3.1;
-  la variante endurecida añade confidencialidad y resistencia a inyección. Así
-  el cambio de prompt se puntúa en vez de decidirse a ojo.
-- Sin emojis en ningún texto, documento o código (preferencia global de Juan).
+Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
+y control de acceso estructural. **574 tests en verde**, `ruff` limpio.
 
-## Hallazgos de la ejecución
+| Pieza | Estado |
+|---|---|
+| Inquilino como concepto de primera clase | Hecho |
+| Aislamiento entre inquilinos (colección propia) | Hecho y probado |
+| Rama documental (RAG heredado) | Hecho |
+| Rama estructurada (MCP) | Hecho |
+| Control de acceso en las dos ramas | Hecho y medido |
+| Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
+| Observabilidad y coste en producción | Pendiente |
+| Canales (correo, WhatsApp) | Pendiente |
+| Human-in-the-loop | Pendiente |
+| Despliegue con autenticación y tope de gasto | Pendiente |
+| Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
+| Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
 
-Ver [`docs/VALORACION_MVP.md`](docs/VALORACION_MVP.md) para el detalle. En corto:
+El alcance completo, ordenado por prioridad y **con las líneas de corte ya
+decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes
+que profundidad de la documentación.
 
-- El MVP **filtra datos personales** (salario individual y datos de salud) cuando
-  la consulta llega a recuperar el anexo confidencial: `SYSTEM_GEN` de la 3.1 no
-  tiene ninguna regla de confidencialidad. Es el fallo más grave y el banco lo
-  demuestra con literales, no con opiniones.
-- La **variante endurecida del prompt elimina las dos fugas** sin romper el caso
-  de control (la banda salarial agregada se sigue respondiendo) y supera la
-  prueba de inyección **con el fichero confidencial ya recuperado**, algo a lo
-  que la línea base nunca llegó a enfrentarse. Precio: la relevancia baja de
-  0,880 a 0,778 por respuestas más largas.
-- El **enrutador actúa como barrera accidental**: en varias peticiones de datos
-  personales clasifica `otro`, no recupera nada y por tanto no filtra. Se
-  decidió **no** relajar la etiqueta del banco para dar eso por bueno: ajustar el
-  criterio tras ver los resultados es sobreajustar el banco. Se narra como
-  hallazgo en la valoración.
-- **Cero fallbacks silenciosos** del enrutador en 52 casos: el parseo manual de
-  JSON aguanta, aunque siga siendo una clase de fallo latente.
-- El barrido dice que **`headings` + `top_k=2`** sube la precisión de
-  recuperación de 0,674 a 0,919 manteniendo recall 1,0 y MRR 1,0, y que **subir
-  las dimensiones del embedder (1536, 3072) no cambia nada**.
-- Dos pasadas del juez sobre las mismas trazas miden su **variabilidad**: la
-  métrica de confidencialidad cambia de veredicto en el 50 % de los casos, y por
-  eso el veredicto se ancla en las deterministas.
+## 3. Los dos inquilinos
 
-## Roadmap de la entrega
+| | `empresa_servicios` | `agencia_inmobiliaria` |
+|---|---|---|
+| Qué es | Empresa de servicios heredada de las entregas 2.3/3.1/3.3 | Domara Inmobiliaria, agencia ficticia de Zaragoza |
+| Para qué está | Sostener el banco heredado como **suite de regresión** | Demostrar agnosticidad y la rama estructurada |
+| Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), procesos, normativa, comercial, actas |
+| Corpus | 7 documentos | 10 documentos |
+| Banco | 53 casos | 38 casos |
+| MCP | No | `mcp_servers/agencia_crm.py` |
 
-1. ~~Scaffold y vendorizado del sistema bajo prueba.~~ Hecho.
-2. ~~Parametrizar `Config` y añadir chunking por encabezados.~~ Hecho.
-3. ~~Ampliar el corpus con material de confidencialidad e inyección.~~ Hecho.
-4. ~~Golden set curado (52 consultas + 5 transcripciones).~~ Hecho.
-5. ~~Métricas deterministas y de juez.~~ Hecho.
-6. ~~Runner, informes y barrido.~~ Hecho.
-7. ~~Tests y CI.~~ Hecho (322 pruebas sin API).
-8. ~~Ejecución real, set sintético y valoración.~~ Hecho.
-9. ~~PDF de entrega y presentación en el campus virtual.~~ Hecho el 2026-08-10.
+Ambos son **sintéticos**. Ningún dato real de ninguna empresa entra aquí: el
+repositorio es público.
 
-**Roadmap cerrado.** Lo que quedaría por delante está en
-[`docs/PROXIMOS_PASOS.md`](docs/PROXIMOS_PASOS.md), ya con el feedback del
-profesor incorporado.
+## 4. Decisiones cerradas, y por qué
 
-## Corrección del profesor (2026-08-10) — 10,00 / 10,00
+- **Colección de Chroma por inquilino**, no un índice filtrado por metadato. El
+  aislamiento tiene que ser estructural: un filtro mal construido en una sola
+  ruta de consulta devuelve documentos de otro cliente sin que nada lo señale.
+- **Servidores MCP**, no herramientas cableadas. Un `tools=[...]` dentro del
+  agente ata el sistema a la API de un cliente; un servidor lo convierte en
+  contrato.
+- **Control de acceso antes del modelo.** El permiso va **dentro del `where`**
+  de la búsqueda y la redacción se aplica al salir de la herramienta. Un prompt
+  que dice "no reveles el DNI" deja el DNI en la ventana de contexto.
+- **Python vanilla**, con un capítulo de justificación comparándolo con
+  LangGraph. El capstone puntúa la justificación, no la herramienta.
+- **Todo lo que distingue a un inquilino es declarativo**: categorías, fuentes,
+  servidores MCP y política de acceso viven en `tenants/<id>.json`. Si dar de
+  alta un cliente exige editar un `.py`, la costura está mal puesta — y eso se
+  mide cronometrando el alta al final del proyecto.
 
-Valoración: profundidad del ejercicio, y en concreto **evaluar también al juez y
-su estabilidad**, "ya que los LLMs como juez tampoco son perfectos y sufren de
-los mismos problemas que los agentes como tal. Al ser tareas más acotadas,
-podemos ajustar el resultado pero siempre con esa holgura que has identificado
-correctamente".
+## 5. Reglas de trabajo
 
-Dos líneas de mejora señaladas:
+- **No se relaja el banco.** Se corrige un caso cuando la expectativa era
+  incorrecta, nunca cuando el resultado incomoda. Cada corrección se justifica
+  por escrito en `docs/HALLAZGOS.md`.
+- **Nada de fallbacks silenciosos.** Si algo degrada —parseo fallido,
+  recuperación vacía, servidor caído— se marca y se propaga. La confusión más
+  cara es que "el CRM está caído" se lea como "no tengo esa información".
+- **La línea base heredada no se toca.** Hay un test que compara el prompt del
+  enrutador carácter a carácter con el de la 3.3; si cambia, las métricas de los
+  109 casos dejan de ser comparables.
+- **Sin emoticonos** en código, documentos, commits ni interfaz.
+- **Sin atribución a Claude** en commits ni entregables.
+- Commits en inglés, conventional commits. Documentación en español.
+- Ningún dato personal real, en ningún sitio.
 
-1. **Un token de API para el agente y otro para el juez.** Permite separar en
-   facturación lo que cuesta el sistema de lo que cuesta evaluarlo, y con eso
-   "tener buenas estimaciones de incremento en costes ante nuevos despliegues".
-   Es un hueco real de esta entrega: `Uso` contabiliza los tokens del sistema
-   bajo prueba, pero el gasto del juez lo lleva DeepEval por dentro y no se
-   captura, así que el informe da coste por consulta y no coste por evaluación.
-2. **Revisar el sistema desde el punto de vista de la seguridad.** Es el
-   siguiente frente; el banco cubre confidencialidad e inyección como
-   dimensiones de calidad, no como una revisión de seguridad.
+## 6. Estructura
 
-Traducción a pasos concretos en [`docs/PROXIMOS_PASOS.md`](docs/PROXIMOS_PASOS.md).
-**No se implementan en este repo**, que está entregado y calificado: el valor
-está en aplicarlo hacia delante (mismo criterio que se siguió con la 3.1).
+```
+corpus/<tenant>/<fuente>/*.md      Documentos de cada inquilino
+datos/<tenant>/crm.json            Datos de negocio sintéticos (generados)
+tenants/<tenant>.json              Manifiesto: categorías, MCP, política
+mcp_servers/                       Servidores MCP por inquilino
+scripts/                           Generadores reproducibles (semilla fija)
+src/
+  tenant.py       Inquilino: categorías, destinos, servidores, política
+  gobernanza.py   Control de acceso: permisos y redacción
+  mcp_cliente.py  Cliente MCP (hilo con bucle propio)
+  agent.py        Orquestación y bifurcación de ramas
+  router.py       Enrutador (prompt construido desde el manifiesto)
+  retriever.py    Recuperación filtrada por fuente y por permiso
+  provider.py     Abstracción de proveedor, con tool-calling
+evals/            Banco: datasets por inquilino, métricas, runner, barrido
+reports/          Evidencia de cada ejecución
+docs/
+  ALCANCE.md      Decisiones cerradas y alcance por bloques
+  HALLAZGOS.md    Hallazgos medidos, con la ejecución que los respalda
+```
 
-## Memoria de sesiones
+## 7. Comandos
 
-- Diario en `docs/BITACORA.md` (lo escribe `/cierre`, lo lee `/arranque`).
+```bash
+uv sync --group judge
+uv run pytest -q                                   # 574 tests, sin llamadas a API
+uv run ruff check src evals tests mcp_servers scripts
+
+uv run python -m src.ingest_cli                    # indexa el inquilino activo
+TENANT_ID=agencia_inmobiliaria uv run python -m src.ingest_cli
+
+uv run python -m evals.runner --etiqueta X --sin-juez   # banco sin coste de juez
+uv run python scripts/generar_crm_agencia.py            # regenera el CRM sintético
+```
+
+`TENANT_ID` selecciona el inquilino; por defecto, `empresa_servicios`.
+
+**Al cambiar la política de acceso o el esquema de metadatos hay que reindexar.**
+La firma del índice ya lo cubre, pero conviene saberlo: un índice obsoleto no da
+error, devuelve vacío (ver `docs/HALLAZGOS.md` §10).
+
+## 8. Riesgos abiertos
+
+- No se dispone del enunciado oficial ni de la rúbrica del TFM.
+- Reutilizar entregas propias calificadas no está verificado en ninguna
+  normativa.
+- Sin tope de gasto en la cuenta de Anthropic; cerrar antes de exponer el
+  despliegue.
+- Solapamiento `procesos` / `cartera` en el inquilino C: ensucia seis casos y no
+  se arregla con más palabras en el prompt.
+- Falta la métrica de **cobertura del riesgo**: sin ella, "cero fugas" no
+  distingue un sistema seguro de uno roto antes del punto de control.
+
+## 9. Mantenimiento
+
+Al cerrar un avance relevante: actualizar la sección 2, anotar el hallazgo
+medido en `docs/HALLAZGOS.md` citando su ejecución, y commitear junto al código.
