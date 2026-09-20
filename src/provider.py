@@ -105,6 +105,14 @@ class Uso:
 MAX_TOKENS_SUT = 1024
 
 
+# Vueltas máximas del bucle de herramientas. Cuatro dan margen para encadenar
+# (buscar, luego detallar) sin permitir que una consulta se vaya de coste si el
+# modelo entra en bucle. Al agotarse se marca en la traza: nunca se corta en
+# silencio, porque una respuesta incompleta que parece completa es peor que un
+# error.
+MAX_VUELTAS_HERRAMIENTAS = 4
+
+
 class ChatProvider:
     def __init__(self) -> None:
         self.uso = Uso()
@@ -113,6 +121,22 @@ class ChatProvider:
         self, system: str, user: str, model: str, max_tokens: int = MAX_TOKENS_SUT
     ) -> str:
         raise NotImplementedError
+
+    def completar_con_herramientas(
+        self,
+        system: str,
+        user: str,
+        model: str,
+        herramientas: list[dict],
+        ejecutar,
+        max_vueltas: int = MAX_VUELTAS_HERRAMIENTAS,
+        max_tokens: int = MAX_TOKENS_SUT,
+    ) -> tuple[str, list[dict]]:
+        """Conversación con tool-calling. Devuelve el texto final y la traza de llamadas."""
+        raise NotImplementedError(
+            f"{type(self).__name__} no implementa tool-calling. La rama estructurada "
+            "requiere un proveedor que lo soporte."
+        )
 
 
 class AnthropicChat(ChatProvider):
@@ -136,6 +160,74 @@ class AnthropicChat(ChatProvider):
         )
         self.uso.registrar(model, resp.usage.input_tokens, resp.usage.output_tokens)
         return "".join(b.text for b in resp.content if b.type == "text")
+
+    def completar_con_herramientas(
+        self,
+        system: str,
+        user: str,
+        model: str,
+        herramientas: list[dict],
+        ejecutar,
+        max_vueltas: int = MAX_VUELTAS_HERRAMIENTAS,
+        max_tokens: int = MAX_TOKENS_SUT,
+    ) -> tuple[str, list[dict]]:
+        """Bucle de tool-calling nativo del SDK.
+
+        El modelo decide qué herramienta invocar; el programa la ejecuta y le
+        devuelve el resultado. Esa inversión de control es lo que separa un
+        agente de una cadena de llamadas, y es el mismo patrón de la entrega 2.1,
+        ahora con las herramientas viniendo de un servidor MCP en vez de estar
+        cableadas.
+        """
+        mensajes: list[dict] = [{"role": "user", "content": user}]
+        traza: list[dict] = []
+
+        for vuelta in range(max_vueltas):
+            resp = con_reintentos(
+                lambda: self.client.messages.create(
+                    model=model,
+                    max_tokens=max_tokens,
+                    system=system,
+                    messages=mensajes,
+                    tools=herramientas,
+                ),
+                f"anthropic:{model}:tools",
+            )
+            self.uso.registrar(model, resp.usage.input_tokens, resp.usage.output_tokens)
+
+            if resp.stop_reason != "tool_use":
+                texto = "".join(b.text for b in resp.content if b.type == "text")
+                return texto, traza
+
+            mensajes.append({"role": "assistant", "content": resp.content})
+            resultados = []
+            for bloque in resp.content:
+                if bloque.type != "tool_use":
+                    continue
+                try:
+                    salida = ejecutar(bloque.name, bloque.input or {})
+                    error = False
+                except Exception as fallo:  # noqa: BLE001 - se devuelve al modelo, no se traga
+                    salida = f"La herramienta falló: {type(fallo).__name__}: {fallo}"
+                    error = True
+                traza.append({
+                    "vuelta": vuelta + 1,
+                    "herramienta": bloque.name,
+                    "argumentos": bloque.input or {},
+                    "error": error,
+                    "caracteres_resultado": len(salida),
+                })
+                resultados.append({
+                    "type": "tool_result",
+                    "tool_use_id": bloque.id,
+                    "content": salida,
+                    "is_error": error,
+                })
+            mensajes.append({"role": "user", "content": resultados})
+
+        # Se agotaron las vueltas con el modelo todavía pidiendo herramientas.
+        traza.append({"limite_vueltas_alcanzado": True, "vueltas": max_vueltas})
+        return "", traza
 
 
 class GeminiChat(ChatProvider):

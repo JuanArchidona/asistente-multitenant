@@ -5,24 +5,44 @@
   "contexto_enrutador": "el asistente interno de una agencia inmobiliaria",
   "categorias": [
     {
+      "nombre": "cartera",
+      "descripcion": "estado actual de un caso concreto: qué inmuebles hay publicados y a qué precio, cuántos días llevan, qué visitas hay en la agenda y en qué situación está una operación por su referencia. Datos vivos, no documentación.",
+      "destino": "estructurado"
+    },
+    {
       "nombre": "procesos",
-      "descripcion": "procedimientos internos de la agencia: captación, visitas, ofertas, reservas, firma y postventa; expedientes de operaciones y datos de clientes.",
-      "fuente": "procesos"
+      "descripcion": "cómo se hace el trabajo: procedimiento de captación, de visitas, de ofertas, de reservas y de firma, plazos internos y protocolo de datos personales. Documentación de procedimiento, no el estado de un caso concreto.",
+      "fuente": "procesos",
+      "destino": "documental"
     },
     {
       "nombre": "normativa",
       "descripcion": "documentación obligatoria de una operación, obligaciones legales del propietario y del arrendador.",
-      "fuente": "normativa"
+      "fuente": "normativa",
+      "destino": "documental"
     },
     {
       "nombre": "comercial",
       "descripcion": "honorarios, hoja de encargo, criterios de valoración y política de precios.",
-      "fuente": "comercial"
+      "fuente": "comercial",
+      "destino": "documental"
     },
     {
       "nombre": "actas",
       "descripcion": "preguntas sobre decisiones, acuerdos o tareas de reuniones pasadas.",
-      "fuente": "actas"
+      "fuente": "actas",
+      "destino": "documental"
+    }
+  ],
+  "servidores_mcp": [
+    {
+      "nombre": "crm",
+      "comando": "python",
+      "args": [
+        "-m",
+        "mcp_servers.agencia_crm"
+      ],
+      "descripcion": "CRM de la agencia: cartera de inmuebles, agenda de visitas y operaciones en curso."
     }
   ]
 }

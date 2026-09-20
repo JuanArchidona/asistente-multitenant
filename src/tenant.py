@@ -36,6 +36,12 @@ CATEGORIA_OTRO = "otro"
 
 _RE_IDENTIFICADOR = re.compile(r"^[a-z][a-z0-9_]*$")
 
+# A dónde lleva una categoría. Es la bifurcación del flujo original: duda
+# documental al RAG, duda de estado a la API de negocio vía MCP.
+DESTINO_DOCUMENTAL = "documental"
+DESTINO_ESTRUCTURADO = "estructurado"
+DESTINOS = (DESTINO_DOCUMENTAL, DESTINO_ESTRUCTURADO)
+
 
 def _validar_identificador(valor: str, campo: str) -> str:
     """Identificadores en minúsculas: acaban en rutas de disco y en nombres de
@@ -49,12 +55,53 @@ def _validar_identificador(valor: str, campo: str) -> str:
     return valor
 
 
+class ServidorMCP(BaseModel):
+    """Un servidor MCP que expone los datos de negocio de este inquilino.
+
+    Se lanza como proceso independiente y se habla con él por stdio. Que sea un
+    proceso aparte y no una importación es deliberado: el sistema de negocio de
+    un cliente real no es código de este repositorio, y tratarlo como tal
+    escondería justo los fallos que importan (arranque, timeouts, caídas).
+    """
+
+    nombre: str
+    comando: str
+    args: list[str] = Field(default_factory=list)
+    descripcion: str = ""
+
+    @field_validator("nombre")
+    @classmethod
+    def _nombre_valido(cls, v: str) -> str:
+        return _validar_identificador(v, "nombre de servidor MCP")
+
+
 class CategoriaTenant(BaseModel):
-    """Una categoría de enrutado y la fuente documental a la que dirige."""
+    """Una categoría de enrutado y el sitio al que dirige la recuperación."""
 
     nombre: str
     descripcion: str = Field(min_length=1)
-    fuente: str
+    destino: str = DESTINO_DOCUMENTAL
+    fuente: str = ""
+
+    @field_validator("destino")
+    @classmethod
+    def _destino_valido(cls, v: str) -> str:
+        if v not in DESTINOS:
+            raise ValueError(f"destino inválido: {v!r}. Usa uno de {DESTINOS}.")
+        return v
+
+    @model_validator(mode="after")
+    def _fuente_coherente_con_destino(self) -> "CategoriaTenant":
+        if self.destino == DESTINO_DOCUMENTAL and not self.fuente:
+            raise ValueError(
+                f"la categoría {self.nombre!r} es documental y no declara fuente"
+            )
+        if self.destino == DESTINO_ESTRUCTURADO and self.fuente:
+            raise ValueError(
+                f"la categoría {self.nombre!r} es estructurada: no consulta el corpus, "
+                "así que no puede declarar fuente"
+            )
+        return self
 
     @field_validator("nombre")
     @classmethod
@@ -69,7 +116,7 @@ class CategoriaTenant(BaseModel):
     @field_validator("fuente")
     @classmethod
     def _fuente_valida(cls, v: str) -> str:
-        return _validar_identificador(v, "fuente")
+        return _validar_identificador(v, "fuente") if v else v
 
 
 class Tenant(BaseModel):
@@ -80,6 +127,7 @@ class Tenant(BaseModel):
     descripcion: str = ""
     contexto_enrutador: str = Field(min_length=1)
     categorias: list[CategoriaTenant] = Field(min_length=1)
+    servidores_mcp: list[ServidorMCP] = Field(default_factory=list)
 
     @field_validator("id")
     @classmethod
@@ -94,6 +142,36 @@ class Tenant(BaseModel):
             raise ValueError(f"categorías repetidas en {self.id!r}: {sorted(repetidos)}")
         return self
 
+    @model_validator(mode="after")
+    def _la_rama_estructurada_tiene_a_donde_ir(self) -> "Tenant":
+        """Una categoría estructurada sin servidor declarado enruta a la nada.
+
+        El usuario vería "no tengo esa información" y parecería un corpus
+        incompleto, cuando lo que falta es la mitad del sistema.
+        """
+        if self.categorias_estructuradas and not self.servidores_mcp:
+            nombres = sorted(c.nombre for c in self.categorias_estructuradas)
+            raise ValueError(
+                f"el inquilino {self.id!r} declara categorías estructuradas {nombres} "
+                "pero ningún servidor MCP que las atienda"
+            )
+        return self
+
+    @property
+    def categorias_documentales(self) -> list[CategoriaTenant]:
+        return [c for c in self.categorias if c.destino == DESTINO_DOCUMENTAL]
+
+    @property
+    def categorias_estructuradas(self) -> list[CategoriaTenant]:
+        return [c for c in self.categorias if c.destino == DESTINO_ESTRUCTURADO]
+
+    def destino_de(self, categoria: str) -> str:
+        """A qué rama va una categoría. `otro` no va a ninguna."""
+        for c in self.categorias:
+            if c.nombre == categoria:
+                return c.destino
+        raise KeyError(f"categoría {categoria!r} no declarada en el inquilino {self.id!r}")
+
     @property
     def categorias_validas(self) -> set[str]:
         """Lo que el enrutador puede devolver legítimamente para este inquilino."""
@@ -103,6 +181,10 @@ class Tenant(BaseModel):
         """Fuente documental de una categoría. `otro` no tiene: no se pregunta por ella."""
         for c in self.categorias:
             if c.nombre == categoria:
+                if c.destino != DESTINO_DOCUMENTAL:
+                    raise KeyError(
+                        f"la categoría {categoria!r} es {c.destino}: no tiene fuente documental"
+                    )
                 return c.fuente
         raise KeyError(f"categoría {categoria!r} no declarada en el inquilino {self.id!r}")
 

@@ -74,7 +74,7 @@ def test_cada_categoria_declarada_tiene_corpus_detras(tenant_id):
     tenant = cargar_tenant(tenant_id, raiz=TENANTS)
     raiz = RAIZ / "corpus" / tenant.id
     assert raiz.is_dir(), f"el inquilino {tenant_id!r} no tiene corpus en {raiz}"
-    for categoria in tenant.categorias:
+    for categoria in tenant.categorias_documentales:
         directorio = raiz / categoria.fuente
         assert directorio.is_dir(), f"falta {directorio}"
         assert list(directorio.glob("*.md")), f"{directorio} no tiene documentos"
@@ -86,6 +86,8 @@ def test_el_prompt_del_enrutador_nombra_todas_las_categorias(tenant_id):
     inalcanzable: el modelo no puede devolver lo que no conoce."""
     tenant = cargar_tenant(tenant_id, raiz=TENANTS)
     prompt = system_router(tenant)
+    # Todas, también las estructuradas: una categoría que el prompt no nombra es
+    # inalcanzable, dé a documentos o a herramientas.
     for categoria in tenant.categorias:
         assert f"- {categoria.nombre}:" in prompt
     assert f"- {CATEGORIA_OTRO}:" in prompt
