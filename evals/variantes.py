@@ -15,6 +15,7 @@ firma: cambiarlos no requiere reindexar y sería tirar el dinero de embeddings.
 """
 import hashlib
 from dataclasses import replace
+from pathlib import Path
 
 import chromadb
 
@@ -35,12 +36,39 @@ CAMPOS_INDICE = ("chunk_strategy", "chunk_size", "chunk_overlap", "embed_model",
 VERSION_METADATOS = 2
 
 
+def firma_corpus(corpus_path: str) -> str:
+    """Huella del corpus: qué documentos hay, en qué fuente y con qué contenido.
+
+    Falta esto y el índice se queda obsoleto sin que nada lo señale. Es el mismo
+    fallo del hallazgo 10 en el eje que aquel arreglo no cubrió: entonces se
+    añadieron a la firma el esquema de metadatos y la política, pero no el
+    corpus, que es lo más obvio que puede cambiar. Mover un documento de fuente
+    no toca ningún parámetro de la configuración, así que la firma no se movía,
+    el barrido reutilizaba la colección vieja y la fuente nueva salía vacía.
+
+    Se hashea el contenido y no la fecha de modificación: `git checkout` de una
+    rama a otra reescribe las fechas sin cambiar el texto, y eso reindexaría
+    gratis cada vez. Leer once ficheros de markdown no se nota al lado de lo que
+    cuesta equivocarse.
+    """
+    raiz = Path(corpus_path)
+    if not raiz.is_dir():
+        return "sin-corpus"
+    partes = []
+    for archivo in sorted(raiz.rglob("*.md")):
+        relativa = archivo.relative_to(raiz).as_posix()
+        contenido = hashlib.sha1(archivo.read_bytes()).hexdigest()[:10]
+        partes.append(f"{relativa}:{contenido}")
+    return hashlib.sha1("|".join(partes).encode()).hexdigest()[:10]
+
+
 def firma_indice(cfg: Config) -> str:
     """Firma de todo lo que, al cambiar, obliga a reindexar.
 
     Además de los parámetros de troceado y embedding, incluye la política de
-    acceso del inquilino: si un documento pasa a estar restringido, su metadato
-    cambia y el índice viejo ya no sirve.
+    acceso del inquilino (si un documento pasa a estar restringido, su metadato
+    cambia) y el corpus entero (si el documento se mueve, se edita o desaparece,
+    el índice viejo describe otro corpus).
     """
     partes = [f"{c}={getattr(cfg, c)}" for c in CAMPOS_INDICE]
     partes.append(f"metadatos=v{VERSION_METADATOS}")
@@ -53,6 +81,7 @@ def firma_indice(cfg: Config) -> str:
             )
         )
     )
+    partes.append(f"corpus={firma_corpus(cfg.corpus_path)}")
     return hashlib.sha1("|".join(partes).encode()).hexdigest()[:10]
 
 

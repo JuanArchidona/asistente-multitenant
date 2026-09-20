@@ -6,12 +6,18 @@
   "categorias": [
     {
       "nombre": "cartera",
-      "descripcion": "estado actual de un caso concreto: qué inmuebles hay publicados y a qué precio, cuántos días llevan, qué visitas hay en la agenda y en qué situación está una operación por su referencia. Datos vivos, no documentación.",
+      "descripcion": "estado actual de un caso concreto: qué inmuebles hay publicados y a qué precio, cuántos días llevan, qué visitas hay en la agenda y en qué situación está una operación por su referencia OP-AAAA-NNN. Datos vivos del CRM, no el expediente escrito de la operación.",
       "destino": "estructurado"
     },
     {
+      "nombre": "expedientes",
+      "descripcion": "el expediente escrito de una operación concreta, citada por su número: quiénes son las partes compradora y vendedora, sus datos identificativos y de contacto, su solvencia acreditada y lo que consta firmado. Es un documento del archivo, con datos personales dentro.",
+      "fuente": "expedientes",
+      "destino": "documental"
+    },
+    {
       "nombre": "procesos",
-      "descripcion": "cómo se hace el trabajo: procedimiento de captación, de visitas, de ofertas, de reservas y de firma, plazos internos y protocolo de datos personales. Documentación de procedimiento, no el estado de un caso concreto.",
+      "descripcion": "cómo se hace el trabajo: procedimiento de captación, de visitas, de ofertas, de reservas y de firma, plazos internos y protocolo de datos personales. Documentación de procedimiento en general, no el estado de un caso concreto ni el expediente de una operación.",
       "fuente": "procesos",
       "destino": "documental"
     },

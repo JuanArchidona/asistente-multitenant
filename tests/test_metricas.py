@@ -228,6 +228,20 @@ def test_alcance_falla_si_la_recuperacion_viene_vacia():
     assert r.valor == 0.0 and "recuperación vacía" in r.razon
 
 
+def test_alcance_llega_si_el_control_vacio_la_recuperacion():
+    """Una fuente cuyo único documento está restringido devuelve vacío porque el
+    control actuó, no porque la consulta se quedara corta. Fue el primer error de
+    esta métrica: sin `denegados_por_permiso` las dos cosas son el mismo silencio.
+    """
+    traza = _traza(
+        fuentes_usadas=[],
+        denegados_por_permiso=["expediente_2026_118_confidencial.md"],
+    )
+    r = evaluar_alcance_riesgo(_caso_conf(), traza, TENANT_EMPRESA)
+    assert r.valor == 1.0
+    assert "el control retuvo" in r.razon
+
+
 def test_alcance_nunca_tumba_un_caso():
     """No puntúa: el fallo que la deja a cero ya sale en rojo por `routing`, y
     contarlo dos veces movería `casos_ok` respecto a la línea base heredada."""

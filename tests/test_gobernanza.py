@@ -133,11 +133,11 @@ def test_el_permiso_viaja_dentro_del_where_de_chroma(cfg, monkeypatch):
     """
     from src import retriever as modulo
 
-    capturado = {}
+    llamadas = []
 
     class ColeccionFalsa:
         def query(self, **kwargs):
-            capturado.update(kwargs)
+            llamadas.append(kwargs)
             return {"documents": [[]], "metadatas": [[]], "distances": [[]]}
 
     class ClienteFalso:
@@ -155,19 +155,54 @@ def test_el_permiso_viaja_dentro_del_where_de_chroma(cfg, monkeypatch):
     r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
     r.recuperar("¿ingresos del comprador?", "procesos", COMERCIAL)
 
-    condiciones = capturado["where"]["$and"]
+    condiciones = llamadas[0]["where"]["$and"]
     assert {"fuente": "procesos"} in condiciones
     assert {"requiere": {"$in": [SIN_RESTRICCION]}} in condiciones
+
+
+def test_la_consulta_de_auditoria_no_saca_el_texto_restringido(cfg, monkeypatch):
+    """La segunda consulta averigua QUÉ retuvo el control, no qué dice.
+
+    Es la única que mira más allá del permiso del usuario, así que es la que
+    podría convertir el control estructural en uno de mentira. Pide solo
+    metadatos: el texto restringido nunca llega a salir del índice.
+    """
+    from src import retriever as modulo
+
+    llamadas = []
+
+    class ColeccionFalsa:
+        def query(self, **kwargs):
+            llamadas.append(kwargs)
+            return {"documents": [[]], "metadatas": [[]], "distances": [[]]}
+
+    monkeypatch.setattr(
+        modulo.chromadb,
+        "PersistentClient",
+        lambda path: type("C", (), {"get_collection": lambda s, n: ColeccionFalsa()})(),
+    )
+    monkeypatch.setattr(
+        modulo, "GeminiEmbedder", lambda cfg: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
+    )
+
+    r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
+    r.recuperar_con_control("¿ingresos del comprador?", "procesos", COMERCIAL)
+
+    auditoria = llamadas[1]
+    assert auditoria["include"] == ["metadatas"]
+    assert "documents" not in auditoria["include"]
+    # Sin filtro de permiso: es justo lo que la hace capaz de ver lo retenido.
+    assert auditoria["where"] == {"fuente": "procesos"}
 
 
 def test_el_rol_amplia_lo_que_el_where_deja_pasar(cfg, monkeypatch):
     from src import retriever as modulo
 
-    capturado = {}
+    llamadas = []
 
     class ColeccionFalsa:
         def query(self, **kwargs):
-            capturado.update(kwargs)
+            llamadas.append(kwargs)
             return {"documents": [[]], "metadatas": [[]], "distances": [[]]}
 
     monkeypatch.setattr(
@@ -182,7 +217,7 @@ def test_el_rol_amplia_lo_que_el_where_deja_pasar(cfg, monkeypatch):
     r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
     r.recuperar("¿ingresos del comprador?", "procesos", DIRECCION)
 
-    assert {"requiere": {"$in": [SIN_RESTRICCION, "direccion"]}} in capturado["where"]["$and"]
+    assert {"requiere": {"$in": [SIN_RESTRICCION, "direccion"]}} in llamadas[0]["where"]["$and"]
 
 
 # --- Coherencia entre política y banco ---

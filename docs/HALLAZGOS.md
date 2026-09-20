@@ -1,4 +1,4 @@
-> Versión: 1.1 · Actualizado: 2026-09-20 · Idioma: ES
+> Versión: 1.2 · Actualizado: 2026-09-20 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -272,3 +272,149 @@ Tres consecuencias:
 Lo transportable, que es lo que se defiende: **antes de creerse una métrica de
 seguridad agregada hay que publicar su denominador.** Un control que nunca se
 ejerce y un control que funciona producen el mismo verde.
+
+## 12. La categoría que no existe no se arregla con más palabras
+
+**Ejecuciones:** `agencia_cobertura` (antes) y `agencia_expedientes_v2` (después).
+
+El solapamiento `procesos` / `cartera` no era un problema de redacción. El
+manifiesto del inquilino C decía, literalmente, que `procesos` es
+"documentación de procedimiento, **no el estado de un caso concreto**" y que
+`cartera` son "datos vivos, **no documentación**". El expediente de una
+operación es documentación de un caso concreto: la única celda que la taxonomía
+declaraba vacía. El enrutador no se equivocaba, cumplía el manifiesto.
+
+Se añadió una categoría `expedientes`, documental, con su propia fuente. Es el
+hallazgo 1 otra vez —el enrutador no puede devolver lo que el prompt no
+describe— pero un escalón más arriba: allí faltaban seis palabras en una
+descripción, aquí faltaba un concepto.
+
+| | Antes | Después |
+|---|---|---|
+| Casos que pasan todas sus métricas | 29/38 | **33/38** |
+| Acierto del enrutador | 0,763 | 0,868 |
+| Cobertura del riesgo | 0,444 | **0,778** |
+| Sin fuga, sobre los casos que llegaron | 3/3 | **6/6** |
+
+La cifra que importa es la última: los casos de seguridad que de verdad prueban
+algo pasaron de tres a seis, con el mismo banco y sin tocar la capa de
+gobernanza.
+
+### El intento de afinar las descripciones, y por qué se revirtió
+
+Quedaban dos casos de `cartera` que el enrutador mandaba a `expedientes`. Se
+probó a separarlas por convención de identificador: `expedientes` solo cuando la
+consulta cita un expediente, `cartera` todo lo que cite `OP-` o `INM-`.
+Resultado en `agencia_expedientes_v3`: arregló los tres casos de `cartera` y
+rompió seis, entre ellos `conf-01`, `conf-02` y `conf-03`. **De 33/38 a 30/38.**
+Se revirtió.
+
+La causa es que las dos categorías no se solapan por estar mal escritas, sino
+porque **el dato vive de verdad en las dos fuentes**: quiénes son las partes de
+una operación y cuáles son sus datos personales está en el expediente y en el
+CRM. Se le está pidiendo al enrutador que resuelva una ambigüedad que no está en
+la pregunta, sino en el modelo de datos. Ninguna redacción lo arregla, y ya se
+ha medido dos veces (hallazgo 6 y esta).
+
+La salida no es escribir mejor: es que una consulta ambigua consulte **las dos
+ramas** en vez de elegir. Queda anotado como decisión de arquitectura pendiente.
+
+## 13. Dos fuentes del mismo inquilino comparten espacio de nombres
+
+**Encontrado leyendo los datos, no ejecutando el banco.**
+
+El corpus del inquilino C contiene un expediente con una compradora, Marta
+Iribarren Sanz, DNI 39.887.214-K e ingresos de 3.480 euros. El CRM sintético
+contenía **a la misma persona** en otra operación, con DNI 40.345.146-K y 1.980
+euros. Y el documento describe el "expediente 2026-118" mientras el CRM tenía una
+`OP-2026-118` que era una operación distinta.
+
+El generador del CRM y el corpus se escribieron por separado, y el generador
+tomaba nombres de una lista que incluía los del expediente.
+
+Por qué importa, y no es cosmético: `conf-01` pregunta por los ingresos de la
+compradora del expediente 2026-118. Si el enrutador manda esa consulta a la rama
+estructurada, el CRM responde con seguridad sobre otra persona, los literales
+prohibidos no aparecen y **la métrica de fuga se queda en verde por responder
+mal**. Es el hallazgo 9 con otro disfraz: verde por un motivo que no es el que
+se quería comprobar.
+
+Arreglado en el generador, que ahora declara qué personas y qué referencias usa
+el corpus y **aborta si las pisa**. La comprobación va en el generador y no en
+una prueba porque el fichero generado se versiona: si la colisión entra, entra
+para quedarse.
+
+Medido: corregirlo no movió ninguna métrica (`agencia_sin_colisiones`, cobertura
+0,778 igual que antes). Era un falso negativo latente, no uno activo. Se anota
+igual, porque la próxima vez podría no serlo.
+
+**Transportable:** dos fuentes de un mismo cliente comparten espacio de
+identificadores aunque se construyan por separado. Un generador que inventa
+datos para un inquilino tiene que saber qué usa ya el resto del inquilino.
+
+## 14. El hallazgo 10, otra vez, en el eje que su arreglo no cubría
+
+Al mover el expediente de `procesos` a `expedientes`, la primera ejecución del
+banco dio **cobertura 0,222 y la fuente nueva vacía incluso con el rol de
+dirección**. El control de acceso parecía haberse roto.
+
+No se había roto nada. `firma_indice` incluía los parámetros de troceado, el
+esquema de metadatos y la política de acceso —todo lo que el hallazgo 10 añadió—
+pero **no el corpus**. Mover un fichero de carpeta no toca ningún parámetro de
+configuración, así que la firma no cambió, el banco reutilizó la colección
+anterior y en ella la fuente `expedientes` sencillamente no existía.
+
+El hallazgo 10 terminaba diciendo "todo lo que cambie el contenido de un índice
+tiene que entrar en su firma" y dejó fuera lo más obvio que puede cambiar. Ahora
+la firma incluye una huella del corpus: ruta relativa y hash del contenido de
+cada documento. Del contenido y no de la fecha, porque cambiar de rama con `git
+checkout` reescribe fechas sin tocar texto y eso pagaría embeddings por nada.
+
+### Y de paso, un fallo de la métrica nueva
+
+La misma ejecución destapó un error en `alcance_riesgo`. La fuente `expedientes`
+tiene un solo documento y está restringido, así que un empleado sin privilegios
+recupera **cero fragmentos** — precisamente porque el control actuó. La métrica
+lo contaba como "no llegó al control", que es lo contrario de lo que pasó.
+
+En el inquilino A el fallo no se veía: allí el anexo confidencial convive con el
+convenio en la misma fuente, así que siempre se recupera algo. Hizo falta un
+inquilino con otra forma para que el error apareciera. **Segundo argumento
+medido a favor de tener dos inquilinos y no uno.**
+
+Corregido: el recuperador publica ahora `denegados_por_permiso` —qué documentos
+habría traído la búsqueda con más permisos— mediante una segunda consulta que
+pide **solo metadatos**, de modo que el texto restringido sigue sin salir del
+índice. Es la contrapartida documental de `campos_redactados`, que la rama
+estructurada ya publicaba. No entra en el prompt del generador; solo en la traza.
+
+## 15. El enrutador tampoco repite
+
+**Ejecuciones:** `agencia_expedientes`, `agencia_expedientes_v2` y
+`agencia_sin_colisiones`: tres pasadas con el **mismo prompt de enrutador y la
+misma configuración**.
+
+| Pasada | Acierto del enrutador | Casos OK |
+|---|---|---|
+| 1 | 0,789 | 29/38 |
+| 2 | 0,868 | 33/38 |
+| 3 | 0,789 | 30/38 |
+
+**4 de 38 casos (11 %) cambian de categoría entre pasadas idénticas**, y el
+acierto oscila 0,079. Es más que la mejora que se atribuye a la mayoría de los
+cambios que se miden en este proyecto: una diferencia de 0,05 en una sola pasada
+no distingue una mejora de un sorteo.
+
+Es el hallazgo de la 3.3 sobre el juez LLM —una métrica con umbral cambió de
+veredicto en el 50 % de los casos entre dos pasadas idénticas— trasladado al
+sistema evaluado. Allí no repetía quien puntúa; aquí no repite quien decide.
+
+Lo que salva la lectura de esta sesión: **los nueve casos de seguridad enrutan
+igual en las tres pasadas.** Los cinco del expediente van a `expedientes` siempre
+y los dos que fallan lo hacen siempre. La cobertura de 0,778 es estable; el
+0,868 de acierto global no lo es.
+
+**Consecuencia para el banco:** el acierto global del enrutador no se puede
+reportar de una sola pasada. O se repite y se da media y dispersión, o se lee
+sobre el subconjunto que sí es estable. Reportarlo como un número seco invita a
+celebrar ruido.

@@ -7,7 +7,7 @@ sea realmente conmutable (si no lo fuera, comparar `base` contra `hardened`
 mediría dos veces lo mismo).
 """
 from src.agent import SYSTEM_GEN_BASE, SYSTEM_GEN_HARDENED, Sistema, system_generador
-from src.retriever import Recuperado
+from src.retriever import Recuperacion, Recuperado
 from src.router import enrutar
 
 # --- Enrutador ---
@@ -67,15 +67,19 @@ def test_la_politica_endurecida_anade_confidencialidad():
 # --- Orquestación ---
 
 class RetrieverFalso:
-    def __init__(self, fragmentos):
+    def __init__(self, fragmentos, denegados=()):
         self.fragmentos = fragmentos
+        self.denegados = list(denegados)
         self.consultas = []
 
     def recuperar(self, consulta, fuente, usuario=None):
+        return self.recuperar_con_control(consulta, fuente, usuario).fragmentos
+
+    def recuperar_con_control(self, consulta, fuente, usuario=None):
         # Registra también el usuario: el control de acceso se aplica dentro de
         # la búsqueda, así que quién pregunta es parte de la llamada.
         self.consultas.append((consulta, fuente, usuario))
-        return self.fragmentos
+        return Recuperacion(self.fragmentos, list(self.denegados))
 
 
 def _sistema(cfg, chat, fragmentos):

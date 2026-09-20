@@ -972,21 +972,21 @@
       "importe_eur": 170000,
       "comercial": "Iván Belsué",
       "parte_compradora": {
-        "nombre": "Marta Iribarren Sanz",
+        "nombre": "Sonia Aineto Lasheras",
         "dni": "40.345.146-K",
         "telefono": "637 00 66 21",
-        "correo": "marta@example.com",
+        "correo": "sonia@example.com",
         "ingresos_netos_mensuales_eur": 1980,
         "financiacion_preconcedida": false
       },
       "parte_vendedora": {
-        "nombre": "Ana Belén Cortázar Ruiz",
+        "nombre": "Teresa Escario Naval",
         "telefono": "9760 048 84"
       },
       "renta_mensual_eur": 0
     },
     {
-      "referencia": "OP-2026-114",
+      "referencia": "OP-2026-116",
       "inmueble": "INM-2026-147",
       "estado": "reserva firmada",
       "importe_eur": 225000,
@@ -1006,7 +1006,7 @@
       "renta_mensual_eur": 0
     },
     {
-      "referencia": "OP-2026-118",
+      "referencia": "OP-2026-122",
       "inmueble": "INM-2026-121",
       "estado": "pendiente de escritura",
       "importe_eur": 1180,
@@ -1026,7 +1026,7 @@
       "renta_mensual_eur": 1180
     },
     {
-      "referencia": "OP-2026-122",
+      "referencia": "OP-2026-128",
       "inmueble": "INM-2026-128",
       "estado": "arras firmadas",
       "importe_eur": 148000,
@@ -1046,7 +1046,7 @@
       "renta_mensual_eur": 0
     },
     {
-      "referencia": "OP-2026-126",
+      "referencia": "OP-2026-134",
       "inmueble": "INM-2026-142",
       "estado": "arras firmadas",
       "importe_eur": 188000,
@@ -1066,7 +1066,7 @@
       "renta_mensual_eur": 0
     },
     {
-      "referencia": "OP-2026-130",
+      "referencia": "OP-2026-140",
       "inmueble": "INM-2026-126",
       "estado": "pendiente de escritura",
       "importe_eur": 176000,
@@ -1147,7 +1147,7 @@
       "fecha": "2026-09-18",
       "hora": "16:00",
       "comercial": "Nerea Ubide",
-      "interesado": "Ana Belén Cortázar Ruiz",
+      "interesado": "Teresa Escario Naval",
       "resultado": "realizada"
     },
     {
@@ -1174,7 +1174,7 @@
       "fecha": "2026-09-19",
       "hora": "18:30",
       "comercial": "Sergio Otal",
-      "interesado": "Marta Iribarren Sanz",
+      "interesado": "Sonia Aineto Lasheras",
       "resultado": "realizada"
     },
     {
@@ -1201,7 +1201,7 @@
       "fecha": "2026-09-20",
       "hora": "18:30",
       "comercial": "Iván Belsué",
-      "interesado": "Marta Iribarren Sanz",
+      "interesado": "Sonia Aineto Lasheras",
       "resultado": "realizada"
     },
     {
@@ -1237,7 +1237,7 @@
       "fecha": "2026-09-21",
       "hora": "13:00",
       "comercial": "Rocío Lamana",
-      "interesado": "Marta Iribarren Sanz",
+      "interesado": "Sonia Aineto Lasheras",
       "resultado": "cancelada"
     },
     {
@@ -1246,7 +1246,7 @@
       "fecha": "2026-09-22",
       "hora": "11:30",
       "comercial": "Sergio Otal",
-      "interesado": "Ana Belén Cortázar Ruiz",
+      "interesado": "Teresa Escario Naval",
       "resultado": "cancelada"
     },
     {
@@ -1273,7 +1273,7 @@
       "fecha": "2026-09-23",
       "hora": "18:30",
       "comercial": "Iván Belsué",
-      "interesado": "Marta Iribarren Sanz",
+      "interesado": "Sonia Aineto Lasheras",
       "resultado": "realizada"
     },
     {

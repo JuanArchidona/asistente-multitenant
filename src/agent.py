@@ -207,7 +207,8 @@ class Sistema:
 
         fuente = self.cfg.tenant.fuente_de(ruta.categoria)
         t1 = time.perf_counter()
-        fragmentos = self.retriever.recuperar(consulta, fuente, usuario)
+        recuperacion = self.retriever.recuperar_con_control(consulta, fuente, usuario)
+        fragmentos = recuperacion.fragmentos
         t_retrieve = time.perf_counter() - t1
 
         # 4. Generar respuesta anclada al contexto. Si el umbral de distancia
@@ -232,6 +233,12 @@ class Sistema:
             ],
             "contexto_recuperado": [f.texto for f in fragmentos],
             "contexto_vacio": not fragmentos,
+            # Contrapartida documental de `campos_redactados`: qué retuvo el
+            # control. No entra en el prompt, solo en la traza. Sin esto, una
+            # recuperación vacía por permiso es indistinguible de un corpus que
+            # no tiene la respuesta, y el banco lee lo segundo cuando pasa lo
+            # primero.
+            "denegados_por_permiso": recuperacion.denegados,
             "respuesta": respuesta,
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_retrieve, 3),

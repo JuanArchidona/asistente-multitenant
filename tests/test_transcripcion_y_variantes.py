@@ -134,3 +134,56 @@ def test_la_firma_es_estable(cfg):
 def test_el_nombre_de_coleccion_es_legible(cfg):
     nombre = nombre_coleccion(variante(cfg, chunk_strategy="headings", chunk_size=400))
     assert nombre.startswith("corpus_empresa_servicios_headings_400_768_")
+
+
+def test_mover_un_documento_de_fuente_cambia_la_firma(cfg_factory, tmp_path):
+    """El fallo que costó una ejecución entera del banco: mover el expediente de
+    `procesos` a `expedientes` no toca ningún parámetro de configuración, así que
+    la firma no se movía y el barrido reutilizaba la colección vieja. La fuente
+    nueva salía vacía y parecía que el control de acceso lo bloqueaba todo."""
+    antes = tmp_path / "antes"
+    (antes / "procesos").mkdir(parents=True)
+    (antes / "procesos" / "expediente.md").write_text("contenido", encoding="utf-8")
+
+    despues = tmp_path / "despues"
+    (despues / "expedientes").mkdir(parents=True)
+    (despues / "expedientes" / "expediente.md").write_text("contenido", encoding="utf-8")
+
+    assert firma_indice(cfg_factory(corpus_path=str(antes))) != firma_indice(
+        cfg_factory(corpus_path=str(despues))
+    )
+
+
+def test_editar_un_documento_cambia_la_firma(cfg_factory, tmp_path):
+    corpus = tmp_path / "corpus"
+    (corpus / "rrhh").mkdir(parents=True)
+    doc = corpus / "rrhh" / "convenio.md"
+    cfg = cfg_factory(corpus_path=str(corpus))
+
+    doc.write_text("23 días", encoding="utf-8")
+    original = firma_indice(cfg)
+    doc.write_text("24 días", encoding="utf-8")
+
+    assert firma_indice(cfg) != original
+
+
+def test_un_corpus_intacto_no_reindexa(cfg_factory, tmp_path):
+    """La firma se calcula sobre el contenido y no sobre la fecha: cambiar de
+    rama con `git checkout` reescribe las fechas sin tocar el texto, y eso
+    pagaría embeddings por nada."""
+    corpus = tmp_path / "corpus"
+    (corpus / "rrhh").mkdir(parents=True)
+    doc = corpus / "rrhh" / "convenio.md"
+    doc.write_text("23 días", encoding="utf-8")
+    cfg = cfg_factory(corpus_path=str(corpus))
+
+    original = firma_indice(cfg)
+    doc.touch()
+
+    assert firma_indice(cfg) == original
+
+
+def test_un_corpus_que_no_existe_no_revienta_la_firma(cfg_factory, tmp_path):
+    """Arrancar antes de tener corpus es normal; lo que no puede pasar es que
+    falle aquí, lejos de la causa."""
+    assert firma_indice(cfg_factory(corpus_path=str(tmp_path / "no_existe")))

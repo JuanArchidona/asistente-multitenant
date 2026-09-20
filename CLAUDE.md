@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-20)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **590 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **596 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -43,7 +43,7 @@ y control de acceso estructural. **590 tests en verde**, `ruff` limpio.
 | Rama estructurada (MCP) | Hecho |
 | Control de acceso en las dos ramas | Hecho y medido |
 | Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
-| Cobertura del riesgo en el banco | Hecha y medida (0,550) |
+| Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Observabilidad y coste en producción | Pendiente |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
@@ -61,7 +61,7 @@ que profundidad de la documentación.
 |---|---|---|
 | Qué es | Empresa de servicios heredada de las entregas 2.3/3.1/3.3 | Domara Inmobiliaria, agencia ficticia de Zaragoza |
 | Para qué está | Sostener el banco heredado como **suite de regresión** | Demostrar agnosticidad y la rama estructurada |
-| Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), procesos, normativa, comercial, actas |
+| Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), expedientes, procesos, normativa, comercial, actas |
 | Corpus | 7 documentos | 10 documentos |
 | Banco | 53 casos | 38 casos |
 | MCP | No | `mcp_servers/agencia_crm.py` |
@@ -130,7 +130,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 590 tests, sin llamadas a API
+uv run pytest                                      # 596 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -142,9 +142,11 @@ uv run python scripts/generar_crm_agencia.py            # regenera el CRM sinté
 
 `TENANT_ID` selecciona el inquilino; por defecto, `empresa_servicios`.
 
-**Al cambiar la política de acceso o el esquema de metadatos hay que reindexar.**
-La firma del índice ya lo cubre, pero conviene saberlo: un índice obsoleto no da
-error, devuelve vacío (ver `docs/HALLAZGOS.md` §10).
+**Al cambiar el corpus, la política de acceso o el esquema de metadatos hay que
+reindexar.** La firma del índice cubre las tres cosas —el corpus desde §14, que
+es cuando costó una ejecución entera descubrir que faltaba—, pero conviene
+saberlo: un índice obsoleto no da error, devuelve vacío (`docs/HALLAZGOS.md` §10
+y §14).
 
 ## 8. Riesgos abiertos
 
@@ -153,13 +155,19 @@ error, devuelve vacío (ver `docs/HALLAZGOS.md` §10).
   normativa.
 - Sin tope de gasto en la cuenta de Anthropic; cerrar antes de exponer el
   despliegue.
-- Solapamiento `procesos` / `cartera` en el inquilino C: ensucia seis casos, no
-  se arregla con más palabras en el prompt y **se lleva por delante 5 de los 9
-  casos de seguridad de ese inquilino** (ver `docs/HALLAZGOS.md` §11).
-- **Cobertura del riesgo en 0,550.** La métrica ya existe, y lo que dice es que
-  solo 11 de los 20 casos de seguridad llegan a la etapa donde el control actúa.
-  El resto está en verde por enrutado fallido, no por estar defendido. Subirla
-  es trabajo de enrutador, no de gobernanza.
+- **Cobertura del riesgo: 0,636 en A y 0,778 en C.** Resuelto lo que se podía
+  resolver enrutando (§12). Lo que queda son casos que no llegan al control por
+  fallo de enrutado, y subirlos es trabajo de enrutador, no de gobernanza.
+- **`expedientes` y `cartera` se solapan y no se arregla escribiendo mejor.** Los
+  datos de las partes de una operación viven a la vez en el expediente
+  documental y en el CRM, así que la ambigüedad está en el modelo de datos y no
+  en la pregunta. Medido dos veces (§6, §12). La salida es que una consulta
+  ambigua **consulte las dos ramas** en vez de elegir: decisión de arquitectura
+  pendiente, afecta a dos casos.
+- **El enrutador no repite: 11 % de los casos cambia de categoría entre pasadas
+  idénticas** (§15). Ningún acierto global del enrutador se puede reportar de una
+  sola pasada. Los casos de seguridad sí son estables, así que la cobertura se
+  puede leer; el acierto global no.
 
 ## 9. Mantenimiento
 

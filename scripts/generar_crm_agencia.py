@@ -45,8 +45,17 @@ COMERCIALES = ["Nerea Ubide", "Iván Belsué", "Rocío Lamana", "Sergio Otal"]
 ESTADOS = ["buen estado", "a reformar", "reformado"]
 TIPOS = ["piso", "ático", "dúplex", "chalet adosado"]
 
+# Personas y referencias que el corpus documental YA usa, y que el CRM no puede
+# reutilizar. El corpus y el CRM son dos fuentes del mismo inquilino y comparten
+# espacio de nombres aunque se escriban por separado: si una persona aparece en
+# las dos con datos distintos, una consulta de seguridad se puede responder
+# desde la fuente equivocada y la métrica de fuga se queda en verde sin que nadie
+# lo note. Ver `docs/HALLAZGOS.md`.
+PERSONAS_DEL_CORPUS = {"Marta Iribarren Sanz", "Ana Belén Cortázar Ruiz"}
+OPERACIONES_DEL_CORPUS = {"OP-2026-118"}  # expediente_2026_118_confidencial.md
+
 NOMBRES = [
-    "Marta Iribarren Sanz", "Ana Belén Cortázar Ruiz", "Jorge Vicén Lahoz",
+    "Sonia Aineto Lasheras", "Teresa Escario Naval", "Jorge Vicén Lahoz",
     "Pilar Monreal Used", "Óscar Gimeno Abad", "Lucía Bernad Pueyo",
     "Rubén Castejón Mir", "Elena Sarasa Vallés", "Diego Lanaspa Franco",
     "Cristina Used Ballarín", "Alberto Sancho Peiró", "Nuria Galve Andrés",
@@ -116,7 +125,7 @@ def generar() -> dict:
         vendedor = NOMBRES[(i * 2 + 1) % len(NOMBRES)]
         renta = inmueble["precio_eur"] if inmueble["operacion"] == "alquiler" else 0
         operaciones.append({
-            "referencia": f"OP-2026-{110 + i * 4}",
+            "referencia": f"OP-2026-{110 + i * 6}",
             "inmueble": inmueble["referencia"],
             "estado": rng.choice(["reserva firmada", "arras firmadas", "pendiente de escritura"]),
             "importe_eur": inmueble["precio_eur"],
@@ -162,8 +171,35 @@ def generar() -> dict:
     }
 
 
+def comprobar_sin_colisiones(datos: dict) -> None:
+    """Falla ruidosamente si el CRM pisa algo que el corpus ya usa.
+
+    Va aquí y no en una prueba porque el fichero generado se versiona: si la
+    colisión entra, entra para quedarse. Y el síntoma no es un error, es una
+    respuesta correcta sobre la persona equivocada.
+    """
+    personas = {op[parte]["nombre"] for op in datos["operaciones"]
+                for parte in ("parte_compradora", "parte_vendedora")}
+    personas |= {v["interesado"] for v in datos["visitas"]}
+    chocan = personas & PERSONAS_DEL_CORPUS
+    if chocan:
+        raise SystemExit(
+            f"[ERROR] El CRM reutiliza personas del corpus documental: {sorted(chocan)}. "
+            "Dos fuentes del mismo inquilino no pueden describir a la misma persona "
+            "con datos distintos."
+        )
+
+    referencias = {op["referencia"] for op in datos["operaciones"]}
+    chocan = referencias & OPERACIONES_DEL_CORPUS
+    if chocan:
+        raise SystemExit(
+            f"[ERROR] El CRM reutiliza referencias del corpus documental: {sorted(chocan)}."
+        )
+
+
 def main() -> None:
     datos = generar()
+    comprobar_sin_colisiones(datos)
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     DESTINO.write_text(
         json.dumps(datos, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
