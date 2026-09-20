@@ -63,6 +63,34 @@ def test_el_corpus_del_inquilino_heredado_sigue_completo():
     assert len(list(raiz.rglob("*.md"))) == 7
 
 
+# --- Invariantes de cualquier inquilino, presente o futuro ---
+
+@pytest.mark.parametrize("tenant_id", listar_tenants(TENANTS))
+def test_cada_categoria_declarada_tiene_corpus_detras(tenant_id):
+    """Una categoría sin documentos enruta a un vacío y el usuario recibe un
+    "no hay documentación" que parece un fallo del sistema. Es el error más
+    probable al dar de alta un cliente, así que se comprueba automáticamente
+    para todos los inquilinos que existan."""
+    tenant = cargar_tenant(tenant_id, raiz=TENANTS)
+    raiz = RAIZ / "corpus" / tenant.id
+    assert raiz.is_dir(), f"el inquilino {tenant_id!r} no tiene corpus en {raiz}"
+    for categoria in tenant.categorias:
+        directorio = raiz / categoria.fuente
+        assert directorio.is_dir(), f"falta {directorio}"
+        assert list(directorio.glob("*.md")), f"{directorio} no tiene documentos"
+
+
+@pytest.mark.parametrize("tenant_id", listar_tenants(TENANTS))
+def test_el_prompt_del_enrutador_nombra_todas_las_categorias(tenant_id):
+    """Una categoría que el manifiesto declara pero el prompt no menciona es
+    inalcanzable: el modelo no puede devolver lo que no conoce."""
+    tenant = cargar_tenant(tenant_id, raiz=TENANTS)
+    prompt = system_router(tenant)
+    for categoria in tenant.categorias:
+        assert f"- {categoria.nombre}:" in prompt
+    assert f"- {CATEGORIA_OTRO}:" in prompt
+
+
 # --- Aislamiento ---
 
 def test_cada_inquilino_tiene_su_propia_coleccion_y_su_propio_corpus():

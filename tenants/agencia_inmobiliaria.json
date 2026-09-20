@@ -1,0 +1,28 @@
+{
+  "id": "agencia_inmobiliaria",
+  "nombre": "Domara Inmobiliaria",
+  "descripcion": "Agencia ficticia de compraventa y alquiler en Zaragoza, 11 personas. Segundo inquilino del sistema, elegido por ser el mas alejado estructuralmente del primero: aqui los datos son operaciones y mercado, no politicas internas. Empresa, corpus y datos son sinteticos.",
+  "contexto_enrutador": "el asistente interno de una agencia inmobiliaria",
+  "categorias": [
+    {
+      "nombre": "procesos",
+      "descripcion": "procedimientos internos de la agencia: captación, visitas, ofertas, reservas, firma y postventa.",
+      "fuente": "procesos"
+    },
+    {
+      "nombre": "normativa",
+      "descripcion": "documentación obligatoria de una operación, obligaciones legales del propietario y del arrendador.",
+      "fuente": "normativa"
+    },
+    {
+      "nombre": "comercial",
+      "descripcion": "honorarios, hoja de encargo, criterios de valoración y política de precios.",
+      "fuente": "comercial"
+    },
+    {
+      "nombre": "actas",
+      "descripcion": "preguntas sobre decisiones, acuerdos o tareas de reuniones pasadas.",
+      "fuente": "actas"
+    }
+  ]
+}
