@@ -48,7 +48,13 @@ from src.config import Config, load_config
 from src.ingest import trocear
 from src.provider import AnthropicChat, GeminiChat
 
-from .dataset import RAIZ_DATASETS, cargar_consultas, escribir_jsonl
+from .dataset import (
+    GOLDEN_CONSULTAS,
+    SINTETICOS_CONSULTAS,
+    cargar_consultas,
+    escribir_jsonl,
+    ruta_golden,
+)
 from .metrics.deterministas import normalizar
 from .schema import CasoConsulta, Dimension
 from .transcripcion import similitud_tokens
@@ -379,7 +385,8 @@ def main() -> None:
     p.add_argument("--variantes", type=int, default=2)
     p.add_argument("--fuera-de-alcance", type=int, default=3)
     p.add_argument("--semillas", type=int, default=12, help="Casos curados a reformular")
-    p.add_argument("--salida", default=str(RAIZ_DATASETS / "sinteticos_consultas.jsonl"))
+    p.add_argument("--salida", default=None,
+                   help="Por defecto, el fichero de sintéticos del inquilino activo")
     p.add_argument("--sin-critico", action="store_true", help="Saltar la revisión del segundo modelo")
     p.add_argument("--lote-fragmentos", type=int, default=6,
                    help="Fragmentos por llamada de generación (cuota del plan gratuito)")
@@ -398,7 +405,9 @@ def main() -> None:
     modelo = cfg.builder_model
     print(f"[gen] Constructor y crítico: {modelo} (evaluado: {cfg.model_generator})")
 
-    curados = cargar_consultas(RAIZ_DATASETS / "golden_consultas.jsonl")
+    curados = cargar_consultas(ruta_golden(cfg.tenant.id, GOLDEN_CONSULTAS))
+    if args.salida is None:
+        args.salida = str(ruta_golden(cfg.tenant.id, SINTETICOS_CONSULTAS))
     existentes = [c.consulta for c in curados]
 
     textos_corpus: dict[str, str] = {}

@@ -6,7 +6,7 @@
   "categorias": [
     {
       "nombre": "procesos",
-      "descripcion": "procedimientos internos de la agencia: captación, visitas, ofertas, reservas, firma y postventa.",
+      "descripcion": "procedimientos internos de la agencia: captación, visitas, ofertas, reservas, firma y postventa; expedientes de operaciones y datos de clientes.",
       "fuente": "procesos"
     },
     {

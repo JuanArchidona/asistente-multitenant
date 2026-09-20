@@ -22,18 +22,31 @@ from dataclasses import dataclass, field
 _RE_MILLARES = re.compile(r"(?<=\d)[.\s](?=\d{3}(?!\d))")
 # Coma decimal entre dígitos: "38,5" -> "38.5".
 _RE_DECIMAL = re.compile(r"(?<=\d),(?=\d)")
+# Espacio antes del símbolo de porcentaje: "3 %" -> "3%". El corpus lo escribe
+# con espacio (norma tipográfica) y los modelos casi siempre sin él; es una
+# diferencia de formato sin contenido, igual que la coma decimal.
+_RE_PORCENTAJE = re.compile(r"(?<=\d)\s+%")
 
 
 def normalizar(texto: str) -> str:
     """Minúsculas, sin acentos y con los números en forma canónica.
 
-    Sin esto, 'Georgia' no casa con 'georgia' y '38,5' no casa con '38.5', que
-    son diferencias de formato irrelevantes para saber si el dato es correcto.
+    Sin esto, 'Georgia' no casa con 'georgia', '38,5' no casa con '38.5' y
+    '3 %' no casa con '3%', que son diferencias de formato irrelevantes para
+    saber si el dato es correcto.
+
+    Lo que **no** hace, a propósito: convertir números escritos en letra. 'cinco'
+    y '5' siguen sin casar. Hacerlo obligaría a decidir casos ambiguos ('una
+    mensualidad' no es '1 mensualidad' en el mismo sentido) y a meter criterio en
+    un comparador cuyo valor está justamente en no tenerlo. Un dato cuya
+    redacción varía así no es buen candidato a métrica literal: se comprueba en
+    la capa de juez.
     """
     t = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
     t = t.lower()
     t = _RE_MILLARES.sub("", t)
     t = _RE_DECIMAL.sub(".", t)
+    t = _RE_PORCENTAJE.sub("%", t)
     return re.sub(r"\s+", " ", t).strip()
 
 

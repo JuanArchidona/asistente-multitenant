@@ -37,7 +37,7 @@ import chromadb
 from src.config import Config, load_config
 from src.embeddings import GeminiEmbedder
 
-from .dataset import RAIZ_DATASETS, cargar_consultas
+from .dataset import GOLDEN_CONSULTAS, cargar_consultas, ruta_golden
 from .variantes import asegurar_indice, variante
 
 RAIZ_REPORTES = Path(__file__).resolve().parents[1] / "reports"
@@ -167,7 +167,11 @@ def main() -> None:
     args = p.parse_args()
 
     base = load_config()
-    ruta = Path(args.dataset) if args.dataset else RAIZ_DATASETS / "golden_consultas.jsonl"
+    ruta = (
+        Path(args.dataset)
+        if args.dataset
+        else ruta_golden(base.tenant.id, GOLDEN_CONSULTAS)
+    )
     casos = [
         c for c in cargar_consultas(ruta)
         if c.archivos_esperados and c.categoria_esperada != "otro"

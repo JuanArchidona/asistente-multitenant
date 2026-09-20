@@ -14,6 +14,25 @@ from .schema import CasoConsulta, CasoTranscripcion
 
 RAIZ_DATASETS = Path(__file__).parent / "datasets"
 
+GOLDEN_CONSULTAS = "golden_consultas.jsonl"
+GOLDEN_TRANSCRIPCION = "golden_transcripcion.jsonl"
+SINTETICOS_CONSULTAS = "sinteticos_consultas.jsonl"
+
+
+def ruta_golden(tenant_id: str, nombre: str, raiz: Path = RAIZ_DATASETS) -> Path:
+    """Dataset de un inquilino concreto.
+
+    Cada inquilino tiene su propio golden set porque el banco mide sobre su
+    corpus: una consulta de la agencia no significa nada contra el corpus de la
+    empresa de servicios. Evaluar a uno con el banco del otro daría cero
+    aciertos y parecería un fallo del sistema en vez de un error de operación.
+    """
+    return raiz / tenant_id / nombre
+
+
+def tenants_con_banco(raiz: Path = RAIZ_DATASETS) -> list[str]:
+    return sorted(p.name for p in raiz.iterdir() if p.is_dir() and (p / GOLDEN_CONSULTAS).is_file())
+
 
 def _leer_jsonl(ruta: Path) -> list[dict]:
     filas = []

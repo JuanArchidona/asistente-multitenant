@@ -26,7 +26,13 @@ from src.agent import Sistema
 from src.config import load_config
 from src.provider import get_chat
 
-from .dataset import RAIZ_DATASETS, cargar_consultas, cargar_transcripciones
+from .dataset import (
+    GOLDEN_CONSULTAS,
+    GOLDEN_TRANSCRIPCION,
+    cargar_consultas,
+    cargar_transcripciones,
+    ruta_golden,
+)
 from .metrics.deterministas import (
     Resultado,
     evaluar_contiene,
@@ -284,7 +290,11 @@ def suite_consultas(args) -> None:
         ),
     )
 
-    ruta_dataset = Path(args.dataset) if args.dataset else RAIZ_DATASETS / "golden_consultas.jsonl"
+    ruta_dataset = (
+        Path(args.dataset)
+        if args.dataset
+        else ruta_golden(cfg.tenant.id, GOLDEN_CONSULTAS)
+    )
     casos = cargar_consultas(ruta_dataset)
     if args.dimensiones:
         pedidas = set(args.dimensiones.split(","))
@@ -349,7 +359,11 @@ def suite_consultas(args) -> None:
 
 def suite_transcripcion(args) -> None:
     cfg = load_config()
-    ruta = Path(args.dataset) if args.dataset else RAIZ_DATASETS / "golden_transcripcion.jsonl"
+    ruta = (
+        Path(args.dataset)
+        if args.dataset
+        else ruta_golden(cfg.tenant.id, GOLDEN_TRANSCRIPCION)
+    )
     casos = cargar_transcripciones(ruta)
     if args.limite:
         casos = casos[: args.limite]
