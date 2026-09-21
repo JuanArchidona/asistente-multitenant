@@ -43,8 +43,12 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 
 const REPO = resolve(AQUI, "..");
 const REGISTRO = join(AQUI, "REGISTRO_APP.md");
+// Se aceptan los dos nombres: `CLAUDE_BIN` es el que ya usan los otros puentes
+// declarados en la app de este equipo, y mantener la convencion evita que las
+// tres entradas se configuren de tres formas distintas.
 const CLAUDE_BIN =
   process.env.PUENTE_CLAUDE_BIN ||
+  process.env.CLAUDE_BIN ||
   (process.platform === "win32" ? "claude.exe" : "claude");
 
 // Solo lectura. `--restricted` quita Bash, PowerShell y WebFetch salvo que
@@ -254,7 +258,7 @@ function consultarTfm({ pregunta }) {
         texto:
           `No se pudo lanzar '${CLAUDE_BIN}': ${e.message}. ` +
           `Comprueba que Claude Code esta instalado y en el PATH, o define ` +
-          `PUENTE_CLAUDE_BIN con la ruta completa.`,
+          `CLAUDE_BIN (o PUENTE_CLAUDE_BIN) con la ruta completa.`,
       });
     });
 

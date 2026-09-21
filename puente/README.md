@@ -29,7 +29,7 @@ En la configuracion de servidores MCP del proyecto MASTER IA TFM:
 ```json
 {
   "mcpServers": {
-    "puente-tfm": {
+    "claude-code-tfm": {
       "command": "node",
       "args": [
         "C:\\Users\\<usuario>\\Desktop\\Master\\TFM\\asistente-multitenant\\puente\\servidor.mjs"
