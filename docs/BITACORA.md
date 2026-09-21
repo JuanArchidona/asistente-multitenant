@@ -4,7 +4,7 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
-## 2026-09-21 (tarde) — Sesión 4: el puente con la app, y el coste por fin medido
+## 2026-09-21 (tarde) — Sesión 4: el puente, el coste medido y la observabilidad
 
 Sesión de infraestructura y de medición. No se tocó el sistema evaluado: ni el
 corpus, ni los bancos, ni el prompt del enrutador. Las cifras del §2 no se mueven.
@@ -53,49 +53,102 @@ corpus, ni los bancos, ni el prompt del enrutador. Las cifras del §2 no se muev
 | Crédito de prepago disponible | 12,87 USD — **3,4 pasadas** |
 | Gasto no visto por `reports/` | **22 %** del gasto de la propia clave |
 
-**Añadido al cierre — la comprobación del coste destapó un fallo:**
+**Segunda mitad de la sesión — tres cosas que salieron de comprobar, no de planificar:**
 
-- `tfm-juez` seguía a 0,00 tras refrescar. No era latencia: **la clave del juez
-  estaba en el `.env` y en la consola, pero `src/config.py` no la leía y el
-  runner pasaba la del sistema**. Todas las llamadas del juez de la historia del
-  proyecto se han facturado a `tfm-sistema`. Arreglado, con dos validaciones que
-  abortan en el arranque —sin clave propia, y con las dos variables iguales— y
-  tres pruebas. Hallazgo 18, y correcciones anotadas en los hallazgos 16 y 17,
-  que se escribieron dando la separación por buena. 600 → **603 tests**.
+1. **La clave del juez no se usaba.** `tfm-juez` seguía a 0,00 tras refrescar la
+   consola. No era latencia: la clave estaba en el `.env` y en la consola, pero
+   `src/config.py` no la leía y el runner pasaba la del sistema. **Todas las
+   llamadas del juez de la historia del proyecto se han facturado a
+   `tfm-sistema`.** Arreglado con dos validaciones que abortan en el arranque
+   —sin clave propia, y con las dos variables iguales— y tres pruebas. Hallazgo
+   18, con correcciones anotadas en los hallazgos 16 y 17, que se escribieron una
+   hora antes dando la separación por buena.
+
+2. **La sesión hija del puente podía leer el `.env`.** Lo destapó su propia
+   respuesta: al preguntarle qué había sin commitear, explicó que había leído las
+   refs de `.git/` directamente. `--restricted` confina las herramientas de
+   fichero al directorio de trabajo, y el directorio de trabajo **es** el
+   repositorio, donde viven las dos claves en claro. Comprobado: las leía.
+   Cerrado con `--disallowedTools` sobre `Read` y `Grep`, verificado con una
+   petición directa y con un rodeo por `Grep`, los dos rechazados. Hallazgo 19.
+
+3. **Observabilidad en producción**, que era el punto 10 del bloque 2 y el
+   feedback de la 3.1 abierto desde julio. Registro JSONL solo-añadir, un fichero
+   por inquilino, **opt-in** para que el banco no contamine el log, y coste
+   atribuido por consulta con un acumulador hijo por hilo. Hallazgo 20.
+
+**Además:**
+
+- **Búsqueda exhaustiva del campus** (`docs/CAMPUS_2026-09-21.md`), hecha con
+  Claude in Chrome desde la app. Confirma que **no hay publicado nada del TFM** y
+  amplía el riesgo: tampoco hay reglamento, normativa de integridad, norma sobre
+  reutilización de trabajos propios ni política de uso de IA.
+- **Puente declarado en la app** como `claude-code-tfm`, siguiendo la convención
+  de los otros dos que ya había en este equipo. Verificado con la línea de
+  órdenes exacta que usa la app.
+- **Tutoría reservada** con Iraitz Montalbán para el 22-09 a las 16:00.
+
+**Medido en la segunda mitad:**
+
+| | |
+|---|---|
+| Consultas reales registradas | 3, en dos inquilinos |
+| Coste por consulta en producción | 0,00085 – 0,00186 USD |
+| Latencia media / p95 (inquilino A) | 3,2 s / 3,6 s |
+| Tests | 603 → **621 en verde** |
+
+**Dos lecturas que cambiaron al ejecutarlas:**
+
+- La señal `control_actuo` que escribí para el registro se disparaba también con
+  *"¿cuántos días de vacaciones tengo?"*, porque el anexo confidencial vive en la
+  fuente `rrhh` y el filtro lo retiene en toda consulta de esa fuente. El panel
+  decía "el control actuó en el 100 % de las consultas", que se lee como "todos
+  intentan colarse". Partida en tres señales, una ruidosa y dos significativas.
+- La primera consulta real de la agencia pidiendo datos de una operación **se
+  quedó sin respuesta**: se enrutó a `expedientes` en vez de a `cartera`. Es el
+  solapamiento del hallazgo 12 visto desde producción, donde ya no son dos casos
+  sucios de treinta y ocho sino un usuario que no recibe nada.
 
 **Pendiente para la próxima sesión:**
 
-- [ ] **Mirar `tfm-juez` en la consola tras `juez_clave_propia`.** Venía de cero
-      absoluto, así que lo que marque resuelve dos cosas a la vez: si el arreglo
-      funciona y cuánto cuesta de verdad `claude-sonnet-5`. **0,083** = el repo
-      acierta con 3,00/15,00; **0,055** = son 2,00/10,00 y `src/provider.py:54`
-      sobreestima un 33 %; **0,00** = el arreglo no funciona. Y `tfm-sistema`
-      debería haber subido de 1,26 a ~1,385 o ~1,343 por la ejecución anterior,
-      que se facturó a la clave equivocada.
-- [ ] **Declarar el puente en la configuración MCP del proyecto de la app.** Está
-      commiteado pero hasta que no se declare allí no hace nada. El JSON está en
-      `puente/README.md`.
-- [ ] **Punto 3 del §7 de `SINCRONIZACION_SUPERFICIES.md`**: buzón de encargos,
-      con los dos riesgos abiertos del §8 como primer caso real — conseguir el
-      enunciado y la rúbrica, y verificar si reutilizar entregas calificadas está
-      permitido. Los dos son tareas de navegador y condicionan el alcance.
+- [ ] **TUTORÍA 22-09 a las 16:00 con Iraitz.** Es lo que desbloquea el alcance.
+      Cuatro preguntas, por orden de lo que puede hacer perder más trabajo: si es
+      admisible partir de entregas propias ya calificadas y si hay que
+      declararlo; enunciado y criterios de evaluación; política de uso de IA; y
+      confirmar que el 20 de octubre es la defensa, porque hoy eso sale de la
+      leyenda de una imagen. **El guion está sin preparar a propósito**, pedido
+      por Juan.
+- [ ] **Mirar `tfm-juez` en la consola.** Venía de cero absoluto y
+      `juez_clave_propia` gastó con la clave nueva. **0,083** = el repo acierta
+      con 3,00/15,00; **0,055** = son 2,00/10,00 y `src/provider.py:54`
+      sobreestima un 33 %; **0,00** = el arreglo no funciona. Al cierre seguía a
+      0,00 y `tfm-sistema` tampoco se había movido, así que es latencia del
+      informe de costes.
+- [ ] **Despliegue con autenticación**, ya desbloqueado: el tope de gasto existe.
+- [ ] **Análisis de riesgos y encaje con el EU AI Act**, que absorbe el Módulo 4.
+      Conviene esperar a la rúbrica: su forma depende de ella.
+- [ ] **Punto 3 del §7 de `SINCRONIZACION_SUPERFICIES.md`**: buzón de encargos.
+      La tutoría de mañana es su primer caso real: lo preguntado, lo respondido y
+      lo que quede abierto son los seis campos de `registrar_tfm`.
 - [ ] **Punto 4**: `medir_tfm` asíncrona, solo `--desde-trazas --sin-juez` y con
       el inquilino como parámetro explícito con lista blanca.
-- [ ] Decidir qué hacer con el solapamiento `expedientes`/`cartera`: la salida
-      apuntada es consultar las dos ramas en vez de elegir.
-- [ ] Observabilidad y coste acumulado en producción, y despliegue con
-      autenticación.
+- [ ] Decidir qué hacer con el solapamiento `expedientes`/`cartera`. La salida
+      apuntada es consultar las dos ramas; la observabilidad le ha subido la
+      prioridad.
+- [ ] Canal de correo y servidor MCP del Catastro, ambos del bloque 2.
 
 **Notas:**
 
-- **No activar la recarga automática** de la cuenta del proveedor. Es lo único
-  que rompería el tope duro que ya da el prepago.
-- El conector de GitHub del proyecto de la app **sí funciona**: verificado
-  pidiéndole el título literal del §9 y el número de tests, y acertó los dos.
-  Queda cerrado el pendiente que dejó la sesión 3.
-- El coste por consulta del sistema (0,00245 USD) sigue siendo válido, pero
-  `reports/` mide **el banco** y no **el proyecto**. La ficha de coste de
-  `ALCANCE.md` §5 tiene que decir cuál de las dos cosas reporta.
+- **No activar la recarga automática** de la cuenta del proveedor. El prepago
+  (12,87 USD, recarga desactivada) es un tope duro y es lo único que lo rompería.
+- El conector de GitHub de la app **funciona**, verificado. Y el puente también,
+  declarado como `claude-code-tfm`.
+- Nada del sistema evaluado se ha tocado hoy: ni corpus, ni bancos, ni el prompt
+  del enrutador. Las cifras de calidad del §2 siguen siendo las de la sesión 2.
+- Tres de los cinco hallazgos de hoy (18, 19 y 20) salieron de **comprobar algo
+  que se daba por bueno**, no de buscar fallos. Los tres comparten forma con el 9
+  y el 13: una señal que no se dispara, o que se dispara por el motivo
+  equivocado, se parece mucho a que todo va bien.
 
 ## 2026-09-21 — Sesión 3: sincronización entre Claude Code y la app
 
