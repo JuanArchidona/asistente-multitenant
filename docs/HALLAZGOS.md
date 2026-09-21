@@ -1,4 +1,4 @@
-> Versión: 1.2 · Actualizado: 2026-09-20 · Idioma: ES
+> Versión: 1.3 · Actualizado: 2026-09-21 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -418,3 +418,119 @@ y los dos que fallan lo hacen siempre. La cobertura de 0,778 es estable; el
 reportar de una sola pasada. O se repite y se da media y dispersión, o se lee
 sobre el subconjunto que sí es estable. Reportarlo como un número seco invita a
 celebrar ruido.
+
+## 16. El coste del banco no es el coste del proyecto
+
+**Fuente:** consola del proveedor el 21-sep-2026, cruzada contra los
+`resumen.json` de `reports/`.
+
+La consola desglosa el gasto **por clave de API**, que es justo lo que el
+feedback de la 3.3 pedía al obligar a separar la clave del sistema de la del
+juez. Con eso, el mes cuadra al céntimo:
+
+| Clave | Coste del mes |
+|---|---|
+| `tfm-sistema` | 1,26 USD |
+| `tfm-juez` | **0,00 USD** |
+| `nuvelai 2.0` (otro proyecto) | 0,02 USD |
+| **Total** | **1,28 USD** |
+
+Y ahí aparece el hallazgo. Las ejecuciones de septiembre registradas en
+`reports/` suman **0,977 USD**, contra los **1,26 USD** que la consola atribuye a
+la clave del sistema. **El proyecto no ve 0,283 USD de su propio gasto: un
+22 %.**
+
+No es el juez —está a cero— ni otro proyecto —`nuvelai` son 0,02—. Es gasto de
+la clave del TFM que no pasó por `evals.runner`: llamadas sueltas de desarrollo
+(validar credenciales, probar la rama MCP, el tool-calling) que no producen
+informe, y probablemente reintentos del SDK, que el proveedor factura y
+`Uso.registrar()` solo cuenta una vez porque se invoca sobre la respuesta buena.
+
+**Lo que hay que llevarse, y afecta a un entregable:** `reports/` mide **el
+banco**, no **el proyecto**. El coste por consulta que sale de ahí (0,00245 USD)
+sigue siendo válido, porque dentro de una ejecución todo pasa por
+`ChatProvider`. Lo que no se puede afirmar desde `reports/` es cuánto ha costado
+el proyecto. La "ficha de coste por consulta y por cliente" de `ALCANCE.md` §5
+tiene que decir cuál de las dos cosas mide.
+
+### De paso, el tope de gasto deja de ser un riesgo abierto
+
+La cuenta es de **prepago**: 12,87 USD de crédito y **recarga automática
+desactivada**. Eso ya es un tope duro, y acotado: al ritmo de fuga medido
+(12,5 USD/hora, §17) el peor caso se agota solo en una hora. El riesgo se
+invierte: ya no es gastar de más, es **quedarse sin crédito durante la defensa**.
+
+## 17. Evaluar cuesta diecisiete veces más que funcionar
+
+**Ejecución:** `juez_instrumentado`, 3 casos reevaluados desde las trazas de
+`empresa_gobernanza`. Sin llamadas al sistema: solo el juez.
+
+El juez nunca estuvo instrumentado. `evals/metrics/juez.py` no contabilizaba
+tokens, así que la mitad de la pregunta que las dos claves separadas permiten
+responder —cuánto cuesta evaluar frente a cuánto cuesta funcionar— no tenía
+respuesta. Que `tfm-juez` marcase **0,00 USD** hizo el momento inmejorable: se
+instrumentó antes de que gastara nada, así que la contabilidad y la factura
+arrancan desde el mismo cero.
+
+Primera medida:
+
+| | |
+|---|---|
+| Casos | 3 |
+| Llamadas del juez | 24 (**8 por caso**) |
+| Tokens | 16.956 entrada / 4.954 salida |
+| Coste | **0,1252 USD** → **0,0417 USD por caso** |
+| Llamadas sin tokens informados | 0 |
+
+Contra los **0,00245 USD por caso** del sistema: **evaluar cuesta 17 veces más
+que responder.** No es un matiz de contabilidad, cambia cómo se puede trabajar:
+
+| Pasada completa con juez | Coste |
+|---|---|
+| Inquilino A (53 casos) | 2,21 USD |
+| Inquilino C (38 casos) | 1,59 USD |
+| **Los dos** | **3,80 USD** |
+
+Con 12,87 USD de crédito caben **3,4 pasadas completas con juez**. Las 12
+ejecuciones que hay en `reports/` costaron 1,23 USD entre todas **porque casi
+todas fueron sin juez**.
+
+**Consecuencias:**
+
+1. `--sin-juez` no es una comodidad, es lo que hace ejecutable el banco a diario.
+   La pasada con juez es un acto deliberado, no una rutina.
+2. La puerta de coste del puente (`docs/SINCRONIZACION_SUPERFICIES.md` §3.2) deja
+   de ser una precaución teórica: una herramienta desatendida que pudiera lanzar
+   el juez agotaría el crédito en tres llamadas.
+3. Refuerza la decisión de anclar el veredicto en las métricas deterministas.
+   No es solo que el juez no repita: es que **repetirlo para medir su varianza
+   cuesta 3,80 USD por pasada**, mientras que las deterministas son gratis y no
+   varían.
+
+### Una pregunta abierta que esta medida deja servida
+
+`src/provider.py:54` fija el precio de `claude-sonnet-5` en 3,00/15,00 por millón
+de tokens, con un comentario que dice que el precio de lanzamiento (2,00/10,00)
+vencía el 31-08-2026 y que se usa el de lista **para no subestimar**. La tabla de
+precios vigente sigue dando 2,00/10,00.
+
+Con los tokens de esta ejecución, las dos hipótesis dan números distintos y
+distinguibles en la consola:
+
+| Precio | Coste de `juez_instrumentado` |
+|---|---|
+| 3,00 / 15,00 (lo que asume el repo) | 0,1252 USD |
+| 2,00 / 10,00 (tabla vigente) | **0,0835 USD** |
+
+`tfm-juez` estaba a 0,00 antes de esta ejecución, así que lo que marque ahora la
+consola resuelve la duda sin ambigüedad. Si marca 0,084, el repo sobreestima el
+coste del juez en un 50 % y `PRECIOS` hay que corregirlo.
+
+### Y una lección de implementación
+
+El instrumento se escribió primero como envoltorio que delegaba por
+`__getattr__`. Falla: `initialize_model` de DeepEval hace `isinstance` contra
+`DeepEvalBaseLLM` y rechaza cualquier otra cosa con un `TypeError`. **Un proxy
+que delega perfectamente sigue sin ser del tipo correcto.** La versión buena es
+una subclase construida sobre la clase concreta del modelo, y hay un test que
+fija esa propiedad para que no vuelva a perderse.

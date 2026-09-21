@@ -135,6 +135,7 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
     meta = resumen.get("meta", {})
     cfg = meta.get("configuracion", {})
     uso = meta.get("uso_sistema") or {}
+    uso_juez = meta.get("uso_juez") or {}
 
     out = [f"# Informe de evaluación — {meta.get('etiqueta', 'sin etiqueta')}", ""]
     out += [
@@ -167,6 +168,25 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
                 f"{uso.get('coste_usd_estimado', 0) / max(1, resumen['casos']):.5f} USD",
             ],
         ]
+    if uso_juez:
+        # Separado del coste del sistema a proposito: lo que cuesta evaluar no
+        # es lo que cuesta funcionar, y sumarlos borra la unica pregunta que las
+        # dos claves separadas permiten responder.
+        globales += [
+            ["Llamadas al LLM juez", str(uso_juez.get("llamadas", "-"))],
+            ["Coste estimado del juez", f"{uso_juez.get('coste_usd_estimado', 0):.4f} USD"],
+            [
+                "Cuanto encarece evaluar",
+                f"x{uso_juez.get('coste_usd_estimado', 0) / max(1e-9, uso.get('coste_usd_estimado', 0)):.1f}"
+                if uso.get("coste_usd_estimado") else "-",
+            ],
+        ]
+        if meta.get("juez_llamadas_sin_tokens"):
+            globales += [[
+                "**AVISO**",
+                (f"{meta['juez_llamadas_sin_tokens']} llamadas del juez sin "
+                 f"tokens informados: su coste es una cota INFERIOR"),
+            ]]
     out += [_tabla(["Indicador", "Valor"], globales), ""]
     out += _seccion_cobertura(resumen.get("cobertura_riesgo") or {})
     out += ["## Por métrica", ""]

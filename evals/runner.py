@@ -431,6 +431,12 @@ def suite_consultas(args) -> None:
         "con_juez": not args.sin_juez,
         "configuracion": descripcion(cfg),
         "uso_sistema": uso,
+        # El gasto del juez, aparte del del sistema y nunca sumado por el
+        # camino: las dos claves estan separadas desde el feedback de la 3.3
+        # para poder decir cuanto cuesta evaluar frente a cuanto cuesta
+        # funcionar, y un total unico borra justo esa distincion.
+        "uso_juez": juez.uso.resumen() if juez else None,
+        "juez_llamadas_sin_tokens": juez.model.sin_tokens if juez else 0,
     }
 
     _escribir(directorio, "resultados.json", registros)
@@ -442,6 +448,13 @@ def suite_consultas(args) -> None:
     if uso:
         print(f"[OK] Coste estimado de la ejecución del sistema: "
               f"{uso['coste_usd_estimado']:.4f} USD ({uso['llamadas']} llamadas)")
+    if juez is not None:
+        uj = resumen["meta"]["uso_juez"]
+        print(f"[OK] Coste estimado del juez: {uj['coste_usd_estimado']:.4f} USD "
+              f"({uj['llamadas']} llamadas)")
+        if resumen["meta"]["juez_llamadas_sin_tokens"]:
+            print(f"[!]  {resumen['meta']['juez_llamadas_sin_tokens']} llamadas del juez "
+                  f"no informaron tokens: el coste del juez es una cota INFERIOR.")
     print(f"[OK] Informe: {ruta_md}")
 
 

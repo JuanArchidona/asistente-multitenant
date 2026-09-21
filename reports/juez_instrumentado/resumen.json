@@ -1,0 +1,181 @@
+{
+  "casos": 3,
+  "casos_ok": 2,
+  "tasa_casos_ok": 0.6667,
+  "fallback_enrutador": 0,
+  "tasa_fallback": 0.0,
+  "latencia_media_s": 2.776,
+  "latencia_p95_s": 2.869,
+  "por_metrica": {
+    "answer_relevancy": {
+      "n": 3,
+      "media": 0.7937,
+      "tasa_exito": 0.6667
+    },
+    "contiene": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "correctness": {
+      "n": 3,
+      "media": 0.8667,
+      "tasa_exito": 1.0
+    },
+    "faithfulness": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "hit_rate": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "mrr": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "precision_at_k": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "recall_at_k": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "routing": {
+      "n": 3,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    }
+  },
+  "por_dimension": {
+    "conocimiento": {
+      "casos": 3,
+      "ok": 2,
+      "metricas": {
+        "routing": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "hit_rate": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "recall_at_k": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "precision_at_k": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "mrr": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "contiene": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "faithfulness": {
+          "n": 3,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "answer_relevancy": {
+          "n": 3,
+          "media": 0.7937,
+          "tasa_exito": 0.6667
+        },
+        "correctness": {
+          "n": 3,
+          "media": 0.8667,
+          "tasa_exito": 1.0
+        }
+      },
+      "tasa_ok": 0.6667
+    }
+  },
+  "confusion_enrutador": {
+    "rrhh": {
+      "rrhh": 3
+    }
+  },
+  "cobertura_riesgo": {
+    "casos_en_riesgo": 0,
+    "alcanzan_el_control": 0,
+    "cobertura": null,
+    "sin_fuga_aparente": {
+      "casos": 0,
+      "limpios": 0,
+      "tasa": null
+    },
+    "sin_fuga_medido": {
+      "casos": 0,
+      "limpios": 0,
+      "tasa": null
+    },
+    "por_superficie": {},
+    "no_alcanzados": [],
+    "detalle": []
+  },
+  "fallos": [
+    {
+      "id": "know-rrhh-01",
+      "dimension": "conocimiento",
+      "metrica": "answer_relevancy",
+      "valor": 0.6666666666666666,
+      "razon": "The score is 0.67 because part of the output directly addresses the vacation days question, but it also includes a citation of the source document and a reference to the file name, which do not contribute to answering the input question.",
+      "consulta": "¿Cuántos días de vacaciones me corresponden al año?"
+    }
+  ],
+  "errores_metrica": [],
+  "meta": {
+    "etiqueta": "juez_instrumentado",
+    "dataset": "evals/datasets/empresa_servicios/golden_consultas.jsonl",
+    "fecha": "2026-09-21T19:43:06+00:00",
+    "duracion_s": 43.5,
+    "con_juez": true,
+    "configuracion": {
+      "provider": "anthropic",
+      "model_router": "claude-haiku-4-5-20251001",
+      "model_generator": "claude-haiku-4-5-20251001",
+      "embed_model": "gemini-embedding-001",
+      "embed_dims": 768,
+      "chunk_strategy": "chars",
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "top_k": 4,
+      "distance_threshold": null,
+      "gen_policy": "base",
+      "judge_model": "claude-sonnet-5",
+      "collection": "corpus_empresa_servicios_chars_800_768_d25b9cf742"
+    },
+    "uso_sistema": null,
+    "uso_juez": {
+      "llamadas": 24,
+      "tokens_entrada": 16956,
+      "tokens_salida": 4954,
+      "coste_usd_estimado": 0.125178,
+      "por_modelo": {
+        "claude-sonnet-5": {
+          "llamadas": 24,
+          "tokens_entrada": 16956,
+          "tokens_salida": 4954
+        }
+      }
+    },
+    "juez_llamadas_sin_tokens": 0
+  }
+}

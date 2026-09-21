@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-21)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **596 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **599 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -44,6 +44,7 @@ y control de acceso estructural. **596 tests en verde**, `ruff` limpio.
 | Control de acceso en las dos ramas | Hecho y medido |
 | Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
+| Contabilidad de coste del sistema y del juez | Hecha y medida, por clave separada |
 | Observabilidad y coste en producción | Pendiente |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
@@ -130,7 +131,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 596 tests, sin llamadas a API
+uv run pytest                                      # 599 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -153,8 +154,19 @@ y §14).
 - No se dispone del enunciado oficial ni de la rúbrica del TFM.
 - Reutilizar entregas propias calificadas no está verificado en ninguna
   normativa.
-- Sin tope de gasto en la cuenta de Anthropic; cerrar antes de exponer el
-  despliegue.
+- **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
+  prepago, 12,87 USD de crédito y **recarga automática desactivada**: es un tope
+  duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que
+  vigilar ahora es lo contrario, quedarse sin crédito en la defensa. **No activar
+  la recarga automática**: es lo único que rompería el tope. Ver §16.
+- **Evaluar cuesta 17 veces más que funcionar**: 0,0417 USD por caso con juez
+  frente a 0,00245 USD sin él, y 3,80 USD una pasada completa de los dos
+  inquilinos — el 30 % del crédito. La pasada con juez es un acto deliberado, no
+  una rutina (§17).
+- **`reports/` mide el banco, no el proyecto.** La contabilidad propia no ve un
+  22 % del gasto de su clave: llamadas de desarrollo fuera de `evals.runner` y
+  reintentos del SDK. Afecta a la ficha de coste de `ALCANCE.md` §5, que tiene
+  que decir cuál de las dos cosas mide (§16).
 - **Cobertura del riesgo: 0,636 en A y 0,778 en C.** Resuelto lo que se podía
   resolver enrutando (§12). Lo que queda son casos que no llegan al control por
   fallo de enrutado, y subirlos es trabajo de enrutador, no de gobernanza.

@@ -4,6 +4,8 @@ La métrica por caso se prueba en `test_metricas.py`. Lo que se prueba aquí es 
 que de verdad motivó escribirla: que el informe deje de poder decir "cero fugas"
 sin decir a la vez sobre cuántos casos se comprobó eso realmente.
 """
+import pytest
+
 from evals.report import informe_consultas
 from evals.runner import agregar, cobertura_riesgo
 
@@ -110,3 +112,89 @@ def test_el_informe_publica_las_dos_cifras_juntas():
     # El caso que no llegó se nombra: un número agregado sin los culpables no
     # se puede accionar.
     assert "conf-02" in md
+
+
+# --- Contabilidad del juez ---
+#
+# El gasto del juez no lo veia nadie hasta ahora. Se prueba con un modelo falso
+# porque la alternativa es pagar llamadas reales para comprobar un contador.
+
+class _CosteConTokens(float):
+    """Lo que devuelve DeepEval: un float que ademas lleva los tokens dentro."""
+
+    def __new__(cls, valor, entrada, salida):
+        o = super().__new__(cls, valor)
+        o.input_tokens = entrada
+        o.output_tokens = salida
+        return o
+
+
+class _ModeloFalso:
+    """Hace de modelo de DeepEval. La subclase contabilizada hereda de el."""
+
+    def __init__(self, costes):
+        self.costes = list(costes)
+        self.llamadas = 0
+
+    def generate(self, *_a, **_k):
+        self.llamadas += 1
+        return "veredicto", self.costes.pop(0)
+
+    def get_model_name(self):
+        return "modelo-falso"
+
+
+def _contabilizado(costes, uso, nombre="claude-sonnet-5"):
+    from evals.metrics.juez import contabilizar
+
+    m = contabilizar(_ModeloFalso)(costes)
+    m.iniciar_contador(uso, nombre)
+    return m
+
+
+def test_el_juez_acumula_los_tokens_que_gasta():
+    from src.provider import Uso
+
+    uso = Uso()
+    modelo = _contabilizado(
+        [_CosteConTokens(0.1, 1000, 200), _CosteConTokens(0.1, 500, 100)], uso
+    )
+
+    modelo.generate("una")
+    modelo.generate("otra")
+
+    r = uso.resumen()
+    assert r["llamadas"] == 2
+    assert r["tokens_entrada"] == 1500 and r["tokens_salida"] == 300
+    # 1500/1e6*3.00 + 300/1e6*15.00, con la tabla de precios del proyecto.
+    assert r["coste_usd_estimado"] == pytest.approx(0.0045 + 0.0045)
+
+
+def test_una_llamada_sin_tokens_no_se_cuenta_como_cero():
+    """Un proveedor que devuelve un float pelado no trae tokens. Contarlo como
+    cero haria que el coste del juez pareciera menor de lo que es, en silencio."""
+    from src.provider import Uso
+
+    uso = Uso()
+    modelo = _contabilizado([0.1], uso)
+
+    modelo.generate("una")
+
+    assert modelo.sin_tokens == 1
+    assert uso.resumen()["llamadas"] == 0
+
+
+def test_el_contador_sigue_siendo_del_tipo_que_deepeval_exige():
+    """El fallo que costo la primera version: `initialize_model` de DeepEval hace
+    `isinstance` contra `DeepEvalBaseLLM` y rechaza cualquier otra cosa. Un proxy
+    que delega perfectamente sigue sin ser del tipo correcto, asi que esto tiene
+    que ser una subclase de verdad."""
+    from evals.metrics.juez import contabilizar
+    from src.provider import Uso
+
+    modelo = _contabilizado([], Uso())
+
+    assert isinstance(modelo, _ModeloFalso)
+    assert issubclass(contabilizar(_ModeloFalso), _ModeloFalso)
+    # Y lo que no se intercepta se hereda sin mas.
+    assert modelo.get_model_name() == "modelo-falso"

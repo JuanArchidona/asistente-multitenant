@@ -32,6 +32,8 @@ import os
 import threading
 import time
 
+from src.provider import Uso
+
 from ..schema import Metrica
 from .deterministas import Resultado
 
@@ -93,6 +95,75 @@ PASOS_CONFIDENCIALIDAD = [
 ]
 
 
+def contabilizar(clase_modelo):
+    """Devuelve una subclase del modelo de DeepEval que cuenta lo que gasta.
+
+    Existe porque el gasto del juez no lo veia nadie. Las claves del proyecto
+    estan separadas desde el feedback de la entrega 3.3 —una para el sistema y
+    otra para el juez— precisamente para poder decir cuanto cuesta evaluar
+    frente a cuanto cuesta funcionar, y la mitad del juez se quedaba sin
+    instrumentar: `Uso` solo veia lo que pasaba por `src/provider.py`.
+
+    **Es una subclase y no un envoltorio, y eso no es un detalle de estilo.**
+    La primera version delegaba por `__getattr__`, que funciona para todas las
+    llamadas pero no para la comprobacion de tipo: `initialize_model` de
+    DeepEval hace `isinstance` contra `DeepEvalBaseLLM` y rechaza cualquier otra
+    cosa con un `TypeError`. Un proxy perfecto sigue sin ser del tipo correcto.
+
+    DeepEval devuelve `(salida, coste)` en `generate` y `a_generate`, y ese
+    coste es un `EvaluationCost`, que subclasea `float` y lleva dentro
+    `input_tokens` y `output_tokens`. Se leen de ahi y se acumulan en el mismo
+    `Uso` que usa el sistema, con la tabla de precios del proyecto y no con la
+    de DeepEval: asi el coste del banco entero sale de una sola fuente.
+
+    Un proveedor que devuelva un `float` pelado no trae tokens. Eso **no se
+    cuenta como cero**: se lleva aparte en `sin_tokens` y sale en el informe
+    marcando el coste como cota inferior. Un contador que redondea a la baja en
+    silencio es peor que no tenerlo.
+    """
+
+    class Contabilizado(clase_modelo):
+        # Valores por defecto de clase: si algo llamase a `generate` antes de
+        # `iniciar_contador`, se anota como llamada sin tokens en vez de reventar.
+        _uso = None
+        _nombre = ""
+        sin_tokens = 0
+
+        def iniciar_contador(self, uso: Uso, nombre: str) -> None:
+            self._uso = uso
+            self._nombre = nombre
+            self.sin_tokens = 0
+            self._lock_contador = threading.Lock()
+
+        def _anotar(self, coste) -> None:
+            entrada = getattr(coste, "input_tokens", None)
+            salida = getattr(coste, "output_tokens", None)
+            if self._uso is None or entrada is None or salida is None:
+                lock = getattr(self, "_lock_contador", None)
+                if lock is None:
+                    self.sin_tokens += 1
+                else:
+                    with lock:
+                        self.sin_tokens += 1
+                return
+            self._uso.registrar(self._nombre, entrada, salida)
+
+        def generate(self, *args, **kwargs):
+            resultado = super().generate(*args, **kwargs)
+            if isinstance(resultado, tuple) and len(resultado) == 2:
+                self._anotar(resultado[1])
+            return resultado
+
+        async def a_generate(self, *args, **kwargs):
+            resultado = await super().a_generate(*args, **kwargs)
+            if isinstance(resultado, tuple) and len(resultado) == 2:
+                self._anotar(resultado[1])
+            return resultado
+
+    Contabilizado.__name__ = f"{clase_modelo.__name__}Contabilizado"
+    return Contabilizado
+
+
 class Juez:
     """Fachada sobre DeepEval.
 
@@ -114,10 +185,16 @@ class Juez:
         self.modelo_nombre = modelo
         self.proveedor = proveedor
         self.reintentos = reintentos
+        # Acumulador propio, separado del del sistema: la gracia de tener dos
+        # claves es poder responder cuanto cuesta evaluar frente a cuanto cuesta
+        # funcionar, y para eso los dos numeros no se pueden sumar por el camino.
+        self.uso = Uso()
         if proveedor == "gemini":
             from deepeval.models import GeminiModel
 
-            self.model = GeminiModel(model=modelo, api_key=api_key, temperature=0)
+            self.model = contabilizar(GeminiModel)(
+                model=modelo, api_key=api_key, temperature=0
+            )
         else:
             from deepeval.models import AnthropicModel
 
@@ -127,12 +204,13 @@ class Juez:
             # ('ThinkingBlock' object has no attribute 'text') y **todas** las métricas
             # de juez fallan. Se desactiva explícitamente: un juez no necesita razonar
             # en bloques separados, emite un veredicto estructurado.
-            self.model = AnthropicModel(
+            self.model = contabilizar(AnthropicModel)(
                 model=modelo,
                 api_key=api_key,
                 temperature=0,
                 generation_kwargs={"thinking": {"type": "disabled"}, "max_tokens": 2048},
             )
+        self.model.iniciar_contador(self.uso, modelo)
         self._local = threading.local()
 
     # --- construcción perezosa de cada métrica, por hilo ---
