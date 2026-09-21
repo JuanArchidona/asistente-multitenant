@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-21)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **599 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **600 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -45,6 +45,7 @@ y control de acceso estructural. **599 tests en verde**, `ruff` limpio.
 | Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, por clave separada |
+| Puente MCP con la app (consulta y registro) | Hecho y probado; falta declararlo en la app |
 | Observabilidad y coste en producción | Pendiente |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
@@ -131,7 +132,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 599 tests, sin llamadas a API
+uv run pytest                                      # 600 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

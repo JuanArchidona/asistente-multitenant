@@ -49,6 +49,12 @@ from .schema import METRICAS_JUEZ, CasoConsulta, Metrica
 from .transcripcion import ejecutar_transcripcion, evaluar_transcripcion
 from .variantes import asegurar_indice, descripcion, variante
 
+# Coste del juez por caso, medido en `reports/juez_instrumentado` (24 llamadas
+# sobre 3 casos). Existe para poder avisar ANTES de gastar: el juez cuesta 17
+# veces lo que el sistema, y una pasada completa de los dos bancos son 3,80 USD.
+# Ver docs/HALLAZGOS.md §17.
+COSTE_JUEZ_POR_CASO_USD = 0.0417
+
 RAIZ_REPO = Path(__file__).resolve().parents[1]
 RAIZ_REPORTES = RAIZ_REPO / "reports"
 
@@ -415,7 +421,14 @@ def suite_consultas(args) -> None:
 
     juez = None
     if not args.sin_juez:
+        # El aviso va antes de crear el juez y no en la ayuda: `--desde-trazas`
+        # no llama al sistema, y es facil leer eso como "esta ejecucion no
+        # cuesta". El juez se lanza igual, y es la parte cara.
         print(f"[runner] Juez: {cfg.judge_model} (distinto del generador {cfg.model_generator}).")
+        print(f"[!] AVISO DE COSTE: el juez se ejecutara sobre {len(casos)} casos. "
+              f"Estimado {COSTE_JUEZ_POR_CASO_USD * len(casos):.2f} USD "
+              f"({COSTE_JUEZ_POR_CASO_USD:.4f} USD/caso, medido). "
+              f"Anade --sin-juez para no pagarlo.")
         clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.anthropic_api_key
         juez = Juez(api_key=clave, modelo=cfg.judge_model, proveedor=cfg.judge_provider)
 
@@ -507,8 +520,23 @@ def main() -> None:
     p.add_argument("--etiqueta", default="ultima", help="Subcarpeta de reports/ donde escribir")
     p.add_argument("--limite", type=int, help="Ejecutar solo los N primeros casos")
     p.add_argument("--dimensiones", help="Filtrar por dimensiones, separadas por comas")
-    p.add_argument("--sin-juez", action="store_true", help="Solo métricas deterministas (gratis)")
-    p.add_argument("--desde-trazas", help="Reevaluar las trazas de una ejecución anterior")
+    p.add_argument(
+        "--sin-juez",
+        action="store_true",
+        help=(
+            "Solo métricas deterministas: sin coste de juez. NO implica coste cero: "
+            "el sistema bajo prueba sigue llamando al proveedor salvo que además "
+            "se use --desde-trazas"
+        ),
+    )
+    p.add_argument(
+        "--desde-trazas",
+        help=(
+            "Reevaluar las trazas de una ejecución anterior sin llamar al sistema. "
+            "OJO: por sí solo NO evita el coste del juez, que es el caro; para una "
+            "ejecución sin coste hacen falta las dos banderas"
+        ),
+    )
     p.add_argument("--workers", type=int, default=4, help="Casos en paralelo contra el sistema")
     p.add_argument("--workers-juez", type=int, default=2, help="Casos en paralelo contra el juez")
     # Sobreescrituras de configuración: permiten evaluar una variante sin tocar .env

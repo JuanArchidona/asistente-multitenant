@@ -198,3 +198,16 @@ def test_el_contador_sigue_siendo_del_tipo_que_deepeval_exige():
     assert issubclass(contabilizar(_ModeloFalso), _ModeloFalso)
     # Y lo que no se intercepta se hereda sin mas.
     assert modelo.get_model_name() == "modelo-falso"
+
+
+def test_el_aviso_de_coste_usa_una_cifra_medida():
+    """El aviso existe porque `--desde-trazas` no llama al sistema y es facil
+    leer eso como 'esta ejecucion no cuesta'. El juez se lanza igual y es la
+    parte cara: 17 veces el coste del sistema, medido en reports/."""
+    from evals.runner import COSTE_JUEZ_POR_CASO_USD
+
+    # La cifra sale de reports/juez_instrumentado: 0.1252 USD / 3 casos.
+    assert COSTE_JUEZ_POR_CASO_USD == pytest.approx(0.1252 / 3, abs=1e-4)
+    # Y tiene que seguir siendo mucho mayor que el coste por consulta del
+    # sistema, que es lo que hace que el aviso merezca la pena.
+    assert COSTE_JUEZ_POR_CASO_USD > 10 * 0.00245

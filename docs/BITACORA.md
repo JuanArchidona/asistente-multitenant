@@ -4,6 +4,87 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-21 (tarde) — Sesión 4: el puente con la app, y el coste por fin medido
+
+Sesión de infraestructura y de medición. No se tocó el sistema evaluado: ni el
+corpus, ni los bancos, ni el prompt del enrutador. Las cifras del §2 no se mueven.
+
+**Hecho:**
+
+- **Puente MCP con la app** (`puente/servidor.mjs`), Node sobre stdio y sin
+  dependencias. Dos herramientas: `consultar_tfm`, que responde sobre el árbol de
+  trabajo real incluido lo no pusheado, y `registrar_tfm`, que añade una entrada
+  al registro con la fecha puesta por el puente. Puesta en marcha y pruebas en
+  `puente/README.md`.
+- **`docs/SINCRONIZACION_SUPERFICIES.md` commiteado, con tres de sus
+  afirmaciones corregidas** contra el código y marcadas en su sitio.
+- **El juez, instrumentado.** `evals/metrics/juez.py` no contaba tokens; ahora
+  acumula en el mismo `Uso` que el sistema, con la tabla de precios del
+  proyecto, y el informe publica su coste aparte del del sistema.
+- **Aviso de coste en el runner.** `--desde-trazas` no evita el coste del juez, y
+  la ayuda de `--sin-juez` decía "(gratis)". Corregidas las dos, y ahora avisa
+  con la cifra medida antes de gastar.
+- Hallazgos 16 y 17 escritos. 596 → **600 tests en verde**.
+
+**Decisiones:**
+
+- **El buzón y el registro se gitignoran.** El repositorio es público y no se
+  conoce aún la rúbrica del TFM; publicar es irreversible de hecho y gitignorar
+  se deshace en un commit. Con las reglas sin conocer, gana la opción reversible.
+- **Un solo workspace `Default` con las tres claves.** La consola ya desglosa
+  coste **por clave**, que es lo que pedía el feedback de la 3.3. Los workspaces
+  solo añadirían un límite por separado, redundante con el prepago.
+- **Descartada la Admin API.** Se propuso para localizar 0,30 USD sin explicar;
+  la consola lo resolvió con un clic y no compensa emitir una credencial con
+  permisos sobre toda la organización.
+- **La sesión hija del puente no tiene Bash.** Las listas blancas de Bash casan
+  por prefijo y una instrucción inyectada puede componer órdenes que pasen el
+  filtro. El puente ejecuta `git` él mismo con argumentos fijos y le pasa el
+  resultado como dato; la hija corre con `--restricted` y solo `Read`, `Grep`,
+  `Glob`.
+
+**Medido:**
+
+| | |
+|---|---|
+| Coste del juez, por caso | **0,0417 USD** (24 llamadas sobre 3 casos) |
+| Contra el sistema (0,00245 USD/caso) | **evaluar cuesta x17 que responder** |
+| Pasada completa con juez, los dos bancos | **3,80 USD** |
+| Crédito de prepago disponible | 12,87 USD — **3,4 pasadas** |
+| Gasto no visto por `reports/` | **22 %** del gasto de la propia clave |
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Comprobar en la consola el coste de `tfm-juez`.** Estaba a 0,00 antes de
+      `juez_instrumentado`, así que lo que marque ahora resuelve sin ambigüedad
+      si `claude-sonnet-5` cuesta 3,00/15,00 (marcaría 0,125) o 2,00/10,00
+      (marcaría 0,084). En el segundo caso, `src/provider.py:54` sobreestima un
+      50 % y hay que corregir `PRECIOS` y las extrapolaciones del hallazgo 17.
+- [ ] **Declarar el puente en la configuración MCP del proyecto de la app.** Está
+      commiteado pero hasta que no se declare allí no hace nada. El JSON está en
+      `puente/README.md`.
+- [ ] **Punto 3 del §7 de `SINCRONIZACION_SUPERFICIES.md`**: buzón de encargos,
+      con los dos riesgos abiertos del §8 como primer caso real — conseguir el
+      enunciado y la rúbrica, y verificar si reutilizar entregas calificadas está
+      permitido. Los dos son tareas de navegador y condicionan el alcance.
+- [ ] **Punto 4**: `medir_tfm` asíncrona, solo `--desde-trazas --sin-juez` y con
+      el inquilino como parámetro explícito con lista blanca.
+- [ ] Decidir qué hacer con el solapamiento `expedientes`/`cartera`: la salida
+      apuntada es consultar las dos ramas en vez de elegir.
+- [ ] Observabilidad y coste acumulado en producción, y despliegue con
+      autenticación.
+
+**Notas:**
+
+- **No activar la recarga automática** de la cuenta del proveedor. Es lo único
+  que rompería el tope duro que ya da el prepago.
+- El conector de GitHub del proyecto de la app **sí funciona**: verificado
+  pidiéndole el título literal del §9 y el número de tests, y acertó los dos.
+  Queda cerrado el pendiente que dejó la sesión 3.
+- El coste por consulta del sistema (0,00245 USD) sigue siendo válido, pero
+  `reports/` mide **el banco** y no **el proyecto**. La ficha de coste de
+  `ALCANCE.md` §5 tiene que decir cuál de las dos cosas reporta.
+
 ## 2026-09-21 — Sesión 3: sincronización entre Claude Code y la app
 
 Sesión corta, de proceso y no de código.
