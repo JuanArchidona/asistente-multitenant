@@ -45,7 +45,7 @@ y control de acceso estructural. **603 tests en verde**, `ruff` limpio.
 | Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
-| Puente MCP con la app (consulta y registro) | Hecho y probado; falta declararlo en la app |
+| Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
 | Observabilidad y coste en producción | Pendiente |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |

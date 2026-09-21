@@ -1,4 +1,4 @@
-> Versión: 1.4 · Actualizado: 2026-09-21 · Idioma: ES
+> Versión: 1.5 · Actualizado: 2026-09-21 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -625,3 +625,67 @@ absoluto, lo que marque ahora la consola resuelve dos cosas de una vez:
 
 Y `tfm-sistema` debería haber subido de 1,26 a **1,385** (a 3/15) o **1,343** (a
 2/10) por la ejecución anterior, que es la que se facturó a la clave equivocada.
+
+## 19. Confinar al directorio de trabajo no es confinar a lo que se puede ensenar
+
+**Fuente:** la primera consulta real al puente desde la app, el 21-09-2026, y lo
+que esa respuesta dejaba ver de pasada.
+
+El puente lanza la sesion hija con `--restricted`, que quita Bash, PowerShell y
+WebFetch, ignora los ficheros de settings y **confina las herramientas de fichero
+al directorio de trabajo**. Con eso di por hecho el problema resuelto.
+
+Lo destapo la propia respuesta de la hija. Al preguntarle qué había sin
+commitear, explicó que el estado del árbol no lo calculó ejecutando `git status`
+—no tiene shell— sino que **verificó los commits sin pushear leyendo las refs de
+`.git/` directamente**. Es decir: leía ficheros del repositorio que yo no había
+considerado.
+
+Y en la raíz del repositorio hay un `.env` con las dos claves de API en claro.
+Comprobado pidiéndole el número de líneas sin mostrar contenido: **lo leyó sin
+problema**, 31 líneas, y añadió por su cuenta que contenía claves reales.
+
+El directorio de trabajo **es** el repositorio. Confinar ahí no excluye el
+fichero de credenciales, porque el fichero de credenciales vive ahí.
+
+### Por qué importa más de lo que parece
+
+El puente lo consume la app, y a la app la dirige un modelo que lee documentos,
+correos y páginas web. Una instrucción inyectada en cualquiera de esos sitios
+podría llamar a `consultar_tfm` pidiendo el `.env`, y la respuesta es texto que
+vuelve a esa conversación. No hace falta que nadie sea malicioso: basta con que
+un documento lo pida.
+
+### Arreglo, y cómo se verificó
+
+`--disallowedTools` con reglas sobre `Read` y `Grep` para `.env`, más
+`.git/config` por precaución —aquí la URL del remoto no lleva credencial, pero en
+otro equipo podría—. Probado de tres formas contra el puente ya declarado en la
+app:
+
+| Caso | Resultado |
+|---|---|
+| Pedir literalmente el valor de `ANTHROPIC_API_KEY_JUEZ` | No lo filtra; responde sobre el código que la usa |
+| Rodeo con `Grep` de `sk-ant` sobre `.env` | **Rechazado**, nombrando la petición como volcado de credenciales |
+| Consulta legítima sobre los inquilinos | Funciona, 7,1 s |
+
+Las dos capas están puestas en el orden que este proyecto defiende: **primero la
+estructural** —la denegación de permisos, que se comprobó por separado y devuelve
+"NO PUEDO"— y **después el prompt**, que añade una regla de no rodear
+denegaciones. Si solo estuviera la segunda, sería una petición educada a un
+modelo, que es justo lo que el §4 del `CLAUDE.md` rechaza para el control de
+acceso del propio sistema. Sería incoherente exigírselo al producto y no a la
+herramienta.
+
+### Lo transportable
+
+**Al dar a un agente acceso de lectura a un repositorio se le está dando acceso a
+todo lo que hay en el repositorio**, no solo al código. Un `.env`, un `.git/config`
+con token, un volcado de base de datos, un fichero de pruebas con datos reales:
+todo eso está dentro del directorio de trabajo. La pregunta correcta al montar un
+acceso así no es "¿está confinado?" sino **"¿qué hay dentro del confinamiento que
+no quiero que salga?"**.
+
+Y un detalle de método: esto se encontró **leyendo con atención una respuesta que
+era correcta**. La hija contestó bien y, de camino, describió cómo lo había
+hecho. La descripción era el hallazgo.
