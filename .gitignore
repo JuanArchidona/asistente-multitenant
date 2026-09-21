@@ -18,3 +18,11 @@ data/
 # SO / editor
 .DS_Store
 Thumbs.db
+
+# Utillaje del puente con la app de Claude: buzon de encargos y registro de
+# trabajo. No se versionan a proposito. El repositorio es publico, y un registro
+# publicado detallaria que partes del trabajo se delegaron, en el repositorio que
+# acompana a la defensa. Decidido el 2026-09-21; es reversible si la rubrica del
+# TFM resulta pedir lo contrario. Ver docs/SINCRONIZACION_SUPERFICIES.md §4.
+puente/ENCARGOS_APP.md
+puente/REGISTRO_APP.md
