@@ -7,13 +7,19 @@ Gemini como generador.
 Añadido en la 3.3: **contabilidad de uso**. La 3.1 descartaba el bloque `usage`
 de cada respuesta, así que no había forma de saber lo que costaba una consulta.
 Como `get_chat()` es el único punto por el que pasan todas las llamadas al LLM,
-instrumentar aquí cubre el 100 % del gasto sin tocar la lógica de negocio. El
+instrumentar aquí cubre todo lo que pasa por el proveedor sin tocar la lógica de
+negocio. **No cubre el gasto de la cuenta**, y la diferencia importa: la consola
+del proveedor atribuyó a esta clave un 22 % más de lo que el repositorio
+contabilizó en septiembre (`docs/HALLAZGOS.md` §16). Lo que se escapa son las
+llamadas sueltas de desarrollo, que no producen informe, y los reintentos del
+SDK, que el proveedor factura y este contador registra una sola vez. El
 banco de pruebas lo usa para reportar coste por caso y coste total de una
 ejecución, que es la mitad de la respuesta a "¿compensa cambiar de modelo?".
 """
 import re
 import threading
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 
 from .config import Config
@@ -67,8 +73,35 @@ class Uso:
     por_modelo: dict[str, dict[str, int]] = field(default_factory=dict)
     # El banco puede ejecutar casos en paralelo; el acumulador se comparte.
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+    # Acumulador hijo, por hilo, para atribuir coste a UNA consulta. Ver
+    # `por_consulta`. Es local al hilo y no al objeto porque el banco ejecuta
+    # varios casos a la vez sobre el mismo `Sistema`: con un atributo normal,
+    # el coste de una consulta se mezclaria con el de la de al lado.
+    _local: threading.local = field(default_factory=threading.local, repr=False, compare=False)
+
+    @contextmanager
+    def por_consulta(self):
+        """Acumula aparte lo que se gaste dentro del bloque, sin dejar de sumarlo al total.
+
+        Hace falta porque el acumulador global responde "cuanto ha costado esta
+        ejecucion" y la observabilidad en produccion necesita "cuanto ha costado
+        esta consulta". Restar dos instantaneas del total seria mas corto y
+        estaria mal: con varias consultas en vuelo, la resta atribuye a una lo
+        que gasto otra.
+        """
+        hijo = Uso()
+        anterior = getattr(self._local, "hijo", None)
+        self._local.hijo = hijo
+        try:
+            yield hijo
+        finally:
+            self._local.hijo = anterior
 
     def registrar(self, modelo: str, entrada: int, salida: int) -> None:
+        hijo = getattr(self._local, "hijo", None)
+        if hijo is not None:
+            # El hijo tiene su propio `_local`, vacio, asi que aqui se para.
+            hijo.registrar(modelo, entrada, salida)
         with self._lock:
             self.llamadas += 1
             self.tokens_entrada += entrada

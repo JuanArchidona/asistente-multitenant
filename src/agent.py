@@ -118,9 +118,16 @@ class Sistema:
         cfg: Config,
         chat: ChatProvider | None = None,
         usuario: Usuario | None = None,
+        registro=None,
     ):
         self.cfg = cfg
         self.chat = chat or get_chat(cfg)
+        # Observabilidad **opt-in**. El banco y la produccion comparten esta
+        # clase: si el registro se activara solo, un barrido de once
+        # configuraciones meteria cientos de consultas sinteticas en el log de
+        # produccion y "cuanto ha costado atender a este cliente" dejaria de
+        # tener respuesta. Lo activa el punto de entrada de produccion.
+        self.registro = registro
         # Sin identidad no hay control de acceso. Por defecto, el empleado sin
         # privilegios: el caso que hay que medir es el de quien pide lo que no
         # le corresponde, no el del administrador.
@@ -166,6 +173,17 @@ class Sistema:
         el mundo saca un pleno en confidencialidad sin servir para nada.
         """
         usuario = usuario or self.usuario
+        if self.registro is None:
+            return self._responder(consulta, usuario)
+        # El coste se atribuye a ESTA consulta, no al acumulado de la sesion:
+        # restar dos instantaneas del total atribuiria a una lo que gasto otra
+        # cuando hay varias en vuelo.
+        with self.chat.uso.por_consulta() as uso:
+            traza = self._responder(consulta, usuario)
+        self.registro.anotar(traza, uso.resumen())
+        return traza
+
+    def _responder(self, consulta: str, usuario: Usuario) -> dict:
         t0 = time.perf_counter()
 
         # 1. Enrutar

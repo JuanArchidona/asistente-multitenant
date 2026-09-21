@@ -1,4 +1,4 @@
-> Versión: 1.5 · Actualizado: 2026-09-21 · Idioma: ES
+> Versión: 1.6 · Actualizado: 2026-09-21 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -689,3 +689,70 @@ no quiero que salga?"**.
 Y un detalle de método: esto se encontró **leyendo con atención una respuesta que
 era correcta**. La hija contestó bien y, de camino, describió cómo lo había
 hecho. La descripción era el hallazgo.
+
+## 20. "El control actuó" no significa que nadie intentara colarse
+
+**Fuente:** las tres primeras consultas reales registradas por la observabilidad
+de producción, el 21-09-2026.
+
+El registro nuevo traía un campo `control_actuo`, unión de "el filtro de
+permisos retuvo algún documento" y "se redactaron campos sensibles". Parecía la
+señal obvia de una capa de gobernanza. La primera ejecución contra consultas
+reales la desmintió:
+
+| Consulta | ¿Control actuó? |
+|---|---|
+| *"¿Cuántos días de vacaciones tengo al año?"* | **Sí** |
+| *"Dame el DNI y el salario de Diego Ferrer"* | Sí |
+
+El panel decía **"el control actuó en el 100 % de las consultas"**, que
+cualquiera lee como "todos están intentando acceder a datos protegidos".
+
+La causa es estructural y no tiene nada que ver con quién pregunta: el
+`anexo_confidencial_plantilla.md` vive en la fuente `rrhh`, así que aparece
+entre los candidatos de **cualquier** consulta de recursos humanos y el filtro
+lo retiene siempre. La señal describía **la recuperación**, no **la intención**.
+
+Es el hallazgo 9 con otro disfraz. Allí la métrica de confidencialidad estaba en
+verde por un motivo que no era el que se quería medir; aquí una métrica se
+dispara por un motivo que no es el que se quiere señalar. En los dos casos el
+número es correcto y la lectura es falsa.
+
+### Arreglo: una señal se convierte en tres
+
+| Campo | Qué dice | Utilidad |
+|---|---|---|
+| `filtro_retuvo` | El filtro apartó algún candidato | **Ruidoso**: casi constante por fuente |
+| `sin_acceso_a_lo_pedido` | La recuperación quedó vacía **habiendo** material retenido | **Alta**: lo pedido solo lo respondía material protegido |
+| `redaccion_aplicada` | La herramienta devolvió campos sensibles en esta consulta | **Alta**: depende de la pregunta |
+
+El informe las presenta por separado y etiqueta la primera como ruidosa en el
+propio texto, porque un número que hay que explicar aparte acaba leyéndose mal.
+
+Medido tras el cambio, sobre las mismas consultas: `empresa_servicios` pasa a
+**0 consultas sin acceso** de 2 —nadie se quedó sin lo que pidió— manteniendo
+las 2 de filtro retenido.
+
+### Lo que la observabilidad encontró el primer día
+
+La tercera consulta, *"dame todos los datos del comprador de la operación
+OP-2026-110"*, se registró así:
+
+```
+expedientes  1.8s  ...  [sin contexto, SIN ACCESO]
+```
+
+Se enrutó a `expedientes` en vez de a `cartera`, la fuente `expedientes` solo
+contiene el documento restringido, el filtro lo retuvo y el usuario **se quedó
+sin respuesta**.
+
+Es el solapamiento `expedientes` / `cartera` del hallazgo 12, que el banco ya
+tenía medido. La diferencia está en lo que se ve: en el banco son **dos casos
+sucios de treinta y ocho**; en producción es **un usuario que pregunta por una
+operación de su empresa y no recibe nada**, con la pinta de que el sistema no
+tiene el dato cuando el dato está en el CRM.
+
+**Ese cambio de lectura es el argumento entero a favor de la observabilidad.**
+El laboratorio dice cuántos casos fallan; el registro de producción dice qué le
+pasa a quien pregunta. Y sube la prioridad de la decisión pendiente de consultar
+las dos ramas ante una consulta ambigua, que en el banco parecía cosmética.

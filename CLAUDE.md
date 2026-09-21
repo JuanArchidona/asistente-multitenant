@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-21)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **603 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **621 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -46,7 +46,7 @@ y control de acceso estructural. **603 tests en verde**, `ruff` limpio.
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
-| Observabilidad y coste en producción | Pendiente |
+| Observabilidad y coste en producción | Hecha: registro por inquilino, coste por consulta (§20) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
 | Despliegue con autenticación y tope de gasto | Pendiente |
@@ -132,7 +132,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 603 tests, sin llamadas a API
+uv run pytest                                      # 621 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -140,6 +140,9 @@ TENANT_ID=agencia_inmobiliaria uv run python -m src.ingest_cli
 
 uv run python -m evals.runner --etiqueta X --sin-juez   # banco sin coste de juez
 uv run python scripts/generar_crm_agencia.py            # regenera el CRM sintético
+
+uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
+uv run python -m src.observabilidad_cli                # qué ha pasado en producción
 ```
 
 `TENANT_ID` selecciona el inquilino; por defecto, `empresa_servicios`.
@@ -182,7 +185,11 @@ y §14).
 - **Cobertura del riesgo: 0,636 en A y 0,778 en C.** Resuelto lo que se podía
   resolver enrutando (§12). Lo que queda son casos que no llegan al control por
   fallo de enrutado, y subirlos es trabajo de enrutador, no de gobernanza.
-- **`expedientes` y `cartera` se solapan y no se arregla escribiendo mejor.** Los
+- **`expedientes` y `cartera` se solapan, y en producción duele más que en el
+  banco.** La primera consulta real registrada que pedía datos de una operación
+  se enrutó a `expedientes`, se quedó sin contexto y el usuario no recibió nada
+  (§20). En el banco eran dos casos sucios; aquí es alguien que pregunta por una
+  operación de su empresa y parece que el sistema no tiene el dato. Los
   datos de las partes de una operación viven a la vez en el expediente
   documental y en el CRM, así que la ambigüedad está en el modelo de datos y no
   en la pregunta. Medido dos veces (§6, §12). La salida es que una consulta
