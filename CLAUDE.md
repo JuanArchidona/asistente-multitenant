@@ -30,7 +30,7 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-20)
+## 2. Estado (2026-09-21)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
 y control de acceso estructural. **596 tests en verde**, `ruff` limpio.
@@ -169,7 +169,39 @@ y §14).
   sola pasada. Los casos de seguridad sí son estables, así que la cobertura se
   puede leer; el acierto global no.
 
-## 9. Mantenimiento
+## 9. Superficies de trabajo y cómo se sincronizan
+
+El proyecto se trabaja desde dos sitios, y el flujo entre ellos es **de una sola
+dirección**.
+
+| | Claude Code | Proyecto **MASTER IA TFM** en la app de Claude |
+|---|---|---|
+| Para qué | Todo el desarrollo: código, corpus, bancos, mediciones, documentación | Lo que Claude Code no puede hacer |
+| Concretamente | | Tareas de navegador con Claude in Chrome (formularios, altas), discusión de diseño, redacción de material |
+| Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
+
+**El repositorio es la fuente de verdad y la app no.** Sus instrucciones de
+proyecto lo dicen: ante una contradicción, gana lo que haya aquí. Y por el mismo
+motivo, **esas instrucciones no copian estado**. Describen quién es el alumno,
+cómo hablarle, las reglas de estilo y las reglas de navegador; para saber cómo
+está el proyecto mandan a leer este fichero. Un estado copiado deriva en días:
+ya pasó con la primera versión, escrita el 20 de septiembre y desfasada el 21.
+
+### Lo que sostiene la sincronización
+
+`/cierre` al terminar la jornada. Escribe la entrada de bitácora, actualiza este
+documento y hace commit y push. **Sin ese push, la app no se entera de nada** y
+la siguiente sesión de Claude Code arranca con un mapa viejo. Lo que no está en
+el repositorio no existe.
+
+### Al cambiar de repositorio
+
+Si el proyecto se mueve a otro repo —ya pasó una vez, al retirar
+`multi-agent-support-platform`— hay que **repuntar la conexión de GitHub del
+proyecto de la app**. Si no, sigue leyendo un repositorio muerto sin dar ningún
+aviso.
+
+## 10. Mantenimiento
 
 Al cerrar un avance relevante: actualizar la sección 2, anotar el hallazgo
 medido en `docs/HALLAZGOS.md` citando su ejecución, y commitear junto al código.

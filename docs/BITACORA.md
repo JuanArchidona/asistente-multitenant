@@ -4,6 +4,89 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-21 — Sesión 3: sincronización entre Claude Code y la app
+
+Sesión corta, de proceso y no de código.
+
+**Hecho:**
+- Documentada en `CLAUDE.md` §9 la relación entre las dos superficies de
+  trabajo: Claude Code escribe el estado, el proyecto de la app lo lee por la
+  conexión de GitHub, y el flujo es de una sola dirección.
+- Adelgazadas las instrucciones del proyecto de la app para que **no copien
+  estado**. La primera versión, escrita el día 20, ya estaba desfasada el 21: no
+  mencionaba la cobertura del riesgo ni la categoría `expedientes`. Ahora
+  describen quién es el alumno, cómo hablarle y las reglas de navegador, y para
+  el estado mandan a leer el repositorio.
+
+**Detectado:**
+- La sesión 2 no escribió entrada de bitácora. Se ha reconstruido desde los
+  commits y desde `HALLAZGOS.md`. Es exactamente el fallo que `/cierre` existe
+  para evitar: el código y los hallazgos quedaron bien anotados, pero el diario
+  se saltó un día.
+
+**Pendiente:**
+- [ ] **Comprobar a qué repositorio apunta el proyecto MASTER IA TFM en la app.**
+      El `CLAUDE.md` antiguo decía que estaba conectado a
+      `multi-agent-support-platform`, retirado el día 20. Si no se repuntó a
+      `asistente-multitenant`, la app lleva dos días leyendo un repo muerto sin
+      avisar. Es configuración del conector y hay que mirarlo desde la app.
+
+## 2026-09-20 (tarde) — Sesión 2: cobertura del riesgo y taxonomía del expediente
+
+Entrada reconstruida a posteriori desde los commits `9ad6368` y `d0cfc68` y
+desde `HALLAZGOS.md`: la sesión no la escribió.
+
+**Hecho:**
+- **Métrica de cobertura del riesgo** (`alcance_riesgo`). El hallazgo 9 contaba a
+  mano cuántos casos de seguridad llegaban a la etapa donde el control actúa;
+  ahora es una métrica del banco que lee la traza. **No puntúa**: un caso que no
+  llega ya falla en `routing`, y penalizarlo dos veces movería `casos_ok`
+  respecto a la línea base heredada. Comprobado reevaluando trazas guardadas: se
+  reproducen 47/53 y 29/38.
+- **Categoría propia para el expediente.** El solapamiento `procesos`/`cartera`
+  no era un problema de redacción: el manifiesto decía que `procesos` es
+  procedimiento y **no** el estado de un caso, y que `cartera` son datos vivos y
+  **no** documentación. Un expediente es documentación de un caso concreto: la
+  celda que la taxonomía declaraba vacía. El enrutador obedecía al manifiesto.
+
+**Medido:**
+
+| | Antes | Después |
+|---|---|---|
+| Inquilino C, casos que pasan | 29/38 | **33/38** |
+| Cobertura del riesgo, C | 0,444 | **0,778** |
+| Casos de seguridad que prueban algo, C | 3 | **6** |
+| Inquilino A | Sin cambios | Sin cambios |
+
+**Tres defectos destapados por el camino, los tres corregidos y escritos:**
+1. La firma del índice **no cubría el corpus**. Mover un fichero de fuente no
+   cambia ningún parámetro de configuración, así que la firma aguantaba, el banco
+   reutilizaba la colección vieja y la fuente nueva volvía vacía incluso con el
+   rol. El hallazgo 10 otra vez, en el eje que su arreglo dejó fuera.
+2. La métrica de cobertura **leía ese vacío al revés**: una fuente cuyo único
+   documento está restringido no devuelve nada precisamente porque el control
+   actuó, y la métrica lo contaba como "no llegó al control". El recuperador
+   publica ahora `denegados_por_permiso` con una consulta de solo metadatos, así
+   que el texto restringido sigue sin salir del índice.
+3. **Corpus y CRM compartían espacio de identificadores.** El mismo comprador
+   existía en ambos con DNI e ingresos distintos, y `expediente 2026-118`
+   colisionaba con un `OP-2026-118` diferente. Un caso de seguridad podía
+   responderse con confianza **sobre la persona equivocada** y sin ningún literal
+   prohibido presente. El generador declara ahora lo que usa el corpus y aborta
+   si hay colisión.
+
+**Decisión pendiente anotada:** dos casos de `cartera` siguen enrutando a
+`expedientes`. Un intento de separarlos por convención de identificador arregló
+tres y rompió seis (33/38 → 30/38) y se revirtió: los datos de las partes viven
+de verdad en las dos fuentes, así que la ambigüedad está en el modelo de datos.
+La salida es que una consulta ambigua **consulte las dos ramas** en vez de
+elegir.
+
+**También medido:** con tres ejecuciones del mismo prompt, **4 de 38 casos
+cambian de categoría entre pasadas idénticas** y el acierto del enrutador oscila
+0,079. Los nueve casos de seguridad enrutan igual siempre, así que la cobertura
+se puede leer de una sola pasada y el acierto global no.
+
 ## 2026-09-20 — Sesión 1: reorientación del TFM y construcción del núcleo
 
 Primera sesión del TFM tras dos meses sin tocarlo. Sesión larga: se reorientó el
