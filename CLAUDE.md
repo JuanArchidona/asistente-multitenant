@@ -152,9 +152,20 @@ y §14).
 
 ## 8. Riesgos abiertos
 
-- No se dispone del enunciado oficial ni de la rúbrica del TFM.
-- Reutilizar entregas propias calificadas no está verificado en ninguna
-  normativa.
+- **Nada del TFM está publicado, y está comprobado, no supuesto.** Búsqueda
+  exhaustiva del campus el 2026-09-21 (`docs/CAMPUS_2026-09-21.md`): la sección
+  del Módulo 5 existe y responde "Proyecto final no disponible"; no hay
+  enunciado, ni rúbrica, ni fecha de entrega, ni entregables, ni formato de
+  memoria, y el foro del módulo lleva 0 réplicas desde abril. Se amplía el
+  riesgo: **tampoco existe en el campus reglamento, normativa de integridad
+  académica, norma sobre reutilización de trabajos propios ni política de uso de
+  IA**.
+- **La fecha de defensa es una inferencia.** Lo único con fechas es una imagen
+  del calendario que marca el 20 de octubre como "Sesión cierre" y que no usa
+  las palabras defensa, entrega ni TFM. Toda la planificación cuelga de eso.
+- **Vía abierta para resolverlo**: tutoría de 30 minutos con Iraitz Montalbán
+  —director del máster, corrector de todas las entregas y tutor del TFM— en
+  `cal.com/iraitz-montalban/30min`, sin depender de que nadie conteste un correo.
 - **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
   prepago, 12,87 USD de crédito y **recarga automática desactivada**: es un tope
   duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que
