@@ -429,7 +429,9 @@ def suite_consultas(args) -> None:
               f"Estimado {COSTE_JUEZ_POR_CASO_USD * len(casos):.2f} USD "
               f"({COSTE_JUEZ_POR_CASO_USD:.4f} USD/caso, medido). "
               f"Anade --sin-juez para no pagarlo.")
-        clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.anthropic_api_key
+        # La clave del juez, no la del sistema: es la que hace que la factura
+        # del proveedor pueda responder cuánto cuesta evaluar.
+        clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.judge_api_key
         juez = Juez(api_key=clave, modelo=cfg.judge_model, proveedor=cfg.judge_provider)
 
     registros = evaluar_casos(

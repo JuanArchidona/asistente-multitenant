@@ -211,3 +211,53 @@ def test_el_aviso_de_coste_usa_una_cifra_medida():
     # Y tiene que seguir siendo mucho mayor que el coste por consulta del
     # sistema, que es lo que hace que el aviso merezca la pena.
     assert COSTE_JUEZ_POR_CASO_USD > 10 * 0.00245
+
+
+# --- Separacion de claves ---
+#
+# El fallo que estas pruebas fijan: la clave del juez existia en el .env y en la
+# consola del proveedor desde el 20-sep, y el codigo no la leia nunca. El juez
+# facturaba a la clave del sistema, asi que la separacion que pedia el feedback
+# de la 3.3 estaba en todas partes menos donde importaba.
+
+def _cfg_juez(monkeypatch, tmp_path, **entorno):
+    from src.config import load_config
+
+    base = {
+        "TENANT_ID": "empresa_servicios",
+        "ANTHROPIC_API_KEY": "clave-sistema",
+        "ANTHROPIC_API_KEY_JUEZ": "clave-juez",
+        "GEMINI_API_KEY": "clave-gemini",
+    }
+    base.update(entorno)
+    for k, v in base.items():
+        if v is None:
+            monkeypatch.delenv(k, raising=False)
+        else:
+            monkeypatch.setenv(k, v)
+    return load_config()
+
+
+def test_la_clave_del_juez_se_lee_y_es_distinta_de_la_del_sistema(monkeypatch, tmp_path):
+    cfg = _cfg_juez(monkeypatch, tmp_path)
+
+    assert cfg.judge_api_key == "clave-juez"
+    assert cfg.judge_api_key != cfg.anthropic_api_key
+
+
+def test_sin_clave_de_juez_se_falla_en_el_arranque(monkeypatch, tmp_path):
+    """Tirar de la clave del sistema funcionaria igual de bien y dejaria la
+    facturacion mezclada sin que nadie se enterase."""
+    with pytest.raises(SystemExit) as e:
+        _cfg_juez(monkeypatch, tmp_path, ANTHROPIC_API_KEY_JUEZ=None)
+
+    assert "ANTHROPIC_API_KEY_JUEZ" in str(e.value)
+
+
+def test_repetir_la_misma_clave_en_las_dos_variables_se_rechaza(monkeypatch, tmp_path):
+    """Dos variables con el mismo valor aparentan una separacion que el
+    proveedor no puede hacer."""
+    with pytest.raises(SystemExit) as e:
+        _cfg_juez(monkeypatch, tmp_path, ANTHROPIC_API_KEY_JUEZ="clave-sistema")
+
+    assert "misma clave" in str(e.value)

@@ -60,6 +60,13 @@ class Config:
     # --- Juez de evaluación (siempre distinto del generador) ---
     judge_provider: str
     judge_model: str
+    # Clave propia del juez, distinta de la del sistema. No es una duplicación
+    # por gusto: es lo que permite que la factura del proveedor responda por
+    # separado cuánto cuesta funcionar y cuánto cuesta evaluar, que es lo que
+    # pedía el feedback de la entrega 3.3. Si el juez usa la clave del sistema,
+    # los dos gastos se suman en la misma línea y la pregunta deja de tener
+    # respuesta. Ver docs/HALLAZGOS.md §18.
+    judge_api_key: str
 
     # --- Modelo que construye y critica el banco sintético (distinto del evaluado) ---
     builder_model: str
@@ -117,6 +124,7 @@ def load_config() -> Config:
         gen_policy=politica,
         judge_provider=os.getenv("JUDGE_PROVIDER", "anthropic").lower(),
         judge_model=os.getenv("JUDGE_MODEL", "claude-sonnet-5"),
+        judge_api_key=os.getenv("ANTHROPIC_API_KEY_JUEZ", ""),
         builder_model=os.getenv("BUILDER_MODEL", "claude-sonnet-5"),
     )
 
@@ -129,6 +137,22 @@ def load_config() -> Config:
         sys.exit("[config] CHUNK_OVERLAP debe ser menor que CHUNK_SIZE.")
     if cfg.judge_provider not in PROVEEDORES_JUEZ:
         sys.exit(f"[config] JUDGE_PROVIDER inválido: {cfg.judge_provider!r}.")
+    # Sin clave propia se falla en el arranque en vez de tirar de la del
+    # sistema: caer a la clave del sistema funcionaría igual de bien y dejaría
+    # la facturación mezclada sin que nadie se enterase. Es exactamente el
+    # fallback silencioso que el proyecto no se permite.
+    if cfg.judge_provider == "anthropic" and not cfg.judge_api_key:
+        sys.exit(
+            "[config] Falta ANTHROPIC_API_KEY_JUEZ en .env. El juez tiene clave propia "
+            "para que la factura separe lo que cuesta evaluar de lo que cuesta funcionar. "
+            "Usa --sin-juez si no quieres ejecutar el juez."
+        )
+    if cfg.judge_api_key and cfg.judge_api_key == cfg.anthropic_api_key:
+        sys.exit(
+            "[config] ANTHROPIC_API_KEY_JUEZ es la misma clave que ANTHROPIC_API_KEY. "
+            "Siendo la misma, el proveedor no puede separar los dos gastos y tener dos "
+            "variables solo aparenta que sí."
+        )
     if cfg.judge_model == cfg.model_generator:
         sys.exit(
             "[config] El juez no puede ser el mismo modelo que el generador: un modelo "

@@ -42,6 +42,9 @@ CONFIG_BASE = Config(
     gen_policy="base",
     judge_provider="anthropic",
     judge_model="modelo-juez",
+    # Distinta de anthropic_api_key a proposito: la separacion de claves es lo
+    # que permite que la factura distinga evaluar de funcionar.
+    judge_api_key="clave-de-prueba-juez",
     builder_model="modelo-constructor",
 )
 

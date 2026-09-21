@@ -1,4 +1,4 @@
-> Versión: 1.3 · Actualizado: 2026-09-21 · Idioma: ES
+> Versión: 1.4 · Actualizado: 2026-09-21 · Idioma: ES
 
 # Hallazgos medidos
 
@@ -440,8 +440,14 @@ Y ahí aparece el hallazgo. Las ejecuciones de septiembre registradas en
 la clave del sistema. **El proyecto no ve 0,283 USD de su propio gasto: un
 22 %.**
 
-No es el juez —está a cero— ni otro proyecto —`nuvelai` son 0,02—. Es gasto de
-la clave del TFM que no pasó por `evals.runner`: llamadas sueltas de desarrollo
+No es el juez ni otro proyecto —`nuvelai` son 0,02—. Es gasto de
+la clave del TFM que no pasó por `evals.runner`:
+
+> **CORRECCION (§18).** Este párrafo descartaba al juez porque `tfm-juez`
+> marcaba cero. La conclusión era correcta pero el razonamiento no: la clave del
+> juez marcaba cero **porque el código no la usaba**, no porque el juez no
+> gastara. Lo que descarta al juez en septiembre es que no se ejecutó ninguna
+> pasada con juez, no el cero de la consola. llamadas sueltas de desarrollo
 (validar credenciales, probar la rama MCP, el tool-calling) que no producen
 informe, y probablemente reintentos del SDK, que el proveedor factura y
 `Uso.registrar()` solo cuenta una vez porque se invoca sobre la respuesta buena.
@@ -471,6 +477,13 @@ responder —cuánto cuesta evaluar frente a cuánto cuesta funcionar— no ten�
 respuesta. Que `tfm-juez` marcase **0,00 USD** hizo el momento inmejorable: se
 instrumentó antes de que gastara nada, así que la contabilidad y la factura
 arrancan desde el mismo cero.
+
+> **CORRECCION (§18).** Cuando se escribió esto, la frase "las dos claves
+> separadas" describía una intención, no el código: el juez usaba la clave del
+> sistema y `tfm-juez` no se había usado jamás. La separación se implementó
+> después, al investigar por qué ese cero no se movía. La medida de coste del
+> juez que da este hallazgo es válida —los tokens son los que son—, pero se
+> facturó a `tfm-sistema`.
 
 Primera medida:
 
@@ -534,3 +547,81 @@ El instrumento se escribió primero como envoltorio que delegaba por
 que delega perfectamente sigue sin ser del tipo correcto.** La versión buena es
 una subclase construida sobre la clase concreta del modelo, y hay un test que
 fija esa propiedad para que no vuelva a perderse.
+
+## 18. La clave del juez estaba en todas partes menos donde importaba
+
+**Fuente:** consola del proveedor, que seguía marcando `tfm-juez` a **0,00 USD**
+después de la ejecución `juez_instrumentado` del §17.
+
+La primera explicación razonable era latencia del panel. No lo era. Tres líneas
+de código lo dijeron sin ambigüedad:
+
+| Sitio | Qué había |
+|---|---|
+| `.env` | `ANTHROPIC_API_KEY_JUEZ`, y su valor coincide con `tfm-juez` en la consola |
+| `src/config.py` | **ningún campo** que leyera esa variable |
+| `evals/runner.py` | `clave = ... else cfg.anthropic_api_key` — la clave **del sistema** |
+
+La clave del juez se creó el 20 de septiembre, se anotó en el `.env`, se
+documentó en `CLAUDE.md` y en `docs/ALCANCE.md`, y **el código no la leyó
+nunca**. Todas las llamadas del juez de la historia del proyecto se han
+facturado a `tfm-sistema`.
+
+El feedback de la entrega 3.3 pedía exactamente esto: *"un token de API para el
+agente y otro para el juez, para separar en facturación lo que cuesta el sistema
+de lo que cuesta evaluarlo"*. Estaba dado por hecho en tres documentos y en la
+consola. Solo faltaba en el único sitio que lo hace verdad.
+
+### Por qué nadie se enteró
+
+Porque **no había nada que lo ejerciera**. El juez usaba una clave válida, las
+llamadas funcionaban, las métricas puntuaban y el banco daba sus números. El
+único síntoma posible era un cero en una columna de la consola que nadie había
+mirado, y que además parecía explicable como "el juez casi no se usa".
+
+Es el mismo patrón que el hallazgo 9 y el 13, y ya van tres:
+
+- **Hallazgo 9**: la métrica de confidencialidad estaba en verde porque la mitad
+  de los casos no llegaba al control.
+- **Hallazgo 13**: corpus y CRM compartían identificadores, y un caso de
+  seguridad podía responderse sobre la persona equivocada sin disparar nada.
+- **Hallazgo 18**: la separación de claves existía en todas partes menos en el
+  código, y el sistema funcionaba igual de bien sin ella.
+
+**Los tres son el mismo error de lectura: confundir "no falla" con "funciona".**
+Un control que nunca se ejerce no da señal, y la ausencia de señal se parece
+mucho a que todo va bien. La única defensa que ha funcionado en los tres casos
+ha sido la misma: ir a buscar el número que tendría que haberse movido, y
+comprobar que se movió.
+
+### Arreglo
+
+`Config` tiene ahora `judge_api_key`, leído de `ANTHROPIC_API_KEY_JUEZ`, y el
+runner se lo pasa al juez. Con dos validaciones que fallan en el arranque, no
+por gusto:
+
+- **Si falta la clave del juez, se aborta.** Caer a la del sistema funcionaría
+  igual de bien y dejaría la facturación mezclada sin que nadie se enterase: es
+  el fallback silencioso que este proyecto no se permite.
+- **Si las dos variables tienen el mismo valor, se aborta.** Dos nombres
+  distintos apuntando a la misma clave aparentan una separación que el proveedor
+  no puede hacer.
+
+Tres pruebas fijan las tres propiedades. Y las correcciones a los hallazgos 16 y
+17, que se escribieron una hora antes dando la separación por buena, están
+anotadas en su sitio.
+
+### La medida que queda servida
+
+`juez_clave_propia`: 2 casos, 16 llamadas, 11.341 tokens de entrada y 3.238 de
+salida, **con la clave del juez por primera vez**. Como `tfm-juez` venía de cero
+absoluto, lo que marque ahora la consola resuelve dos cosas de una vez:
+
+| Si `tfm-juez` marca | Entonces |
+|---|---|
+| **0,083 USD** | El arreglo funciona **y** `claude-sonnet-5` cuesta 3,00/15,00: `PRECIOS` acierta |
+| **0,055 USD** | El arreglo funciona **y** cuesta 2,00/10,00: `src/provider.py:54` sobreestima un 33 % y hay que corregirlo |
+| **0,00 USD** | El arreglo no funciona y hay que volver a mirar |
+
+Y `tfm-sistema` debería haber subido de 1,26 a **1,385** (a 3/15) o **1,343** (a
+2/10) por la ejecución anterior, que es la que se facturó a la clave equivocada.

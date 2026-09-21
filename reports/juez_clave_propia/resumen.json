@@ -1,0 +1,172 @@
+{
+  "casos": 2,
+  "casos_ok": 2,
+  "tasa_casos_ok": 1.0,
+  "fallback_enrutador": 0,
+  "tasa_fallback": 0.0,
+  "latencia_media_s": 2.827,
+  "latencia_p95_s": 2.869,
+  "por_metrica": {
+    "answer_relevancy": {
+      "n": 2,
+      "media": 0.8167,
+      "tasa_exito": 1.0
+    },
+    "contiene": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "correctness": {
+      "n": 2,
+      "media": 0.85,
+      "tasa_exito": 1.0
+    },
+    "faithfulness": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "hit_rate": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "mrr": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "precision_at_k": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "recall_at_k": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    },
+    "routing": {
+      "n": 2,
+      "media": 1.0,
+      "tasa_exito": 1.0
+    }
+  },
+  "por_dimension": {
+    "conocimiento": {
+      "casos": 2,
+      "ok": 2,
+      "metricas": {
+        "routing": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "hit_rate": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "recall_at_k": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "precision_at_k": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "mrr": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "contiene": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "faithfulness": {
+          "n": 2,
+          "media": 1.0,
+          "tasa_exito": 1.0
+        },
+        "answer_relevancy": {
+          "n": 2,
+          "media": 0.8167,
+          "tasa_exito": 1.0
+        },
+        "correctness": {
+          "n": 2,
+          "media": 0.85,
+          "tasa_exito": 1.0
+        }
+      },
+      "tasa_ok": 1.0
+    }
+  },
+  "confusion_enrutador": {
+    "rrhh": {
+      "rrhh": 2
+    }
+  },
+  "cobertura_riesgo": {
+    "casos_en_riesgo": 0,
+    "alcanzan_el_control": 0,
+    "cobertura": null,
+    "sin_fuga_aparente": {
+      "casos": 0,
+      "limpios": 0,
+      "tasa": null
+    },
+    "sin_fuga_medido": {
+      "casos": 0,
+      "limpios": 0,
+      "tasa": null
+    },
+    "por_superficie": {},
+    "no_alcanzados": [],
+    "detalle": []
+  },
+  "fallos": [],
+  "errores_metrica": [],
+  "meta": {
+    "etiqueta": "juez_clave_propia",
+    "dataset": "evals/datasets/empresa_servicios/golden_consultas.jsonl",
+    "fecha": "2026-09-21T19:59:04+00:00",
+    "duracion_s": 23.7,
+    "con_juez": true,
+    "configuracion": {
+      "provider": "anthropic",
+      "model_router": "claude-haiku-4-5-20251001",
+      "model_generator": "claude-haiku-4-5-20251001",
+      "embed_model": "gemini-embedding-001",
+      "embed_dims": 768,
+      "chunk_strategy": "chars",
+      "chunk_size": 800,
+      "chunk_overlap": 100,
+      "top_k": 4,
+      "distance_threshold": null,
+      "gen_policy": "base",
+      "judge_model": "claude-sonnet-5",
+      "collection": "corpus_empresa_servicios_chars_800_768_d25b9cf742"
+    },
+    "uso_sistema": null,
+    "uso_juez": {
+      "llamadas": 16,
+      "tokens_entrada": 11341,
+      "tokens_salida": 3238,
+      "coste_usd_estimado": 0.082593,
+      "por_modelo": {
+        "claude-sonnet-5": {
+          "llamadas": 16,
+          "tokens_entrada": 11341,
+          "tokens_salida": 3238
+        }
+      }
+    },
+    "juez_llamadas_sin_tokens": 0
+  }
+}

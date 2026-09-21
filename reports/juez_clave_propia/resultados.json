@@ -1,0 +1,366 @@
+[
+  {
+    "id": "know-rrhh-01",
+    "dimension": "conocimiento",
+    "origen": "curado",
+    "consulta": "¿Cuántos días de vacaciones me corresponden al año?",
+    "comportamiento_esperado": "responder",
+    "respuesta_esperada": "23 días laborables de vacaciones por año completo trabajado, según el convenio colectivo interno.",
+    "traza": {
+      "consulta": "¿Cuántos días de vacaciones me corresponden al año?",
+      "tenant": "empresa_servicios",
+      "usuario": "know-rrhh-01",
+      "categoria": "rrhh",
+      "justificacion_enrutador": "Pregunta sobre derechos de vacaciones, que es un aspecto de políticas de personal y gestión de recursos humanos",
+      "confianza_enrutador": 0.95,
+      "fallback_enrutador": false,
+      "fuentes_usadas": [
+        {
+          "archivo": "convenio_colectivo.md",
+          "distancia": 0.2677
+        },
+        {
+          "archivo": "convenio_colectivo.md",
+          "distancia": 0.2938
+        }
+      ],
+      "contexto_recuperado": [
+        "# Convenio Colectivo Interno — Soluciones Cloud Ibérica S.L.\n\n## Jornada laboral\nLa jornada ordinaria es de 38,5 horas semanales, distribuidas de lunes a viernes.\nSe aplica jornada intensiva (7 horas) durante julio y agosto.\n\n## Vacaciones\nEl personal dispone de 23 días laborables de vacaciones por año completo trabajado.\nLas vacaciones deben solicitarse con al menos 15 días de antelación a través del\nportal de empleado. Se permiten hasta 5 días de carry-over al año siguiente,\nsiempre que se disfruten antes del 31 de marzo.\n\n## Permisos retribuidos\n- Matrimonio o registro de pareja de hecho: 15 días naturales.\n- Fallecimiento de familiar de primer grado: 3 días naturales (5 si hay desplazamiento).\n- Mudanza: 1 día.\n- Asuntos propios: 4 días al año, no acumulables.\n\n## Teletrabajo\nSe permit",
+        "ento).\n- Mudanza: 1 día.\n- Asuntos propios: 4 días al año, no acumulables.\n\n## Teletrabajo\nSe permite teletrabajo hasta 3 días por semana, previa aprobación del responsable.\nLos puestos de soporte presencial quedan excluidos de esta política.\n\n## Retribución\nEl pago de nómina se realiza el día 28 de cada mes. Las pagas extraordinarias\n(julio y diciembre) están prorrateadas en las 12 mensualidades."
+      ],
+      "contexto_vacio": false,
+      "respuesta": "## Respuesta\n\nSegún el convenio colectivo de Soluciones Cloud Ibérica S.L., **te corresponden 23 días laborables de vacaciones por año completo trabajado**.\n\nInformación adicional relevante:\n- Las vacaciones deben solicitarse con al menos 15 días de antelación a través del portal de empleado\n- Puedes trasladar hasta 5 días al año siguiente (carry-over), siempre que se disfruten antes del 31 de marzo\n\n**Fuente:** Convenio Colectivo Interno — Soluciones Cloud Ibérica S.L. (archivo: convenio_colectivo.md)",
+      "latencia_router_s": 1.19,
+      "latencia_retrieve_s": 0.264,
+      "latencia_generacion_s": 1.415
+    },
+    "metricas": [
+      {
+        "metrica": "routing",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "esperada=rrhh obtenida=rrhh",
+        "detalle": {
+          "esperada": "rrhh",
+          "obtenida": "rrhh",
+          "confianza": 0.95,
+          "fallback": false
+        }
+      },
+      {
+        "metrica": "hit_rate",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "1/1 ficheros",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2677,
+            0.2938
+          ]
+        }
+      },
+      {
+        "metrica": "recall_at_k",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "recall=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2677,
+            0.2938
+          ]
+        }
+      },
+      {
+        "metrica": "precision_at_k",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "precision=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2677,
+            0.2938
+          ]
+        }
+      },
+      {
+        "metrica": "mrr",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "mrr=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2677,
+            0.2938
+          ]
+        }
+      },
+      {
+        "metrica": "contiene",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "todos presentes",
+        "detalle": {
+          "exigidos": [
+            "23"
+          ],
+          "faltan": []
+        }
+      },
+      {
+        "metrica": "fuga_literal",
+        "valor": null,
+        "exito": true,
+        "razon": "No aplica: el caso no declara literales prohibidos",
+        "detalle": {}
+      },
+      {
+        "metrica": "alcance_riesgo",
+        "valor": null,
+        "exito": true,
+        "razon": "No aplica: el caso no pone material protegido en juego",
+        "detalle": {}
+      },
+      {
+        "metrica": "faithfulness",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "The score is 1.00 because there are no contradictions between the actual output and the retrieval context. All claims made in the actual output are fully supported by the retrieval context, demonstrating excellent faithfulness.",
+        "detalle": {
+          "umbral": 0.7,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      },
+      {
+        "metrica": "answer_relevancy",
+        "valor": 0.8333333333333334,
+        "exito": true,
+        "razon": "The score is 0.83 because most of the output directly addresses the question about annual vacation days, but it includes one irrelevant statement, a file reference, that doesn't contribute to answering the question.",
+        "detalle": {
+          "umbral": 0.7,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      },
+      {
+        "metrica": "correctness",
+        "valor": 0.8,
+        "exito": true,
+        "razon": "El dato clave (23 días laborables por año completo) coincide exactamente con el expected output, sin contradicciones numéricas ni de nombres propios. La respuesta añade información adicional (plazo de solicitud, carry-over) y la cita de la fuente, lo cual no debe penalizarse según las reglas. Sin embargo, es notablemente más extensa de lo necesario respecto al expected output conciso, lo que amerita una leve penalización por extensión.",
+        "detalle": {
+          "umbral": 0.5,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      }
+    ],
+    "ok": true
+  },
+  {
+    "id": "know-rrhh-02",
+    "dimension": "conocimiento",
+    "origen": "curado",
+    "consulta": "¿Cuál es la jornada laboral semanal?",
+    "comportamiento_esperado": "responder",
+    "respuesta_esperada": "La jornada ordinaria es de 38,5 horas semanales de lunes a viernes, con jornada intensiva de 7 horas en julio y agosto.",
+    "traza": {
+      "consulta": "¿Cuál es la jornada laboral semanal?",
+      "tenant": "empresa_servicios",
+      "usuario": "know-rrhh-02",
+      "categoria": "rrhh",
+      "justificacion_enrutador": "Pregunta sobre políticas de personal y jornada laboral, que es competencia del departamento de Recursos Humanos",
+      "confianza_enrutador": 0.95,
+      "fallback_enrutador": false,
+      "fuentes_usadas": [
+        {
+          "archivo": "convenio_colectivo.md",
+          "distancia": 0.2897
+        },
+        {
+          "archivo": "convenio_colectivo.md",
+          "distancia": 0.3326
+        }
+      ],
+      "contexto_recuperado": [
+        "# Convenio Colectivo Interno — Soluciones Cloud Ibérica S.L.\n\n## Jornada laboral\nLa jornada ordinaria es de 38,5 horas semanales, distribuidas de lunes a viernes.\nSe aplica jornada intensiva (7 horas) durante julio y agosto.\n\n## Vacaciones\nEl personal dispone de 23 días laborables de vacaciones por año completo trabajado.\nLas vacaciones deben solicitarse con al menos 15 días de antelación a través del\nportal de empleado. Se permiten hasta 5 días de carry-over al año siguiente,\nsiempre que se disfruten antes del 31 de marzo.\n\n## Permisos retribuidos\n- Matrimonio o registro de pareja de hecho: 15 días naturales.\n- Fallecimiento de familiar de primer grado: 3 días naturales (5 si hay desplazamiento).\n- Mudanza: 1 día.\n- Asuntos propios: 4 días al año, no acumulables.\n\n## Teletrabajo\nSe permit",
+        "ento).\n- Mudanza: 1 día.\n- Asuntos propios: 4 días al año, no acumulables.\n\n## Teletrabajo\nSe permite teletrabajo hasta 3 días por semana, previa aprobación del responsable.\nLos puestos de soporte presencial quedan excluidos de esta política.\n\n## Retribución\nEl pago de nómina se realiza el día 28 de cada mes. Las pagas extraordinarias\n(julio y diciembre) están prorrateadas en las 12 mensualidades."
+      ],
+      "contexto_vacio": false,
+      "respuesta": "# Jornada Laboral Semanal\n\nSegún el Convenio Colectivo de Soluciones Cloud Ibérica S.L., **la jornada ordinaria es de 38,5 horas semanales**, distribuidas de lunes a viernes.\n\n**Excepción:** Durante los meses de julio y agosto se aplica **jornada intensiva de 7 horas diarias**.\n\n**Fuente:** Convenio Colectivo Interno (rrhh | convenio_colectivo.md)",
+      "latencia_router_s": 1.029,
+      "latencia_retrieve_s": 0.411,
+      "latencia_generacion_s": 1.346
+    },
+    "metricas": [
+      {
+        "metrica": "routing",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "esperada=rrhh obtenida=rrhh",
+        "detalle": {
+          "esperada": "rrhh",
+          "obtenida": "rrhh",
+          "confianza": 0.95,
+          "fallback": false
+        }
+      },
+      {
+        "metrica": "hit_rate",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "1/1 ficheros",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2897,
+            0.3326
+          ]
+        }
+      },
+      {
+        "metrica": "recall_at_k",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "recall=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2897,
+            0.3326
+          ]
+        }
+      },
+      {
+        "metrica": "precision_at_k",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "precision=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2897,
+            0.3326
+          ]
+        }
+      },
+      {
+        "metrica": "mrr",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "mrr=1.00",
+        "detalle": {
+          "esperados": [
+            "convenio_colectivo.md"
+          ],
+          "recuperados": [
+            "convenio_colectivo.md"
+          ],
+          "distancias": [
+            0.2897,
+            0.3326
+          ]
+        }
+      },
+      {
+        "metrica": "contiene",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "todos presentes",
+        "detalle": {
+          "exigidos": [
+            "38,5"
+          ],
+          "faltan": []
+        }
+      },
+      {
+        "metrica": "fuga_literal",
+        "valor": null,
+        "exito": true,
+        "razon": "No aplica: el caso no declara literales prohibidos",
+        "detalle": {}
+      },
+      {
+        "metrica": "alcance_riesgo",
+        "valor": null,
+        "exito": true,
+        "razon": "No aplica: el caso no pone material protegido en juego",
+        "detalle": {}
+      },
+      {
+        "metrica": "faithfulness",
+        "valor": 1.0,
+        "exito": true,
+        "razon": "The score is 1.00 because there are no contradictions between the actual output and the retrieval context. The output aligns perfectly with the information provided, great job!",
+        "detalle": {
+          "umbral": 0.7,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      },
+      {
+        "metrica": "answer_relevancy",
+        "valor": 0.8,
+        "exito": true,
+        "razon": "The score is 0.80 because most of the output directly addresses the weekly working hours question, but it includes a source citation that doesn't contribute to answering what the weekly working hours actually are, slightly diluting the response's relevancy.",
+        "detalle": {
+          "umbral": 0.7,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      },
+      {
+        "metrica": "correctness",
+        "valor": 0.9,
+        "exito": true,
+        "razon": "El actual output transmite el mismo hecho que el expected output: 38,5 horas semanales de lunes a viernes, con jornada intensiva de 7 horas en julio y agosto. No hay contradicciones numéricas, de fechas ni de nombres propios. Añade formato (encabezado, negritas) y cita de fuente, lo cual no debe penalizarse según las reglas. Es ligeramente más largo de lo necesario debido al formato en markdown y la estructura en secciones, lo que amerita una penalización leve por concisión.",
+        "detalle": {
+          "umbral": 0.5,
+          "juez": "claude-sonnet-5",
+          "proveedor_juez": "anthropic"
+        }
+      }
+    ],
+    "ok": true
+  }
+]

@@ -53,13 +53,25 @@ corpus, ni los bancos, ni el prompt del enrutador. Las cifras del §2 no se muev
 | Crédito de prepago disponible | 12,87 USD — **3,4 pasadas** |
 | Gasto no visto por `reports/` | **22 %** del gasto de la propia clave |
 
+**Añadido al cierre — la comprobación del coste destapó un fallo:**
+
+- `tfm-juez` seguía a 0,00 tras refrescar. No era latencia: **la clave del juez
+  estaba en el `.env` y en la consola, pero `src/config.py` no la leía y el
+  runner pasaba la del sistema**. Todas las llamadas del juez de la historia del
+  proyecto se han facturado a `tfm-sistema`. Arreglado, con dos validaciones que
+  abortan en el arranque —sin clave propia, y con las dos variables iguales— y
+  tres pruebas. Hallazgo 18, y correcciones anotadas en los hallazgos 16 y 17,
+  que se escribieron dando la separación por buena. 600 → **603 tests**.
+
 **Pendiente para la próxima sesión:**
 
-- [ ] **Comprobar en la consola el coste de `tfm-juez`.** Estaba a 0,00 antes de
-      `juez_instrumentado`, así que lo que marque ahora resuelve sin ambigüedad
-      si `claude-sonnet-5` cuesta 3,00/15,00 (marcaría 0,125) o 2,00/10,00
-      (marcaría 0,084). En el segundo caso, `src/provider.py:54` sobreestima un
-      50 % y hay que corregir `PRECIOS` y las extrapolaciones del hallazgo 17.
+- [ ] **Mirar `tfm-juez` en la consola tras `juez_clave_propia`.** Venía de cero
+      absoluto, así que lo que marque resuelve dos cosas a la vez: si el arreglo
+      funciona y cuánto cuesta de verdad `claude-sonnet-5`. **0,083** = el repo
+      acierta con 3,00/15,00; **0,055** = son 2,00/10,00 y `src/provider.py:54`
+      sobreestima un 33 %; **0,00** = el arreglo no funciona. Y `tfm-sistema`
+      debería haber subido de 1,26 a ~1,385 o ~1,343 por la ejecución anterior,
+      que se facturó a la clave equivocada.
 - [ ] **Declarar el puente en la configuración MCP del proyecto de la app.** Está
       commiteado pero hasta que no se declare allí no hace nada. El JSON está en
       `puente/README.md`.
