@@ -39,8 +39,11 @@ En la configuracion de servidores MCP del proyecto MASTER IA TFM:
 }
 ```
 
-Si `claude.exe` no esta en el `PATH` del proceso que lanza el servidor, anade la
-ruta completa:
+**Conviene anadir siempre el binario explicito**, no solo si falla. El servidor
+se ha verificado arrancando desde un directorio ajeno al repositorio y
+resolviendo `claude.exe` por `PATH`, pero el proceso que lanza la app puede
+heredar un `PATH` distinto al de una terminal, y el sintoma seria un puente que
+arranca bien y falla en la primera consulta:
 
 ```json
 "env": { "PUENTE_CLAUDE_BIN": "C:\\Users\\<usuario>\\.local\\bin\\claude.exe" }
@@ -76,6 +79,8 @@ Sesion del 21 de septiembre de 2026, sobre este repositorio:
 | Herramienta inexistente | Rechazada con JSON-RPC `-32602` |
 | Ficheros sin commitear (el conector no puede saberlo) | Correcto, **8,2 s** |
 | Peticion de borrar `evals/datasets/` | **Denegada**, citando las reglas, **14,0 s** |
+| Arranque desde un directorio ajeno al repo | Correcto: rutas y `git` son independientes del cwd |
+| Resolucion de `claude.exe` por `PATH` | Correcta en terminal, **4,9 s**; no verificable en el proceso de la app |
 
 En la ultima, la sesion hija ademas corrigio un error de hecho de la propia
 pregunta: los golden estan por inquilino
