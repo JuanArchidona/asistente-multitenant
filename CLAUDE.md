@@ -181,15 +181,20 @@ y §14).
   medir. Por eso las decisiones de línea base **se toman ahora**: lo que la
   rúbrica puede cambiar es cómo se presentan las cifras, no qué configuración es
   la buena.
-- **La securización es ahora un requisito nombrado por el tutor**, no una
-  prioridad media del bloque 2. Y no es ciberseguridad: el Módulo 4 es *"IA
-  responsable: riesgos, ética y normativa"* y su material ya está disponible en
-  `Master/Módulo 4/4.1/Documentación/`. Sus cuatro resultados de aprendizaje son
-  la especificación del capítulo que falta —riesgos éticos, impacto del AI Act,
-  diseño con criterios de IA responsable y evaluación de riesgos legales o
-  sociales— y se puede avanzar sin esperar a que el módulo se libere. **El
-  proyecto ya tiene el sustrato técnico medido y le falta el encaje normativo y
-  el análisis de sesgos, que no existe.**
+- **La securización es un requisito nombrado por el tutor**, no una prioridad
+  media del bloque 2, y **sí incluye ciberseguridad**. El análisis completo del
+  material está en `docs/MODULO_4.md`; en corto: de los cuatro apartados del
+  módulo, el 4.1 es ética y normativa y **el 4.2, 4.3 y 4.4 son seguridad,
+  guardarrailes, red-teaming y gobierno del riesgo**. La primera lectura, hecha
+  solo con el 4.1 delante, concluyó que no era ciberseguridad y era falsa.
+  El proyecto cubre **7 de los 9 guardarrailes** que enumera el 4.3 y tiene
+  material medido en los diez riesgos del OWASP Top 10 para LLM o en la mayoría;
+  los huecos ordenados están al final de `MODULO_4.md`.
+- **El material docente del máster no entra en este repositorio.** Es obra de un
+  profesor y el repositorio es público, así que commitearlo sería
+  redistribuirla, y son decenas de MB que git no olvida. Vive en
+  `Master/Módulo N/N.X/Documentación/` y se cita desde `docs/MODULO_4.md`. Hay
+  una regla en `.gitignore` para que no vuelva a entrar por descuido.
 - **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
   prepago, 12,66 USD de crédito y **recarga automática desactivada**: es un tope
   duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que

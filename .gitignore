@@ -26,3 +26,9 @@ Thumbs.db
 # TFM resulta pedir lo contrario. Ver docs/SINCRONIZACION_SUPERFICIES.md §4.
 puente/ENCARGOS_APP.md
 puente/REGISTRO_APP.md
+# Material docente del master. Vive en `Master/Modulo N/N.X/Documentacion/`,
+# fuera de este repositorio, por dos motivos: es obra de un profesor y este
+# repositorio es publico, asi que commitearlo seria redistribuirla; y son
+# decenas de MB de PDF que git no olvida aunque se borren despues. El analisis
+# de lo que aporta al TFM esta en `docs/MODULO_4.md`, que cita sin publicar.
+docs/**/*.pdf
