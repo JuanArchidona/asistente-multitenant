@@ -50,10 +50,11 @@ from .transcripcion import ejecutar_transcripcion, evaluar_transcripcion
 from .variantes import asegurar_indice, descripcion, variante
 
 # Coste del juez por caso, medido en `reports/juez_instrumentado` (24 llamadas
-# sobre 3 casos). Existe para poder avisar ANTES de gastar: el juez cuesta 17
-# veces lo que el sistema, y una pasada completa de los dos bancos son 3,80 USD.
-# Ver docs/HALLAZGOS.md §17.
-COSTE_JUEZ_POR_CASO_USD = 0.0417
+# sobre 3 casos) y recalculado al corregir el precio de claude-sonnet-5, que el
+# repo sobreestimaba un 50 %. Existe para poder avisar ANTES de gastar: el juez
+# cuesta 11 veces lo que el sistema, y una pasada completa de los dos bancos son
+# 2,53 USD. Ver docs/HALLAZGOS.md §17 y §21.
+COSTE_JUEZ_POR_CASO_USD = 0.0278
 
 RAIZ_REPO = Path(__file__).resolve().parents[1]
 RAIZ_REPORTES = RAIZ_REPO / "reports"

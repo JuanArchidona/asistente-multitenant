@@ -495,6 +495,15 @@ Primera medida:
 | Coste | **0,1252 USD** → **0,0417 USD por caso** |
 | Llamadas sin tokens informados | 0 |
 
+> **CORRECCION (§21).** Las cifras en USD de este hallazgo están un 50 % altas.
+> Se calcularon con `claude-sonnet-5` a 3,00/15,00, que no es su precio. A
+> 2,00/10,00 esta ejecución cuesta **0,0835 USD**, o **0,0278 por caso**; la
+> pasada completa de los dos bancos son **2,53 USD** y no 3,80; evaluar cuesta
+> **x11** lo que responder y no x17; y el crédito da para **5 pasadas** y no
+> 3,4. Los tokens no cambian, y con ellos no cambia ninguna conclusión de este
+> hallazgo: el juez sigue siendo el gasto dominante y la pasada con juez sigue
+> siendo un acto deliberado. Resuelto en §21.
+
 Contra los **0,00245 USD por caso** del sistema: **evaluar cuesta 17 veces más
 que responder.** No es un matiz de contabilidad, cambia cómo se puede trabajar:
 
@@ -538,6 +547,10 @@ distinguibles en la consola:
 `tfm-juez` estaba a 0,00 antes de esta ejecución, así que lo que marque ahora la
 consola resuelve la duda sin ambigüedad. Si marca 0,084, el repo sobreestima el
 coste del juez en un 50 % y `PRECIOS` hay que corregirlo.
+
+> **RESUELTO (§21).** El repo sobreestimaba. La consola no llegó a medir esta
+> ejecución contra `tfm-juez` —se facturó a `tfm-sistema`, que es el hallazgo
+> 18—, pero la ejecución siguiente sí, y resolvió la duda igual.
 
 ### Y una lección de implementación
 
@@ -625,6 +638,10 @@ absoluto, lo que marque ahora la consola resuelve dos cosas de una vez:
 
 Y `tfm-sistema` debería haber subido de 1,26 a **1,385** (a 3/15) o **1,343** (a
 2/10) por la ejecución anterior, que es la que se facturó a la clave equivocada.
+
+> **RESUELTO (§21).** `tfm-juez` marcó **0,06 USD** el 22-09-2026: la fila de
+> 0,055, es decir el arreglo funciona **y** el precio del repo estaba mal. La
+> tercera fila —que el arreglo no funcionase— queda descartada.
 
 ## 19. Confinar al directorio de trabajo no es confinar a lo que se puede ensenar
 
@@ -756,3 +773,92 @@ tiene el dato cuando el dato está en el CRM.
 El laboratorio dice cuántos casos fallan; el registro de producción dice qué le
 pasa a quien pregunta. Y sube la prioridad de la decisión pendiente de consultar
 las dos ramas ante una consulta ambigua, que en el banco parecía cosmética.
+
+## 21. Una prediccion escrita antes de mirar convierte una cifra en una medida
+
+**Fuente:** la consola del proveedor el 22-09-2026, contra la tabla de tres
+filas que el hallazgo 18 dejó escrita la noche anterior.
+
+El hallazgo 18 cerró la separación de claves y dejó **una predicción escrita
+antes de mirar**: `tfm-juez` venía de cero absoluto y solo había pagado una
+ejecución conocida, de la que estaban registrados los tokens. Tres resultados
+posibles, cada uno con su lectura decidida de antemano:
+
+| Si `tfm-juez` marca | Lectura |
+|---|---|
+| 0,083 USD | el arreglo funciona y `PRECIOS` acierta |
+| 0,055 USD | el arreglo funciona y `PRECIOS` sobreestima un 33 % |
+| 0,00 USD | el arreglo no funciona |
+
+La consola marcó **0,06 USD**. Es la segunda fila: el arreglo de las claves
+funciona, y el precio de `claude-sonnet-5` que usaba el repositorio era falso.
+
+### Qué estaba mal, y por qué era invisible
+
+`src/provider.py` fijaba `claude-sonnet-5` en **3,00 / 15,00** por millón de
+tokens con este razonamiento, escrito en su propio comentario: que 2,00/10,00 era
+un precio de lanzamiento con vencimiento el 31-08-2026, y que se usaba el de
+lista **para no subestimar**. Las dos mitades eran erróneas. 2,00/10,00 no es un
+precio de lanzamiento, es el precio; 3,00/15,00 es el de `claude-sonnet-4-6`, el
+modelo de la generación anterior. La confusión tiene una forma reconocible: un
+modelo nuevo entra más barato que su predecesor, y la cifra que uno recuerda es
+la del predecesor.
+
+Era invisible por tres motivos a la vez, y los tres son estructurales:
+
+1. **Sobreestimar no se nota.** El error iba en la dirección prudente, que es
+   justo la que nadie investiga. Un coste que sale más alto de lo real no
+   dispara ninguna alarma; solo desaconseja ejecuciones que sí eran asequibles.
+2. **La cifra se propagó a la constante que decide.**
+   `COSTE_JUEZ_POR_CASO_USD` en `evals/runner.py` existe para avisar antes de
+   gastar, y avisaba con 0,0417 en lugar de 0,0278. El aviso que protege el
+   crédito estaba calibrado un 50 % alto.
+3. **El test la congelaba.** `test_el_aviso_de_coste_usa_una_cifra_medida`
+   comprobaba `0.1252 / 3`, un literal en USD. Un test que fija el resultado de
+   una multiplicación no puede detectar que uno de los factores sea falso:
+   confirma la aritmética y bendice el precio.
+
+### Lo corregido
+
+`PRECIOS` pasa a 2,00/10,00 y **gana una entrada para `claude-sonnet-4-6`** con
+3,00/15,00, que es donde ese precio sí corresponde: si mañana alguien conmuta el
+juez a la generación anterior, la tabla no miente. La constante del runner pasa a
+0,0278. Y el test **deja de congelar la cifra**: ahora recalcula el coste desde
+los tokens registrados y `PRECIOS`, de modo que una constante desalineada de la
+tabla de precios rompe la suite. El fallo que hubo era exactamente ese, así que
+la prueba pasa a cubrirlo en vez de taparlo.
+
+Las cifras que se mueven:
+
+| | Antes (3,00/15,00) | Real (2,00/10,00) |
+|---|---|---|
+| Coste del juez por caso | 0,0417 USD | **0,0278 USD** |
+| Pasada completa, inquilino A (53) | 2,21 USD | **1,47 USD** |
+| Pasada completa, inquilino C (38) | 1,59 USD | **1,06 USD** |
+| **Los dos bancos** | 3,80 USD | **2,53 USD** |
+| Evaluar / responder | x17 | **x11** |
+| Pasadas que caben en el crédito | 3,4 | **5,0** |
+
+### Qué no cambia
+
+Ninguna conclusión. El juez sigue siendo el gasto dominante del proyecto, la
+pasada con juez sigue siendo un acto deliberado y no una rutina, la puerta de
+coste del puente sigue estando justificada y el veredicto sigue anclado en
+métricas deterministas. **Un error del 50 % en el coste de evaluar no movió una
+sola decisión**, lo cual dice algo bueno de las decisiones: no dependían de que
+la cifra fuera exacta, sino de su orden de magnitud.
+
+### La lección
+
+La contabilidad propia y la factura del proveedor son **dos medidas
+independientes de la misma cosa**, y solo sirven de control cruzado si se las
+compara con una predicción escrita antes de mirar. El hallazgo 16 dejó un 22 %
+de gasto sin explicar y se leyó como ruido; aquí la predicción convirtió un
+número de la consola —**0,06 USD**, que por sí solo no dice nada— en una
+respuesta binaria. El coste de escribir la tabla de tres filas fue un minuto la
+noche anterior.
+
+Y el corolario para los tests: **un test que congela el resultado de un cálculo
+en vez de su método no valida el cálculo, lo fosiliza.** El precio llevaba
+semanas mal con la suite en verde, porque la suite comprobaba que 0,1252 entre 3
+son 0,0417.

@@ -166,8 +166,8 @@ def test_el_juez_acumula_los_tokens_que_gasta():
     r = uso.resumen()
     assert r["llamadas"] == 2
     assert r["tokens_entrada"] == 1500 and r["tokens_salida"] == 300
-    # 1500/1e6*3.00 + 300/1e6*15.00, con la tabla de precios del proyecto.
-    assert r["coste_usd_estimado"] == pytest.approx(0.0045 + 0.0045)
+    # 1500/1e6*2.00 + 300/1e6*10.00, con la tabla de precios del proyecto.
+    assert r["coste_usd_estimado"] == pytest.approx(0.0030 + 0.0030)
 
 
 def test_una_llamada_sin_tokens_no_se_cuenta_como_cero():
@@ -203,11 +203,22 @@ def test_el_contador_sigue_siendo_del_tipo_que_deepeval_exige():
 def test_el_aviso_de_coste_usa_una_cifra_medida():
     """El aviso existe porque `--desde-trazas` no llama al sistema y es facil
     leer eso como 'esta ejecucion no cuesta'. El juez se lanza igual y es la
-    parte cara: 17 veces el coste del sistema, medido en reports/."""
-    from evals.runner import COSTE_JUEZ_POR_CASO_USD
+    parte cara: 11 veces el coste del sistema, medido en reports/.
 
-    # La cifra sale de reports/juez_instrumentado: 0.1252 USD / 3 casos.
-    assert COSTE_JUEZ_POR_CASO_USD == pytest.approx(0.1252 / 3, abs=1e-4)
+    La cifra NO se congela aqui. Se recalcula desde los tokens que quedaron
+    registrados en `reports/juez_instrumentado` y la tabla de precios viva,
+    porque el fallo que hubo fue justo ese: la constante se escribio con un
+    precio de claude-sonnet-5 que no era el vigente y nadie lo notaba
+    (HALLAZGOS.md 21). Si `PRECIOS` cambia y la constante no, esto falla."""
+    from evals.runner import COSTE_JUEZ_POR_CASO_USD
+    from src.provider import PRECIOS
+
+    # Tokens de reports/juez_instrumentado: 24 llamadas del juez sobre 3 casos.
+    entrada, salida, casos = 16_956, 4_954, 3
+    precio_entrada, precio_salida = PRECIOS["claude-sonnet-5"]
+    esperado = (entrada / 1e6 * precio_entrada + salida / 1e6 * precio_salida) / casos
+
+    assert COSTE_JUEZ_POR_CASO_USD == pytest.approx(esperado, abs=1e-4)
     # Y tiene que seguir siendo mucho mayor que el coste por consulta del
     # sistema, que es lo que hace que el aviso merezca la pena.
     assert COSTE_JUEZ_POR_CASO_USD > 10 * 0.00245

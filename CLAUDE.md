@@ -170,14 +170,15 @@ y §14).
   —director del máster, corrector de todas las entregas y tutor del TFM— en
   `cal.com/iraitz-montalban/30min`, sin depender de que nadie conteste un correo.
 - **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
-  prepago, 12,87 USD de crédito y **recarga automática desactivada**: es un tope
+  prepago, 12,66 USD de crédito y **recarga automática desactivada**: es un tope
   duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que
   vigilar ahora es lo contrario, quedarse sin crédito en la defensa. **No activar
   la recarga automática**: es lo único que rompería el tope. Ver §16.
-- **Evaluar cuesta 17 veces más que funcionar**: 0,0417 USD por caso con juez
-  frente a 0,00245 USD sin él, y 3,80 USD una pasada completa de los dos
-  inquilinos — el 30 % del crédito. La pasada con juez es un acto deliberado, no
-  una rutina (§17).
+- **Evaluar cuesta 11 veces más que funcionar**: 0,0278 USD por caso con juez
+  frente a 0,00245 USD sin él, y 2,53 USD una pasada completa de los dos
+  inquilinos — el 20 % del crédito. La pasada con juez es un acto deliberado, no
+  una rutina (§17, con las cifras corregidas en §21: el repo tenía el precio de
+  `claude-sonnet-5` un 50 % alto y todo lo derivado de él salía inflado).
 - **`reports/` mide el banco, no el proyecto.** La contabilidad propia no ve un
   22 % del gasto de su clave: llamadas de desarrollo fuera de `evals.runner` y
   reintentos del SDK. Afecta a la ficha de coste de `ALCANCE.md` §5, que tiene

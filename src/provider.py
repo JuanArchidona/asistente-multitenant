@@ -50,14 +50,18 @@ def con_reintentos(fn, descripcion: str = "llamada"):
             time.sleep(espera)
     raise RuntimeError(f"{descripcion}: límite de tasa tras {REINTENTOS} intentos: {ultimo}")
 
-# Precio de lista por millón de tokens (entrada, salida) en USD, a 2026-08.
+# Precio por millón de tokens (entrada, salida) en USD.
 # Solo para orientar el coste de una ejecución del banco; no es facturación.
-# claude-sonnet-5 tiene precio de lanzamiento (2,00 / 10,00) hasta el 31/08/2026;
-# se usa el de lista para no subestimar.
+# claude-sonnet-5 estuvo fijado en 3,00/15,00 por suponer que 2,00/10,00 era un
+# precio de lanzamiento que vencía el 31/08/2026. No lo era: 2,00/10,00 es el
+# precio vigente, y 3,00/15,00 es el de claude-sonnet-4-6. Contrastado el
+# 22-09-2026 contra el coste que la consola del proveedor atribuye a la clave
+# del juez, que solo había pagado una ejecución conocida. Ver HALLAZGOS.md §21.
 PRECIOS = {
     "claude-haiku-4-5-20251001": (1.00, 5.00),
     "claude-haiku-4-5": (1.00, 5.00),
-    "claude-sonnet-5": (3.00, 15.00),
+    "claude-sonnet-5": (2.00, 10.00),
+    "claude-sonnet-4-6": (3.00, 15.00),
     "claude-opus-5": (5.00, 25.00),
     "gemini-2.5-flash": (0.30, 2.50),
 }
