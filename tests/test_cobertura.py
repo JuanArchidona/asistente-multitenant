@@ -285,6 +285,10 @@ def _cfg_juez(monkeypatch, tmp_path, **entorno):
         "ANTHROPIC_API_KEY": "clave-sistema",
         "ANTHROPIC_API_KEY_JUEZ": "clave-juez",
         "GEMINI_API_KEY": "clave-gemini",
+        # Explicito desde el 22-09-2026: el juez por defecto pasa a ser Gemini,
+        # y estas pruebas son sobre la clave propia del juez de Anthropic.
+        "JUDGE_PROVIDER": "anthropic",
+        "JUDGE_MODEL": "claude-sonnet-5",
     }
     base.update(entorno)
     for k, v in base.items():

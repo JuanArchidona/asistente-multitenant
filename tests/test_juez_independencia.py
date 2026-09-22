@@ -166,11 +166,18 @@ def test_un_juez_de_gemini_con_clave_propia_arranca(monkeypatch):
 
 
 def test_el_camino_de_anthropic_sigue_sin_exigir_clave_de_gemini(monkeypatch):
-    """La exigencia nueva no puede romper la configuración con la que está
-    medido el banco."""
+    """La exigencia de clave de Gemini no puede alcanzar al juez de Anthropic.
+
+    Desde el 22-09-2026 hay que pedirlo explícitamente, porque el juez por
+    defecto pasó a ser Gemini. Sigue importando: es la configuración con la que
+    están medidas las 15 ejecuciones anteriores, así que tiene que seguir
+    arrancando para poder reproducirlas.
+    """
     from src import config as modulo
 
-    _entorno_minimo(monkeypatch)
+    _entorno_minimo(
+        monkeypatch, JUDGE_PROVIDER="anthropic", JUDGE_MODEL="claude-sonnet-5"
+    )
     cfg = modulo.load_config()
     assert cfg.judge_provider == "anthropic"
     assert cfg.judge_gemini_api_key == ""

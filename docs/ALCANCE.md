@@ -230,6 +230,69 @@ salud**, citando el anexo confidencial como fuente; la endurecida no filtra
 ninguno de los dos. Eso es lo citable en la memoria, y lo sostiene una metrica
 sin varianza en vez de un juez.
 
+## 5.c Corte de linea base del 22-09-2026
+
+**Dos valores por defecto cambiaron el 22-09-2026, y las metricas de antes y de
+despues no son comparables.** Queda escrito aqui con fecha porque es lo unico
+que impide citar en la memoria dos cifras que miden configuraciones distintas.
+
+| | Antes | Desde el 22-09-2026 |
+|---|---|---|
+| Temperatura del enrutador | no se enviaba el parametro | **0.0** |
+| Juez por defecto | `claude-sonnet-5` (Anthropic) | **`gemini-3.6-flash`** |
+
+### Por que se decidio entonces y no con la rubrica delante
+
+Las dos decisiones se estaban aguantando a la espera del enunciado. La tutoria
+del 22-09 (`docs/TUTORIA_2026-09-22.md`) situo la rubrica **al desbloquearse el
+Modulo 5, en 2-3 semanas**, con la defensa a finales de octubre: una o dos
+semanas entre una cosa y otra.
+
+Tomar en esa ventana una decision que invalida la comparacion con las 15
+ejecuciones anteriores no deja tiempo de volver a medir. Y lo que la rubrica
+puede cambiar es **como se presentan las cifras, no que configuracion es la
+buena**. Esperar dejo de ser la opcion prudente.
+
+### Que compra cada cambio, y que no
+
+**Temperatura del enrutador a 0** (HALLAZGOS.md §27). Compra que el enrutado deje
+de variar entre pasadas identicas: 3 casos inestables de 38 pasan a 0, el acierto
+sube en los dos inquilinos y la cobertura del riesgo no se mueve. **No compra
+determinismo**: 1 caso de 53 sigue variando en el inquilino heredado, y el
+generador sigue muestreando, asi que el banco no es reproducible al 100 %.
+
+**Juez por defecto a Gemini** (§24, §32). Compra independencia de familia
+respecto al generador —que es la practica recomendada y la unica forma de
+cumplirla aqui— y un coste 5,5 veces menor por evaluacion, lo que hace asequible
+repetir al juez. **No compra estabilidad**: el §32 y el §33 midieron que ni la
+temperatura ni la mayoria de tres la resuelven. El veredicto del proyecto sigue
+anclado en metricas deterministas, y eso no cambia con el juez.
+
+### Como se reproduce una cifra anterior al corte
+
+`ROUTER_TEMPERATURE=defecto` vuelve a no enviar el parametro, y
+`JUDGE_PROVIDER=anthropic` con `JUDGE_MODEL=claude-sonnet-5` recupera el juez
+viejo. La escotilla no es adorno: sin ella las cifras de las 15 ejecuciones
+anteriores dejarian de ser reproducibles, y una cifra que no se puede reproducir
+no se puede defender.
+
+### La linea base nueva, ya medida
+
+No hizo falta gastar nada: las dos ejecuciones del 22-09 hechas con temperatura 0
+**ya son la linea base nueva**, porque llevan `router_temperature=0.0` en su
+configuracion registrada y las metricas de citas incluidas, y corrieron
+`--sin-juez`, asi que el cambio de juez no las afecta.
+
+| Ejecucion | Casos OK | `routing` | Cobertura del riesgo |
+|---|---|---|---|
+| `empresa_temp0` (53 casos) | 49 | 0,9231 | 0,6364 |
+| `agencia_temp0` (38 casos) | 29 | 0,8421 | 1,0 |
+
+Un colateral que conviene saber antes de tropezar con el: con el juez por defecto
+en Gemini, **`LLM_PROVIDER=gemini` sin tocar nada mas deja al juez evaluando su
+propio texto**, porque los dos caen en `gemini-3.6-flash`. `Config` lo rechaza en
+el arranque y lo dice; tiene su propia prueba.
+
 ## 6. Riesgos abiertos
 
 | Riesgo | Estado |

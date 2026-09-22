@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **698 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **703 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -51,7 +51,7 @@ y control de acceso estructural. **698 tests en verde**, `ruff` limpio.
 | Verificación determinista de citas | Hecha y medida sobre las 22 ejecuciones guardadas: 0 citas inventadas (§23) |
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
 | Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24, §26) |
-| Estabilidad del enrutador | Medida y resuelta: temperatura 0 quita la varianza, y la votación queda descartada por redundante (§27) |
+| Estabilidad del enrutador | Medida y **aplicada**: temperatura 0 por defecto desde el 22-09; la votación queda descartada por redundante (§27, ALCANCE §5.c) |
 | Evaluación del juez | Hecha y completada: el número contradice su propio razonamiento, temperatura 0 no lo estabiliza y sus errores van todos en el mismo sentido (§30, §32) |
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
 | Canales (correo, WhatsApp) | Pendiente |
@@ -141,7 +141,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 698 tests, sin llamadas a API
+uv run pytest                                      # 703 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -230,14 +230,17 @@ y §14).
   encontrado documentación relevante". El camino mixto ya lo dice bien; el
   heredado no, y arreglarlo mueve las respuestas de los casos de
   confidencialidad del inquilino A, así que es una medición aparte (§22).
-- **La varianza del enrutador tiene arreglo y está sin aplicar por decisión.**
-  Venía de que `src/provider.py` no fijaba temperatura: con `ROUTER_TEMPERATURE=0`
-  la agencia pasa de 3 casos inestables de 38 a **0**, el acierto de enrutado
-  sube en los dos inquilinos y la cobertura del riesgo no se mueve (§27). El
-  valor por defecto **sigue siendo el de siempre** a propósito: cambiarlo
-  reinterpretaría en silencio la comparación con las 15 ejecuciones anteriores,
-  y es una decisión de línea base. Mientras no se cambie, sigue en pie que
-  ningún acierto de enrutado se puede reportar de una sola pasada (§15, §22).
+- **Línea base cortada el 22-09-2026, con fecha y por escrito**
+  (`docs/ALCANCE.md` §5.c). La temperatura del enrutador pasa a **0.0** por
+  defecto y el juez por defecto a **`gemini-3.6-flash`**. Las métricas de antes
+  y de después **no son comparables**, y esa es la única razón por la que el
+  corte está documentado: para no citar en la memoria dos cifras que miden
+  configuraciones distintas. `ROUTER_TEMPERATURE=defecto` y
+  `JUDGE_PROVIDER=anthropic` reproducen el comportamiento viejo.
+- **Con el juez por defecto en Gemini, `LLM_PROVIDER=gemini` colisiona**: los
+  dos caen en `gemini-3.6-flash` y el juez evaluaría su propio texto. `Config`
+  lo rechaza en el arranque y lo dice. Es la primera piedra de quien conmute el
+  proveedor para el capítulo de comparativa.
 - **Temperatura 0 no es determinismo garantizado**: 1 caso de 53 sigue variando
   en el inquilino heredado. Y no hace determinista al banco, porque el generador
   sigue muestreando (§27). No prometer reproducibilidad en la memoria.

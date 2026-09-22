@@ -1515,6 +1515,14 @@ historico. Cambiar el defecto reinterpretaria en silencio cualquier comparacion
 con las 15 ejecuciones anteriores, y eso es una decision de linea base que se
 toma a la vista de estos numeros, no de paso.
 
+> **DECIDIDO el mismo dia, despues de la tutoria.** El defecto pasa a **0.0**.
+> Lo que cambio no son los numeros de arriba sino el calendario: la tutoria situo
+> la rubrica en 2-3 semanas con la defensa a finales de octubre, asi que esperar
+> habria significado tomar la decision sin margen para volver a medir. La
+> escotilla `ROUTER_TEMPERATURE=defecto` conserva el comportamiento viejo para
+> poder reproducir el historico. El corte de comparabilidad queda con fecha en
+> `docs/ALCANCE.md` §5.c.
+
 ### La leccion
 
 Antes de pagar por una solucion, **mirar si el problema venia de un ajuste sin
@@ -1905,11 +1913,18 @@ y es repetir; lo que no existe es un ajuste que la evite.
 | `gemini-3.6-flash` (temp. 0) | **0,00076 USD** | **0,0023 USD** |
 
 **5,5 veces mas barato**, asi que **tres pasadas del juez de Gemini cuestan menos
-que una sola de Anthropic**. El juez recomendado pasa a ser el de Gemini repetido
-tres veces: es el unico con independencia de familia (§24), el unico que honra la
-temperatura (§26) —aunque haya resultado que eso da igual— y el unico con el que
-repetir sale barato. Tres propiedades que se buscaron por separado y que acaban
-apuntando al mismo sitio.
+que una sola de Anthropic**. El juez recomendado pasa a ser el de Gemini: es el
+unico con independencia de familia (§24), el unico que honra la temperatura (§26)
+—aunque haya resultado que eso da igual— y el unico con el que repetir sale
+barato. Tres propiedades que se buscaron por separado y que acaban apuntando al
+mismo sitio.
+
+> **DECIDIDO el 22-09-2026**: `gemini-3.6-flash` pasa a ser el juez por defecto
+> (`docs/ALCANCE.md` §5.c). Lo que **no** se automatiza es la mayoria de tres: el
+> §33 midio que sobre 10 casos tres pasadas no alcanzan, asi que repetir sigue
+> siendo un acto deliberado y no una rutina del runner. Automatizar una mayoria
+> que no resuelve la inestabilidad habria vendido como resuelto algo que no lo
+> esta.
 
 ### Y una constante que mi propio cambio descalibro
 

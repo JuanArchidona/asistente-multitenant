@@ -21,7 +21,16 @@ def _entorno(monkeypatch, **extra):
         "ANTHROPIC_API_KEY": "clave-sistema",
         "ANTHROPIC_API_KEY_JUEZ": "clave-juez",
         "GEMINI_API_KEY": "clave-gemini",
+        # Obligatoria desde que el juez por defecto es Gemini (22-09-2026).
+        "GEMINI_API_KEY_JUEZ": "clave-gemini-juez",
         "TENANT_ID": "empresa_servicios",
+        # Juez explicito de Anthropic. Desde el 22-09-2026 el juez por defecto
+        # es Gemini, y con `LLM_PROVIDER=gemini` los dos caerian en el mismo
+        # modelo: `Config` lo rechaza, y con razon. Estas pruebas van del
+        # sistema, no del juez, asi que se le saca del medio a proposito. La
+        # colision tiene su propia prueba mas abajo.
+        "JUDGE_PROVIDER": "anthropic",
+        "JUDGE_MODEL": "claude-sonnet-5",
     }
     for k in (
         "LLM_PROVIDER",
@@ -32,7 +41,6 @@ def _entorno(monkeypatch, **extra):
         "ANTHROPIC_MODEL_GENERATOR",
         "JUDGE_PROVIDER",
         "JUDGE_MODEL",
-        "GEMINI_API_KEY_JUEZ",
     ):
         monkeypatch.delenv(k, raising=False)
     for k, v in {**base, **extra}.items():
@@ -101,6 +109,72 @@ def test_el_juez_por_defecto_tambien_tiene_precio(monkeypatch):
 
     _entorno(monkeypatch)
     assert load_config().judge_model in PRECIOS
+
+
+def test_el_sistema_y_el_juez_en_gemini_colisionan_y_se_rechaza(monkeypatch):
+    """Consecuencia real del cambio de defecto del 22-09-2026.
+
+    El juez por defecto pasa a ser `gemini-3.6-flash` y el modelo de chat por
+    defecto de Gemini es el mismo, asi que `LLM_PROVIDER=gemini` sin tocar nada
+    mas deja al juez evaluando su propio texto. `Config` lo rechaza en el
+    arranque, que es lo correcto: un modelo que se juzga a si mismo se aprueba.
+
+    Se fija como prueba porque es la primera piedra con la que va a tropezar
+    quien conmute el proveedor para el capitulo de comparativa, y el mensaje de
+    error tiene que decirle que cambie el juez.
+    """
+    _entorno(monkeypatch, LLM_PROVIDER="gemini")
+    monkeypatch.delenv("JUDGE_PROVIDER", raising=False)
+    monkeypatch.delenv("JUDGE_MODEL", raising=False)
+
+    with pytest.raises(SystemExit, match="JUDGE_MODEL"):
+        load_config()
+
+
+def test_los_defectos_del_juez_son_los_decididos_el_22_09(monkeypatch):
+    """Los defectos son una decision de linea base, no un descuido.
+
+    Gemini es el unico juez con independencia de familia respecto al generador
+    (HALLAZGOS.md 24) y cuesta 5,5 veces menos por evaluacion (32), lo que hace
+    asequible repetirlo. Lo que NO compra es estabilidad: el 32 y el 33 midieron
+    que ni la temperatura ni la mayoria de tres la resuelven.
+    """
+    _entorno(monkeypatch)
+    monkeypatch.delenv("JUDGE_PROVIDER", raising=False)
+    monkeypatch.delenv("JUDGE_MODEL", raising=False)
+
+    cfg = load_config()
+    assert cfg.judge_provider == "gemini"
+    assert cfg.judge_model == "gemini-3.6-flash"
+    # Y sigue sin poder ser el modelo del generador.
+    assert cfg.judge_model != cfg.model_generator
+
+
+def test_la_temperatura_del_enrutador_es_cero_por_defecto(monkeypatch):
+    """La otra decision de linea base del 22-09-2026 (HALLAZGOS.md 27)."""
+    _entorno(monkeypatch)
+    monkeypatch.delenv("ROUTER_TEMPERATURE", raising=False)
+
+    assert load_config().router_temperature == 0.0
+
+
+def test_se_puede_volver_a_no_enviar_temperatura(monkeypatch):
+    """La escotilla no es adorno: es lo unico que permite reproducir una cifra
+    de las 15 ejecuciones anteriores al cambio, que corrieron sin enviar el
+    parametro. Sin ella, esas cifras dejarian de ser reproducibles."""
+    _entorno(monkeypatch, ROUTER_TEMPERATURE="defecto")
+    assert load_config().router_temperature is None
+
+    _entorno(monkeypatch, ROUTER_TEMPERATURE="none")
+    assert load_config().router_temperature is None
+
+
+def test_una_temperatura_que_no_es_un_numero_falla_en_el_arranque(monkeypatch):
+    """Un valor mal escrito no puede caer en silencio al valor por defecto: se
+    leeria como que la configuracion se aplico."""
+    _entorno(monkeypatch, ROUTER_TEMPERATURE="cero")
+    with pytest.raises(SystemExit, match="ROUTER_TEMPERATURE"):
+        load_config()
 
 
 def test_la_rama_estructurada_falla_ruidosamente_sin_tool_calling():

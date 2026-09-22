@@ -57,10 +57,10 @@ class Config:
     # --- Política del prompt del generador: 'base' (la de la 3.1) | 'hardened' ---
     gen_policy: str
 
-    # Temperatura del enrutador. `None` = no se envia, o sea la de por defecto
-    # del proveedor, que es como ha corrido todo el banco hasta el §26. Es un
-    # parametro y no una constante porque el efecto de fijarla en 0 hay que
-    # medirlo contra la linea base, no suponerlo.
+    # Temperatura del enrutador. `None` significa **no enviar el parametro**, que
+    # es como corrio todo el banco hasta el 22-09-2026; desde entonces el valor
+    # por defecto es 0.0, medido en HALLAZGOS.md §27. La escotilla existe para
+    # poder reproducir las ejecuciones historicas: `ROUTER_TEMPERATURE=defecto`.
     router_temperature: float | None
 
     # --- Juez de evaluación (siempre distinto del generador) ---
@@ -133,6 +133,32 @@ def load_config() -> Config:
             "ANTHROPIC_MODEL_GENERATOR", "claude-haiku-4-5-20251001"
         )
 
+    # Temperatura del enrutador. **0.0 por defecto desde el 22-09-2026.**
+    #
+    # Medido en HALLAZGOS.md §27: a la temperatura por defecto del proveedor, 3
+    # casos de 38 cambiaban de categoria entre pasadas identicas; a 0 son 0, el
+    # acierto de enrutado sube en los dos inquilinos y la cobertura del riesgo no
+    # se mueve. Sin esto, ningun acierto de enrutado se podia reportar de una
+    # sola pasada.
+    #
+    # `defecto` (o `none`) vuelve a no enviar el parametro, que es como corrieron
+    # las 15 ejecuciones anteriores. La escotilla no es adorno: es lo unico que
+    # permite reproducir una cifra historica, y las cifras de antes y despues del
+    # cambio **no son comparables** (docs/ALCANCE.md §5.c).
+    bruto = os.getenv("ROUTER_TEMPERATURE", "").strip().lower()
+    if bruto in ("defecto", "none"):
+        temperatura_enrutador = None
+    elif bruto == "":
+        temperatura_enrutador = 0.0
+    else:
+        try:
+            temperatura_enrutador = float(bruto)
+        except ValueError:
+            sys.exit(
+                f"[config] ROUTER_TEMPERATURE invalido: {bruto!r}. Usa un numero, "
+                "o 'defecto' para no enviar el parametro."
+            )
+
     cfg = Config(
         tenant=tenant,
         provider=provider,
@@ -152,13 +178,15 @@ def load_config() -> Config:
         top_k=int(os.getenv("TOP_K", "4")),
         distance_threshold=float(umbral) if umbral else None,
         gen_policy=politica,
-        router_temperature=(
-            float(os.environ["ROUTER_TEMPERATURE"])
-            if os.getenv("ROUTER_TEMPERATURE")
-            else None
-        ),
-        judge_provider=os.getenv("JUDGE_PROVIDER", "anthropic").lower(),
-        judge_model=os.getenv("JUDGE_MODEL", "claude-sonnet-5"),
+        router_temperature=temperatura_enrutador,
+        # Juez por defecto: **Gemini desde el 22-09-2026**. Es el unico con
+        # independencia de familia respecto al generador (§24) y cuesta 5,5
+        # veces menos por evaluacion (§32), lo que hace asequible repetirlo.
+        # NO compra estabilidad: el §32 y el §33 midieron que ni la temperatura
+        # ni la mayoria de tres la resuelven, asi que el veredicto del proyecto
+        # sigue anclado en metricas deterministas.
+        judge_provider=os.getenv("JUDGE_PROVIDER", "gemini").lower(),
+        judge_model=os.getenv("JUDGE_MODEL", "gemini-3.6-flash"),
         judge_api_key=os.getenv("ANTHROPIC_API_KEY_JUEZ", ""),
         judge_gemini_api_key=os.getenv("GEMINI_API_KEY_JUEZ", ""),
         builder_model=os.getenv("BUILDER_MODEL", "claude-sonnet-5"),
