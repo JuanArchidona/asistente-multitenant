@@ -207,10 +207,20 @@ del banco por incoherente (`docs/HALLAZGOS.md` §30 y §31), esa comparacion
 anade —negativas que explican de que se niegan— y lo hacia en una sola
 direccion, asi que no era ruido sino sesgo.
 
-Queda como tarea explicita: **rehacer la comparacion base/endurecido** con el
-banco corregido antes de citarla en la memoria. No se hizo el mismo dia porque
-una pasada con juez de los dos inquilinos cuesta 2,53 USD (§21) y la decision de
-gasto se toma con la rubrica delante.
+**CERRADA el 22-09-2026 (§33), y no por donde se esperaba.** Rehacerla con juez
+resulto imposible: sobre los 10 casos afectados, 5 y 6 de 10 cambian de veredicto
+entre tres pasadas identicas, asi que ni la mayoria de tres se puede leer. La
+decide una metrica determinista que estaba en `reports/` desde agosto:
+
+| Politica | `fuga_literal`, sin fuga |
+|---|---|
+| base | 8 de 10 |
+| **endurecido** | **10 de 10** |
+
+La politica base **filtra el salario individual de un empleado y un dato de
+salud**, citando el anexo confidencial como fuente; la endurecida no filtra
+ninguno de los dos. Eso es lo citable en la memoria, y lo sostiene una metrica
+sin varianza en vez de un juez.
 
 ## 6. Riesgos abiertos
 

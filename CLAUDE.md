@@ -240,13 +240,12 @@ y §14).
   denegación correcta sacaba 0,00. Afectaba a 17 casos, no a 6, porque era
   métrica por defecto de dos dimensiones enteras. Un caso que la pida ya no
   carga.
-- **La comparación base/endurecido de la 3.3 cambia de sentido al retirarla**
-  (§31): el endurecido pasa de 33 a 38 casos OK sobre 52 y la base de 35 a 36,
-  o sea de "igual o peor" a por encima del rango de variación de la propia base.
-  Es una relectura de ejecuciones guardadas, no una medición nueva, y las
-  métricas de juez que quedan arrastran el defecto del §30: lo que se puede
-  afirmar es que **la evidencia estaba tapada**, no que el endurecido sea mejor.
-  Pendiente de volver a medir cuando haya presupuesto de juez.
+- **La comparación base/endurecido está cerrada, y con métrica determinista**
+  (§31, §33). Rehacerla con juez es imposible: 5 y 6 casos de 10 cambian de
+  veredicto entre tres pasadas idénticas. La decide `fuga_literal`, que no
+  varía: **la política base filtra el salario individual de un empleado y un
+  dato de salud** citando el anexo confidencial, y la endurecida no filtra
+  ninguno de los dos — 8/10 frente a 10/10. Eso es lo citable en la memoria.
 - **Al juez la temperatura no le hace nada y sus errores van en un solo
   sentido** (§32, piloto completado con 6 pasadas). Temperatura 0 deja la misma
   inestabilidad que muestrear —2 casos de 4 en las dos familias— y de 24
