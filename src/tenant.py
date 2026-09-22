@@ -129,6 +129,8 @@ class Tenant(BaseModel):
     descripcion: str = ""
     contexto_enrutador: str = Field(min_length=1)
     categorias: list[CategoriaTenant] = Field(min_length=1)
+    # Grupos de categorías que se consultan juntas. Ver `categorias_a_consultar`.
+    solapamientos: list[list[str]] = Field(default_factory=list)
     servidores_mcp: list[ServidorMCP] = Field(default_factory=list)
     politica: PoliticaAcceso = Field(default_factory=PoliticaAcceso)
 
@@ -159,6 +161,62 @@ class Tenant(BaseModel):
                 "pero ningún servidor MCP que las atienda"
             )
         return self
+
+    @model_validator(mode="after")
+    def _solapamientos_coherentes(self) -> "Tenant":
+        """Un grupo mal declarado enrutaría a una categoría inexistente.
+
+        Se exige además que una categoría esté en **un solo** grupo: con dos,
+        qué consultar depende de por dónde se entre, que es exactamente la
+        ambigüedad que el grupo viene a quitar.
+        """
+        declaradas = {c.nombre for c in self.categorias}
+        vistas: set[str] = set()
+        for grupo in self.solapamientos:
+            if len(grupo) < 2:
+                raise ValueError(
+                    f"solapamiento {grupo} en {self.id!r}: un grupo de menos de dos "
+                    "categorías no solapa con nada"
+                )
+            if len(set(grupo)) != len(grupo):
+                raise ValueError(f"solapamiento {grupo} en {self.id!r}: nombres repetidos")
+            desconocidas = sorted(set(grupo) - declaradas)
+            if desconocidas:
+                raise ValueError(
+                    f"solapamiento {grupo} en {self.id!r} cita categorías no "
+                    f"declaradas: {desconocidas}"
+                )
+            repetidas = sorted(set(grupo) & vistas)
+            if repetidas:
+                raise ValueError(
+                    f"las categorías {repetidas} de {self.id!r} están en más de un "
+                    "solapamiento: qué consultar dejaría de estar determinado"
+                )
+            vistas |= set(grupo)
+        return self
+
+    def categorias_a_consultar(self, categoria: str) -> list[str]:
+        """Qué se consulta cuando el enrutador elige `categoria`.
+
+        Normalmente, solo ella. Si está en un grupo de solapamiento, **todas
+        las del grupo**, con la elegida primero.
+
+        Existe porque hay pares de categorías cuyo solapamiento no es un
+        problema de redacción: el dato vive de verdad en las dos fuentes. En el
+        inquilino C, quiénes son las partes de una operación está en el
+        expediente documental y en el CRM, y se midió dos veces que ninguna
+        redacción del prompt lo arregla (HALLAZGOS.md §6 y §12). Pedirle al
+        enrutador que elija es pedirle que resuelva una ambigüedad que no está
+        en la pregunta sino en el modelo de datos; la salida es no elegir.
+
+        Es declarativo a propósito: un inquilino sin solapamientos declarados
+        —como el heredado— no cambia de comportamiento en absoluto, y por eso
+        las métricas de sus 53 casos siguen siendo comparables.
+        """
+        for grupo in self.solapamientos:
+            if categoria in grupo:
+                return [categoria] + [c for c in grupo if c != categoria]
+        return [categoria]
 
     @property
     def categorias_documentales(self) -> list[CategoriaTenant]:

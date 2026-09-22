@@ -233,6 +233,34 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
             "",
         ]
 
+    alcance = resumen.get("alcance_de_fuente") or {}
+    if alcance.get("casos"):
+        out += [
+            "## Elegir la fuente frente a consultarla",
+            "",
+            ("La matriz de arriba mide la **elección** del enrutador. Con grupos de"
+             " solapamiento declarados, una consulta puede acabar mirando la fuente"
+             " correcta sin que el enrutador la haya elegido, y es lo que decide si"
+             " el usuario recibe respuesta. Las dos cifras se dan por separado: la"
+             " diferencia entre ellas es lo que aporta no elegir."),
+            "",
+            _tabla(
+                ["Indicador", "Valor"],
+                [
+                    [
+                        "Se consultó la categoría esperada",
+                        (f"{alcance['consultada']}/{alcance['casos']} "
+                         f"({_pct(alcance['tasa'])})"),
+                    ],
+                    [
+                        "De ellos, solo gracias al grupo solapado",
+                        str(alcance["solo_por_solapamiento"]),
+                    ],
+                ],
+            ),
+            "",
+        ]
+
     errores = resumen.get("errores_metrica", [])
     if errores:
         out += [

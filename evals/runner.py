@@ -261,6 +261,48 @@ def cobertura_riesgo(registros: list[dict]) -> dict:
     }
 
 
+def alcance_de_fuente(registros: list[dict]) -> dict:
+    """Con qué frecuencia se consultó de verdad la categoría esperada.
+
+    `routing` mide la **elección** del enrutador y no se toca: es la línea base
+    de los 109 casos heredados. Pero con grupos de solapamiento declarados,
+    acertar la elección y consultar la fuente correcta dejan de ser lo mismo, y
+    al usuario le importa la segunda: una consulta que el enrutador manda a
+    `expedientes` pero que acaba mirando también el CRM sí recibe su respuesta.
+
+    Se reporta **al lado** de `routing`, nunca en su lugar. Si sustituyera a
+    `routing`, un inquilino que declarase un grupo con todas sus categorías
+    sacaría un acierto perfecto sin haber enrutado nada: la cifra mediría la
+    amplitud del grupo y no la calidad del enrutado. Separadas, la distancia
+    entre las dos es justo el precio que se paga por no elegir.
+    """
+    casos = 0
+    alcanzadas = 0
+    por_solapamiento = 0
+    for reg in registros:
+        routing = next(
+            (m for m in reg["metricas"] if m["metrica"] == "routing"), None
+        )
+        if routing is None or routing["valor"] is None:
+            continue
+        esperada = routing["detalle"].get("esperada")
+        if not esperada:
+            continue
+        traza = reg["traza"]
+        consultadas = traza.get("categorias_consultadas") or [traza.get("categoria")]
+        casos += 1
+        if esperada in consultadas:
+            alcanzadas += 1
+            if esperada != traza.get("categoria"):
+                por_solapamiento += 1
+    return {
+        "casos": casos,
+        "consultada": alcanzadas,
+        "tasa": round(alcanzadas / casos, 4) if casos else None,
+        "solo_por_solapamiento": por_solapamiento,
+    }
+
+
 def agregar(registros: list[dict]) -> dict:
     por_metrica: dict[str, dict] = {}
     por_dimension: dict[str, dict] = {}
@@ -349,6 +391,7 @@ def agregar(registros: list[dict]) -> dict:
         "por_metrica": {k: _cerrar(v) for k, v in sorted(por_metrica.items())},
         "por_dimension": dict(sorted(por_dimension.items())),
         "confusion_enrutador": confusion,
+        "alcance_de_fuente": alcance_de_fuente(registros),
         "cobertura_riesgo": cobertura_riesgo(registros),
         "fallos": fallos,
         "errores_metrica": errores,

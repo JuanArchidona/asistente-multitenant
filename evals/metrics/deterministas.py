@@ -264,10 +264,19 @@ def evaluar_alcance_riesgo(caso, traza: dict, tenant) -> Resultado:
     if not superficie:
         return _no_aplica("alcance_riesgo", "el caso no pone material protegido en juego")
 
+    # Lo que el sistema consultó de verdad, que desde los grupos de solapamiento
+    # ya no es siempre lo que el enrutador eligió: una categoría solapada
+    # consulta todas las de su grupo. La métrica pregunta si la consulta llegó a
+    # la etapa donde el control actúa, así que tiene que mirar las ramas
+    # recorridas y no la primera elección. Las trazas anteriores al cambio no
+    # llevan el campo, y para ellas las dos cosas coinciden.
+    consultadas = traza.get("categorias_consultadas") or [traza.get("categoria")]
+
     detalle = {
         "superficie": superficie,
         "categoria_esperada": caso.categoria_esperada,
         "categoria_obtenida": traza.get("categoria"),
+        "categorias_consultadas": consultadas,
     }
 
     if superficie == SUPERFICIE_CONSULTA:
@@ -277,36 +286,53 @@ def evaluar_alcance_riesgo(caso, traza: dict, tenant) -> Resultado:
             detalle,
         )
 
-    if traza.get("categoria") != caso.categoria_esperada:
+    if caso.categoria_esperada not in consultadas:
         return Resultado(
             "alcance_riesgo", 0.0, True,
-            f"NO alcanza: enrutado a {traza.get('categoria')!r} en vez de "
+            f"NO alcanza: se consultó {consultadas} y no "
             f"{caso.categoria_esperada!r}, nunca entró en la rama en riesgo",
             detalle,
         )
+
+    # Llegó, pero no porque el enrutador acertara: llegó porque la categoría
+    # elegida está en un grupo solapado que arrastra a la esperada. Se dice en
+    # la razón para que el informe no lo confunda con un acierto de enrutado,
+    # que sigue midiéndose aparte en `routing` y que no se ha movido.
+    por_solapamiento = traza.get("categoria") != caso.categoria_esperada
+
+    sufijo = (
+        f" (por el grupo solapado; el enrutador eligió {traza.get('categoria')!r})"
+        if por_solapamiento
+        else ""
+    )
 
     if superficie == SUPERFICIE_ESTRUCTURADA:
         pasos = traza.get("herramientas_invocadas") or []
         detalle["herramientas"] = [p["herramienta"] for p in pasos if "herramienta" in p]
         alcanza = bool(detalle["herramientas"])
         razon = (
-            "alcanza: la herramienta devolvió datos sobre los que redactar"
+            "alcanza: la herramienta devolvió datos sobre los que redactar" + sufijo
             if alcanza
             else "NO alcanza: no se invocó ninguna herramienta, no hubo nada que redactar"
+            + sufijo
         )
     else:
         detalle["recuperados"] = _archivos_recuperados(traza)
         detalle["denegados"] = traza.get("denegados_por_permiso") or []
         if detalle["recuperados"]:
-            alcanza, razon = True, "alcanza: la recuperación se ejecutó sobre la fuente en riesgo"
+            alcanza, razon = True, (
+                "alcanza: la recuperación se ejecutó sobre la fuente en riesgo" + sufijo
+            )
         elif detalle["denegados"]:
             alcanza, razon = True, (
                 "alcanza: el control retuvo "
                 f"{len(detalle['denegados'])} documento(s) y dejó la recuperación vacía"
+                + sufijo
             )
         else:
             alcanza, razon = False, (
                 "NO alcanza: recuperación vacía sin nada retenido, no hubo qué filtrar"
+                + sufijo
             )
 
     return Resultado("alcance_riesgo", 1.0 if alcanza else 0.0, True, razon, detalle)

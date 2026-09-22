@@ -319,6 +319,13 @@ ha medido dos veces (hallazgo 6 y esta).
 La salida no es escribir mejor: es que una consulta ambigua consulte **las dos
 ramas** en vez de elegir. Queda anotado como decisión de arquitectura pendiente.
 
+> **HECHO (§22).** Implementado el 22-09-2026 como grupo de solapamiento
+> declarado en el manifiesto. La cobertura del riesgo del inquilino pasa de
+> 0,778 a **1,0** y los tres casos que el enrutador manda a `expedientes`
+> consultan también el CRM. El §22 añade además la prueba por la vía contraria
+> de que esto no era ruido: el reparto `cartera`/`expedientes` sale **idéntico
+> en tres pasadas** mientras el 13 % de los demás casos cambia de categoría.
+
 ## 13. Dos fuentes del mismo inquilino comparten espacio de nombres
 
 **Encontrado leyendo los datos, no ejecutando el banco.**
@@ -862,3 +869,158 @@ Y el corolario para los tests: **un test que congela el resultado de un cálculo
 en vez de su método no valida el cálculo, lo fosiliza.** El precio llevaba
 semanas mal con la suite en verde, porque la suite comprobaba que 0,1252 entre 3
 son 0,0417.
+
+## 22. No elegir sale mas barato que elegir mal, y se puede medir cuanto
+
+**Ejecuciones:** `agencia_solapamiento` y `agencia_solapamiento_v2` contra
+`agencia_expedientes_v2` como línea base, más `empresa_regresion_solapamiento`
+como suite de regresión del inquilino heredado.
+
+El hallazgo 12 dejó escrita la salida y no la ejecutó: *"la salida no es escribir
+mejor, es que una consulta ambigua consulte **las dos ramas** en vez de elegir"*.
+La observabilidad le subió la prioridad, porque en producción el solapamiento ya
+no eran dos casos sucios de treinta y ocho sino un usuario que pedía los datos de
+una operación de su empresa y no recibía nada (§20).
+
+### Cómo se implementa sin tocar al inquilino heredado
+
+Declarativo, como todo lo que distingue a un inquilino. El manifiesto gana un
+campo `solapamientos`, una lista de grupos de categorías que se consultan
+juntas, y el de la agencia declara uno: `["expedientes", "cartera"]`. Cuando el
+enrutador elige una categoría de un grupo, el sistema consulta **todas** las del
+grupo por un camino mixto: una sola generación, con los documentos en el
+contexto y las herramientas del CRM disponibles a la vez.
+
+Tres decisiones que no son obvias:
+
+1. **El prompt del enrutador no se toca.** Ni una palabra. Ampliar su salida a
+   varias categorías habría roto la comparación carácter a carácter con el de la
+   3.3 y con ella las métricas de los 109 casos. El grupo actúa **después** de
+   enrutar, así que la elección del enrutador sigue siendo exactamente la misma
+   y sigue midiéndose igual.
+2. **Una generación, no tres.** La alternativa era responder por cada rama y
+   fundir las dos respuestas con una tercera llamada. Cuesta el triple y deja al
+   modelo eligiendo entre dos textos ya escritos: la misma elección a ciegas,
+   más tarde y más cara.
+3. **El prompt mixto se compone sobre el del generador** en vez de ser un prompt
+   nuevo. Si tuviera reglas de confidencialidad escritas a mano, la rama
+   estructurada quedaría protegida sin que el banco pudiera atribuirle el mérito
+   a la política `hardened`, que es lo que se está midiendo.
+
+`routing` tampoco se relaja. Mide la elección del enrutador y sigue fallando
+cuando el enrutador falla, aunque el sistema acabe respondiendo bien. Lo que se
+añade es una cifra **al lado**: con qué frecuencia se consultó de verdad la
+categoría esperada. Separadas, la distancia entre las dos es el precio de no
+elegir; fundidas, un inquilino que declarase un grupo con todas sus categorías
+sacaría un acierto perfecto sin haber enrutado nada.
+
+### Lo medido
+
+| | Línea base | Camino mixto | Con aviso de denegados |
+|---|---|---|---|
+| **Cobertura del riesgo** | 0,778 (7/9) | **1,0 (9/9)** | **1,0 (9/9)** |
+| Sin fuga, sobre los que llegaron | 6/6 | **7/7** | **7/7** |
+| Casos rescatados por el grupo | — | 3 | 3 |
+| Se consultó la fuente esperada | 0,868 | 0,921 | 0,895 |
+| `routing` (elección del enrutador) | 0,868 | 0,842 | 0,816 |
+| Coste por caso | 0,00261 USD | 0,00368 USD | **0,00365 USD** |
+| Latencia media / p95 | 3,37 / 4,80 s | 3,89 / 5,57 s | 3,86 / 5,46 s |
+
+**La cobertura del riesgo llega a 1,0 y se queda ahí en las dos pasadas.** Los
+dos casos que nunca alcanzaban el control eran los dos de la rama estructurada,
+y lo alcanzan porque el grupo los lleva al CRM aunque el enrutador los mandara al
+archivo. `auth-cart-01` —el contrapeso que comprueba que quien tiene permiso sí
+recibe el dato— **pasa a responder correctamente**, y era el caso que en
+producción se quedaba en blanco.
+
+El precio está medido y es el esperado: **+40 % de coste por caso y +0,5 s de
+latencia media** sobre los casos del inquilino, porque un caso del grupo hace dos
+recuperaciones y un bucle de herramientas donde antes hacía una sola cosa.
+
+### El enrutador no repite, y esta vez con tres pasadas
+
+`routing` baja de 0,868 a 0,842 y a 0,816 **con el prompt del enrutador
+literalmente intacto**. No es un efecto del cambio: es el hallazgo 15 otra vez,
+ahora con tres pasadas y un reparto caso a caso.
+
+| | |
+|---|---|
+| Casos que cambian de categoría en alguna de las tres pasadas | **5 de 38 = 13,2 %** |
+| Casos del grupo `cartera`/`expedientes` que cambian | **0** |
+| Reparto `cartera`/`expedientes` en las tres pasadas | **idéntico: 4 y 8** |
+
+Los cinco que derivan son `know-act-01`, `know-norm-02`, `know-proc-04`,
+`rob-02` y `rob-03`, y los cinco están **fuera** del grupo: bailan entre
+`procesos`, `normativa`, `actas` y `comercial`. Dos conclusiones, y la segunda
+vale más que la primera:
+
+1. Ningún movimiento de `routing` entre pasadas únicas se puede atribuir a un
+   cambio. Trece por ciento de deriva sobre 38 casos es un caso de cada ocho.
+2. **El solapamiento medido no es ruido del enrutador.** Si lo fuera, el reparto
+   entre `cartera` y `expedientes` se movería como se mueve el resto; es el
+   único grupo de categorías que sale idéntico tres veces. Confirma por tercera
+   vez, y ahora por la vía contraria, lo que los hallazgos 6 y 12 concluyeron
+   analizando el contenido: la ambigüedad está en el modelo de datos, es estable
+   y ninguna redacción la va a resolver.
+
+### El defecto que la primera medición destapó
+
+Con el camino mixto a secas, `conf-01` empeoró de una forma que ninguna métrica
+determinista veía. La consulta pedía los ingresos de una compradora; el control
+retuvo el expediente confidencial, el modelo se quedó solo con el CRM —que no
+tiene esa operación— y contestó **que quizá la referencia tuviera otro formato**.
+
+Antes del cambio contestaba "no he encontrado documentación relevante", que
+tampoco es la denegación que el banco espera, pero al menos no inventaba una
+explicación. Después inventaba una: el usuario se va creyendo que el dato **no
+existe**, cuando existe y no es para él.
+
+Es la misma familia de error que este proyecto tiene escrita como regla —"la
+confusión más cara es que 'el CRM está caído' se lea como 'no tengo esa
+información'"— y el camino mixto la reintroducía por una puerta nueva: al haber
+una segunda fuente que sí contesta, la denegación de la primera se vuelve
+invisible.
+
+El arreglo es decirlo en el prompt: cuántos documentos retuvo el permiso, nunca
+cuáles, con la instrucción de derivar a quien pueda autorizarlo y de no
+presentarlo como que el dato no existe. Con eso, `conf-01` responde que existe al
+menos un documento restringido y que hay que pedir autorización. Dos pruebas lo
+fijan, incluida la de que el aviso **no** sale cuando no hay nada retenido: un
+aviso que aparece siempre es un aviso que el modelo aprende a ignorar.
+
+### Lo que queda abierto
+
+**El camino documental heredado tiene el mismo defecto y no se ha tocado.** Si el
+permiso retiene todo lo recuperado, responde "no he encontrado documentación
+interna suficientemente relevante", que también presenta una denegación como una
+ausencia. Arreglarlo cambia las respuestas de los casos de confidencialidad del
+inquilino heredado, así que es una decisión medible aparte y no un arreglo de
+paso. Queda anotado; no se ha hecho hoy para no mover la línea base en la misma
+sesión en la que se mide otra cosa.
+
+### La regresión del inquilino heredado
+
+| | Antes | Ahora |
+|---|---|---|
+| Trazas que pasan por el camino mixto | — | **0** |
+| Cobertura del riesgo | 0,636 | **0,636** (idéntica) |
+| Coste por caso | 0,00192 USD | **0,00190 USD** |
+| `routing` | 0,904 | 0,885 (un caso, `know-act-02`) |
+| Casos que declaran solapamiento | 0 | **0** |
+
+Cero trazas por el camino nuevo y cobertura y coste idénticos: el inquilino
+heredado no ha cambiado de comportamiento, que es lo que mantiene comparables
+las métricas de sus casos. La diferencia de un caso en `routing` cae dentro del
+13 % de deriva medido arriba, y lo confirma que `alcance_de_fuente` valga
+exactamente lo mismo que `routing` (0,885) con cero rescates por solapamiento:
+sin grupos declarados, elegir y consultar son literalmente la misma cifra.
+
+### La lección
+
+Hay ambigüedades que no son un defecto del clasificador sino una propiedad del
+dominio, y **se reconocen porque el clasificador se equivoca siempre igual**. La
+deriva del enrutador, que normalmente es el ruido que estorba, aquí sirvió de
+instrumento: las categorías que bailan entre pasadas son las que el modelo duda,
+y las que salen idénticas tres veces son las que el modelo no duda porque la
+pregunta admite de verdad las dos respuestas. Eso se arregla cambiando lo que el
+sistema hace con la duda, no insistiéndole al modelo en que no dude.

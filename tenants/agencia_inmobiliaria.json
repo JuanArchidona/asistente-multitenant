@@ -40,6 +40,12 @@
       "destino": "documental"
     }
   ],
+  "solapamientos": [
+    [
+      "expedientes",
+      "cartera"
+    ]
+  ],
   "servidores_mcp": [
     {
       "nombre": "crm",

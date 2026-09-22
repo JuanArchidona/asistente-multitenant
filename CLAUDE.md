@@ -30,10 +30,10 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-21)
+## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **621 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **647 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -47,6 +47,7 @@ y control de acceso estructural. **621 tests en verde**, `ruff` limpio.
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
 | Observabilidad y coste en producción | Hecha: registro por inquilino, coste por consulta (§20) |
+| Consulta de las dos ramas ante una categoría ambigua | Hecha y medida: cobertura del riesgo 0,778 → 1,0 (§22) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
 | Despliegue con autenticación y tope de gasto | Pendiente |
@@ -110,7 +111,7 @@ repositorio es público.
 ```
 corpus/<tenant>/<fuente>/*.md      Documentos de cada inquilino
 datos/<tenant>/crm.json            Datos de negocio sintéticos (generados)
-tenants/<tenant>.json              Manifiesto: categorías, MCP, política
+tenants/<tenant>.json              Manifiesto: categorías, solapamientos, MCP, política
 mcp_servers/                       Servidores MCP por inquilino
 scripts/                           Generadores reproducibles (semilla fija)
 src/
@@ -132,7 +133,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 621 tests, sin llamadas a API
+uv run pytest                                      # 647 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -186,20 +187,23 @@ y §14).
 - **Cobertura del riesgo: 0,636 en A y 0,778 en C.** Resuelto lo que se podía
   resolver enrutando (§12). Lo que queda son casos que no llegan al control por
   fallo de enrutado, y subirlos es trabajo de enrutador, no de gobernanza.
-- **`expedientes` y `cartera` se solapan, y en producción duele más que en el
-  banco.** La primera consulta real registrada que pedía datos de una operación
-  se enrutó a `expedientes`, se quedó sin contexto y el usuario no recibió nada
-  (§20). En el banco eran dos casos sucios; aquí es alguien que pregunta por una
-  operación de su empresa y parece que el sistema no tiene el dato. Los
-  datos de las partes de una operación viven a la vez en el expediente
-  documental y en el CRM, así que la ambigüedad está en el modelo de datos y no
-  en la pregunta. Medido dos veces (§6, §12). La salida es que una consulta
-  ambigua **consulte las dos ramas** en vez de elegir: decisión de arquitectura
-  pendiente, afecta a dos casos.
-- **El enrutador no repite: 11 % de los casos cambia de categoría entre pasadas
-  idénticas** (§15). Ningún acierto global del enrutador se puede reportar de una
-  sola pasada. Los casos de seguridad sí son estables, así que la cobertura se
-  puede leer; el acierto global no.
+- **El solapamiento `expedientes`/`cartera` está resuelto, y el riesgo que
+  queda es el precio.** Una consulta que cae en un grupo de solapamiento
+  declarado consulta las dos ramas en vez de elegir (§22): cobertura del riesgo
+  0,778 → **1,0**, y el caso que en producción se quedaba sin respuesta ya la
+  da. El precio medido es **+40 % de coste por caso y +0,5 s de latencia** en
+  los casos del grupo, y hay que vigilarlo si se declaran más grupos: el coste
+  crece con el tamaño del grupo, no con el número de grupos.
+- **El camino documental heredado sigue presentando una denegación como una
+  ausencia.** Si el permiso retiene todo lo recuperado, responde "no he
+  encontrado documentación relevante". El camino mixto ya lo dice bien; el
+  heredado no, y arreglarlo mueve las respuestas de los casos de
+  confidencialidad del inquilino A, así que es una medición aparte (§22).
+- **El enrutador no repite: 11 % de los casos en el inquilino A (§15) y 13,2 %
+  en el C, medido sobre tres pasadas con el prompt intacto** (§22). Ningún
+  acierto global del enrutador se puede reportar de una sola pasada. Los casos
+  de seguridad sí son estables, así que la cobertura se puede leer; el acierto
+  global no.
 
 ## 9. Superficies de trabajo y cómo se sincronizan
 
