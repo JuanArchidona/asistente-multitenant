@@ -167,8 +167,21 @@ def load_config() -> Config:
             "GEMINI_API_KEY es la clave de los embeddings, que son parte del sistema: "
             "usarla para el juez sumaría los dos gastos en la misma línea de factura "
             "y la pregunta 'cuánto cuesta evaluar' dejaría de tener respuesta. "
-            "Crea una segunda clave de Gemini, o usa JUDGE_PROVIDER=anthropic."
+            "Crea una clave de Gemini en un PROYECTO DISTINTO (ver abajo), o usa "
+            "JUDGE_PROVIDER=anthropic."
         )
+    # Esta comprobación es NECESARIA Y NO SUFICIENTE, y conviene saber por qué.
+    # En Anthropic la consola desglosa el coste **por clave**, así que dos claves
+    # distintas bastan para separar los gastos (§18, §21). En Google no: la
+    # documentación dice que los límites y la facturación se aplican **por
+    # proyecto, no por clave**. Dos claves del mismo proyecto pasarían esta
+    # validación y seguirían compartiendo línea de factura y cuota.
+    #
+    # El código no puede comprobarlo —una clave de Gemini no lleva el proyecto
+    # dentro y no hay forma local de deducirlo—, así que lo que queda es decirlo
+    # donde se lee. La cuota compartida importa además por sí sola: un juez que
+    # agote el límite del proyecto deja sin embeddings al sistema a mitad de una
+    # ejecución. Ver docs/HALLAZGOS.md §24.
     if (
         cfg.judge_gemini_api_key
         and cfg.judge_gemini_api_key == cfg.gemini_api_key
@@ -176,7 +189,9 @@ def load_config() -> Config:
         sys.exit(
             "[config] GEMINI_API_KEY_JUEZ es la misma clave que GEMINI_API_KEY. "
             "Siendo la misma, el proveedor no puede separar los dos gastos y tener dos "
-            "variables solo aparenta que sí."
+            "variables solo aparenta que sí. Y con claves distintas no basta: en "
+            "Google la cuota y la facturación van por PROYECTO, así que la clave del "
+            "juez tiene que salir de un proyecto distinto al de los embeddings."
         )
     if cfg.judge_model == cfg.model_generator:
         sys.exit(

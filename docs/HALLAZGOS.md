@@ -1211,6 +1211,27 @@ distinta de la de los embeddings, con las dos validaciones que abortan en el
 arranque y cinco pruebas. La exigencia es la misma que ya tenía Anthropic, y la
 asimetría anterior no tenía ninguna razón: era el camino menos recorrido.
 
+> **AMPLIACION, el mismo dia.** La validacion es **necesaria y no suficiente**, y
+> el motivo es que la separacion de claves no significa lo mismo en los dos
+> proveedores. En Anthropic la consola desglosa el coste **por clave**, que es lo
+> que hizo medibles los §18 y §21. La documentacion de Gemini dice lo contrario:
+> *"Rate limits are applied per project, not per API key"*, y la facturacion va
+> por proyecto igual que la cuota. **Dos claves del mismo proyecto pasarian la
+> validacion y seguirian compartiendo linea de factura.** El codigo no puede
+> comprobarlo —una clave no lleva el proyecto dentro—, asi que la exigencia real
+> es que la clave del juez salga de otro proyecto y eso queda escrito en los dos
+> sitios donde se lee: el mensaje de error y `.env.example`.
+>
+> Hay un segundo motivo, independiente del coste: **la cuota tambien es del
+> proyecto.** Un juez que agote el limite diario deja sin embeddings al sistema a
+> mitad de una ejecucion, y eso se veria como una recuperacion vacia — o sea,
+> como un corpus incompleto. Es la misma confusion que el §7 persigue.
+>
+> La leccion generaliza mal a proposito: **"clave propia por componente" no es
+> una practica portable, es una practica que depende de por que unidad factura
+> cada proveedor.** Copiarla de Anthropic a Google sin mirar habria producido dos
+> variables de entorno, una validacion, cinco pruebas y ninguna separacion.
+
 ### Segundo: la limitación estaba escrita donde no sirve
 
 `Config` impide que el juez sea **el mismo modelo** que el generador. No impide
