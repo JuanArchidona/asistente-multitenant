@@ -162,7 +162,10 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
    especificación. El sustrato técnico está hecho y medido —control de acceso
    antes del modelo, redacción de PII, aislamiento estructural, registro por
    inquilino, resistencia a inyección, citas verificadas—; lo que falta es el
-   encaje normativo y **el análisis de sesgos, del que no hay nada**.
+   encaje normativo. **El análisis de sesgos dejó de ser un hueco el 22-09-2026**
+   (§34): medido en la capa de recuperación y en el enrutado, con pares
+   emparejados y control de ruido, y con resultado nulo en esa capa. Lo que
+   queda sin medir es la generación, y está declarado.
 9. Servidor MCP del Catastro como fuente externa real.
 10. Observabilidad en producción y coste acumulado por tenant.
 11. Canal de correo, de extremo a extremo.

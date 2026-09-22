@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **703 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **716 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -60,7 +60,7 @@ y control de acceso estructural. **703 tests en verde**, `ruff` limpio.
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | Pendiente, y **requisito nombrado por el tutor** el 22-09 |
-| Análisis de sesgos | Pendiente, y **no existe nada**: es el hueco más claro del Módulo 4 |
+| Análisis de sesgos | **Hecho y medido** en la capa de recuperación y en el enrutado: ningún eje alcanza su suelo (§34). La capa de generación sigue sin medir |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
 decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes
@@ -141,7 +141,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 703 tests, sin llamadas a API
+uv run pytest                                      # 716 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -285,6 +285,20 @@ y §14).
   varianza del juez medida en la 3.3, y no tiene arreglo en este modelo: la
   única vía a un juez repetible es el juez de Gemini, que es además el de otra
   familia.
+
+- **El resultado de sesgo es nulo en una capa, no una ausencia de sesgo.**
+  Ningún eje —género, edad, origen, discapacidad— alcanza el doble de su suelo
+  de ruido en la recuperación, y el enrutado es estable en las seis variantes de
+  nombre (§34). Pero **la capa de generación no se ha medido**, y presentar esto
+  como "el sistema no discrimina" sería la falsa objetividad que el propio
+  Módulo 4 enumera como riesgo. Medir la generación exige un criterio de
+  equivalencia de contenido entre respuestas con nombres distintos, y montarlo
+  con juez choca con los §30, §32 y §33.
+- **El experimento de sesgo se equivocó tres veces antes de acertar**, y las
+  tres afirmaciones intermedias eran falsas, concretas y alarmantes (§34). De
+  ahí las trece pruebas que comprueban que los pares sigan emparejados: son la
+  única condición de la que depende que la cifra signifique algo. Si se añaden
+  ejes o variantes, esas pruebas son lo que impide repetir el error.
 
 ## 9. Superficies de trabajo y cómo se sincronizan
 

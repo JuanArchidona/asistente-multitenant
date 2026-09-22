@@ -2066,3 +2066,133 @@ en un experimento cuyo resultado no se puede leer, cuando la respuesta estaba en
 un fichero que ya tenia. Barato, pero evitable — y la misma forma de error que el
 §25, donde la cuenta que descartaba una propuesta se podia haber hecho antes de
 proponerla.
+
+## 34. Medir sesgo sin control no es medir mal, es afirmar cosas falsas y alarmantes
+
+**Ejecuciones:** `evals/sesgo.py`, cuatro versiones del mismo experimento el
+22-09-2026. Coste total: unas pocas llamadas de embedding y 6 del enrutador,
+**0,0046 USD**.
+
+La tutoria del mismo dia nombro la securizacion como requisito, y al ir al
+material resulto que el Modulo 4 es *IA responsable* y que abre su catalogo de
+riesgos con **sesgos algoritmicos y discriminacion**, nombrando los ejes:
+*genero, edad, origen o discapacidad*. El proyecto no tenia nada. Y por su propia
+regla —una afirmacion sin numero no vale— un capitulo que dijera "el sistema no
+discrimina" habria sido exactamente la **falsa objetividad** que el mismo modulo
+enumera como riesgo etico.
+
+### Como se mide sin tocar las lineas base
+
+Medir sesgo exige **pares emparejados**: dos entradas identicas salvo el atributo
+protegido. Meterlos en el corpus de un inquilino cambiaria la firma de su indice
+y con ella las metricas de su banco (§10 y §14). Asi que se aisla la capa, como
+el §27 hizo con el enrutador: **no se indexa nada**, se embebe en memoria y se
+compara la distancia de una consulta neutra a cada variante.
+
+Dos capas observables, y una que se declara fuera:
+
+1. **Recuperacion.** Si dos documentos que dicen lo mismo no estan a la misma
+   distancia de una consulta que no menciona el atributo, el sistema muestra
+   antes el de una persona que el de otra. Determinista.
+2. **Enrutado.** La misma consulta con distinto nombre no deberia cambiar de
+   categoria. **Solo es interpretable desde hoy**: con la temperatura a 0
+   (`ALCANCE.md` §5.c), un cambio de categoria ya no puede ser muestreo.
+3. **Generacion: no se mide, y se dice.** Comparar dos respuestas que
+   necesariamente contienen nombres distintos exige un criterio de equivalencia
+   de contenido que aqui no existe, y montarlo con juez chocaria con los §30,
+   §32 y §33.
+
+### Las cuatro versiones, y las tres afirmaciones falsas
+
+| Version | Que le faltaba | Que afirmaba |
+|---|---|---|
+| 1 | Todo control | *"El mayor sesgo es contra la discapacidad"*: rango **0,021**, el triple que cualquier otro eje |
+| 2 | Control de longitud | *"Sesgo por origen, 3,06 veces el suelo"*: español favorecido, chino perjudicado |
+| 3 | Control del mismo tamaño | *"Origen a 1,09 veces el suelo"*: el efecto casi desaparece |
+| **4** | — | **Ningun eje alcanza su suelo** |
+
+Cada una de las tres primeras producia una afirmacion **falsa, concreta y
+alarmante**, del tipo que se cita en una memoria y se defiende ante un tribunal.
+
+**Version 1.** El eje de discapacidad comparaba un documento **con una frase
+extra** contra uno sin ella. Medía la frase, no la discapacidad. Emparejadas las
+dos variantes con frases de longitud equivalente, el rango pasa de **0,021 a
+0,000286**: un factor **75**, y el eje que parecia el peor resulta ser el de
+menor efecto de los cuatro.
+
+**Version 2.** Con un control de frase irrelevante como suelo (0,0034), `origen`
+salia a 3,06 veces. Pero los nombres de ese eje no solo difieren en origen:
+difieren en **longitud** ("Javier Moreno Gil" son 17 caracteres, "Wei Chen Liu"
+son 12), y la longitud afecta a la tokenizacion. Un control de dos nombres
+**españoles** con longitudes distintas da 0,0096, casi todo el efecto.
+
+**Version 3.** Corregido eso, `origen` quedaba en 1,09 veces su suelo y el script
+seguia declarandolo "por encima". Pero el eje tiene **cuatro** variantes y el
+control tenia **dos**, y el rango de un grupo crece con el numero de variantes
+porque hay mas oportunidades de separarse. Igualados a cuatro, el suelo sube a
+0,0106 y `origen` baja a **0,99**.
+
+### El resultado, por fin legible
+
+| Eje | Rango | Control que le toca | x su suelo |
+|---|---|---|---|
+| `origen` | 0,010473 | longitud del nombre | **0,99** |
+| `genero` | 0,004085 | longitud del nombre | 0,39 |
+| `edad` | 0,003442 | frase irrelevante | 0,32 |
+| `discapacidad` | 0,000286 | frase irrelevante | 0,03 |
+
+Suelos: **0,0106** por frase irrelevante y **0,0106** por longitud del nombre,
+los dos con cuatro variantes.
+
+**Ningun eje alcanza 2 veces su suelo**, que es el umbral que se exige para
+hablar de efecto — y no es arbitrario por gusto: el suelo se estima con cuatro
+variantes y no tiene intervalo de confianza, asi que un cociente de 1,1 esta
+dentro de lo que cambia el suelo con solo elegir otras cuatro palabras
+irrelevantes. Con el umbral en 1,0 el script declaraba efecto a 1,01, que es el
+suelo mismo.
+
+**En el enrutado, estabilidad completa**: las seis variantes de nombre —dos de
+genero y cuatro de origen— van todas a `expedientes` con confianza 0,95.
+
+### Lo que este resultado NO dice
+
+**No dice que el sistema no discrimine.** Es un resultado nulo en **una capa**,
+con **estos** pares y **este** embedder. La capa de generacion no se ha medido.
+Presentarlo como ausencia de sesgo seria la falsa objetividad del catalogo del
+modulo, y ademas seria el error que este experimento cometio tres veces en la
+direccion contraria.
+
+### Las pruebas que salen de aqui
+
+Trece pruebas nuevas, y no comprueban que el codigo funcione: comprueban que
+**los pares sigan emparejados**, que es la unica condicion de la que depende que
+la cifra signifique algo. Entre ellas, las tres que habrian atrapado las tres
+versiones fallidas:
+
+- Ninguna variante de un eje de frase puede ir **sin frase** (version 1).
+- Las variantes de un eje no pueden diferir en longitud mas de un 15 % (version
+  1 y 2).
+- Cada control tiene que tener **al menos tantas variantes como su eje**
+  (version 3).
+
+Mas la condicion del experimento: que ninguna consulta mencione el atributo
+protegido ni nombre a ninguna de las personas. Esa ultima fallo a la primera por
+comparar por subcadena —"Ana" esta dentro de "analista"—, que es el mismo error
+de forma que el §23 cometio comparando nombres de fichero byte a byte.
+
+### La leccion
+
+**En una medida de sesgo, el control no es una precaucion: es el experimento.**
+Sin suelo, un rango de 0,021 y uno de 0,0003 se leen igual de bien, y el numero
+mayor gana el titular. Las tres afirmaciones falsas de arriba no salieron de un
+fallo de programacion —el codigo hacia exactamente lo que se le pidio— sino de
+comparar contra nada.
+
+Y el corolario incomodo, que es el tercero del dia junto al §25 y al §33: las
+tres correcciones se podian haber razonado **antes** de ejecutar. Que una
+variante llevara una frase de mas, que los nombres tuvieran longitudes
+distintas y que un grupo de cuatro tenga mas rango que uno de dos son cosas que
+se ven leyendo el codigo. No se vieron; se vieron al mirar el resultado y
+preguntarse por que un eje salia tan alto. **Mirar el resultado con desconfianza
+funciono las tres veces, y es mas barato que acertar a la primera, pero solo
+funciona si se mira.**
