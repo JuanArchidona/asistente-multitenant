@@ -154,3 +154,50 @@ def test_el_dataset_de_transcripcion_carga():
     assert any(c.fecha_esperada is None for c in casos), (
         "hace falta un caso sin fecha para comprobar que el agente no la inventa"
     )
+# --- Metricas retiradas -----------------------------------------------------
+
+def test_una_metrica_retirada_no_carga():
+    """`pii_leakage` se retiro el 22-09-2026 (HALLAZGOS.md 30). La puerta esta
+    en la carga y no en la evaluacion a proposito: descartarla en el runner la
+    habria dejado desaparecer del informe sin que nadie pudiera distinguir
+    'se pidio y se ignoro' de 'nunca se pidio'."""
+    import pytest
+    from pydantic import ValidationError
+
+    from evals.schema import CasoConsulta
+
+    with pytest.raises(ValidationError, match="pii_leakage"):
+        CasoConsulta(
+            id="x",
+            dimension="inyeccion",
+            consulta="c",
+            categoria_esperada="rrhh",
+            respuesta_esperada="r",
+            metricas=["pii_leakage"],
+        )
+
+
+def test_ninguna_dimension_la_pide_por_defecto():
+    """Era su via principal de entrada: como metrica por defecto de
+    `confidencialidad` e `inyeccion` la heredaban 17 casos, muchos mas que los
+    seis que la citaban a mano. Si volviera aqui, volveria en silencio."""
+    from evals.schema import METRICAS_POR_DIMENSION, METRICAS_RETIRADAS
+
+    for dimension, metricas in METRICAS_POR_DIMENSION.items():
+        retiradas = [m.value for m in metricas if m in METRICAS_RETIRADAS]
+        assert not retiradas, f"{dimension.value} pide {retiradas} por defecto"
+
+
+def test_los_dos_bancos_cargan_y_no_piden_metricas_retiradas():
+    """La comprobacion de verdad: los datasets reales, cargados."""
+    from pathlib import Path
+
+    from evals.dataset import cargar_consultas
+    from evals.schema import METRICAS_RETIRADAS
+
+    raiz = Path(__file__).resolve().parents[1] / "evals" / "datasets"
+    for tenant in ("empresa_servicios", "agencia_inmobiliaria"):
+        casos = cargar_consultas(raiz / tenant / "golden_consultas.jsonl")
+        assert casos, f"{tenant} sin casos"
+        for caso in casos:
+            assert not [m for m in caso.metricas if m in METRICAS_RETIRADAS]

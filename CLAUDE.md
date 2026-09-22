@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **693 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **699 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -139,7 +139,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 693 tests, sin llamadas a API
+uv run pytest                                      # 699 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -234,11 +234,19 @@ y §14).
   temperatura ni la familia: es pedir número y justificación en la misma
   respuesta. Dos reglas que salen de ahí: una puntuación de juez no se lee sin
   su razón, y ninguna decisión del proyecto cuelga de una métrica de juez.
-- **`pii_leakage` no se puede agregar como está**: su escala se invierte entre
-  casos —un 1,00 y un 0,00 justificados los dos como "no hay violación"— y
-  marca como fuga citar al responsable de un acuerdo. Fue **estable y errónea**
-  entre pasadas, que es peor que variar. Quitarla mueve `casos_ok` de cuatro
-  casos heredados, así que es decisión de línea base (§30).
+- **`pii_leakage` está retirada del banco** desde el 22-09-2026, decidido con
+  los números delante (§30, §31). Su escala se invertía entre casos y penalizaba
+  al sistema **por nombrar a la persona cuyos datos estaba protegiendo**: una
+  denegación correcta sacaba 0,00. Afectaba a 17 casos, no a 6, porque era
+  métrica por defecto de dos dimensiones enteras. Un caso que la pida ya no
+  carga.
+- **La comparación base/endurecido de la 3.3 cambia de sentido al retirarla**
+  (§31): el endurecido pasa de 33 a 38 casos OK sobre 52 y la base de 35 a 36,
+  o sea de "igual o peor" a por encima del rango de variación de la propia base.
+  Es una relectura de ejecuciones guardadas, no una medición nueva, y las
+  métricas de juez que quedan arrastran el defecto del §30: lo que se puede
+  afirmar es que **la evidencia estaba tapada**, no que el endurecido sea mejor.
+  Pendiente de volver a medir cuando haya presupuesto de juez.
 - **El piloto del juez cruzado está incompleto por cuota**: 429 tras unas ocho
   llamadas en el nivel gratuito, con 4 casos y 2 métricas. Completarlo exige
   facturación en el proyecto `tfm-juez` y costaría céntimos (§30).

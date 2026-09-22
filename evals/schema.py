@@ -70,11 +70,15 @@ METRICAS_POR_DIMENSION: dict[Dimension, list[Metrica]] = {
     Dimension.fuera_de_alcance: [
         Metrica.routing, Metrica.abstencion, Metrica.faithfulness,
     ],
+    # `pii_leakage` estaba en estas dos y era su via principal de entrada: como
+    # metrica por defecto la heredaba **todo** caso de estas dimensiones que no
+    # declarase metricas propias, muchos mas que los seis que la citaban a mano.
+    # Retirada el 22-09-2026 (HALLAZGOS.md 30 y METRICAS_RETIRADAS, abajo).
     Dimension.confidencialidad: [
-        Metrica.routing, Metrica.confidencialidad, Metrica.pii_leakage,
+        Metrica.routing, Metrica.confidencialidad,
     ],
     Dimension.inyeccion: [
-        Metrica.confidencialidad, Metrica.pii_leakage,
+        Metrica.confidencialidad,
     ],
     Dimension.robustez: [
         Metrica.routing, Metrica.retrieval, Metrica.contiene,
@@ -88,6 +92,28 @@ METRICAS_POR_DIMENSION: dict[Dimension, list[Metrica]] = {
 METRICAS_JUEZ = {
     Metrica.faithfulness, Metrica.answer_relevancy, Metrica.correctness,
     Metrica.abstencion, Metrica.confidencialidad, Metrica.pii_leakage,
+}
+
+# Métricas retiradas del banco. El miembro del enum se conserva para que las 15
+# ejecuciones anteriores de `reports/` sigan siendo interpretables, pero un caso
+# que la declare **no carga**.
+#
+# `pii_leakage` se retiró el 22-09-2026 por lo medido en HALLAZGOS.md §30: su
+# escala se invierte entre casos —un 1,00 y un 0,00 justificados los dos como
+# "no hay violación"— y marca como fuga citar al responsable de un acuerdo
+# sacado de un acta, que es justamente lo que el sistema tiene que hacer. Fue
+# además estable y errónea entre pasadas, que es peor que variar, porque parece
+# fiable.
+#
+# La puerta falla al cargar el dataset y no al evaluar, a propósito: descartarla
+# en el runner la habría dejado desaparecer del informe sin que nadie supiera si
+# se pidió y se ignoró o si nunca se pidió.
+METRICAS_RETIRADAS = {
+    Metrica.pii_leakage: (
+        "retirada el 22-09-2026: su escala se invierte entre casos y marca como "
+        "fuga el uso normal del corpus. Ver docs/HALLAZGOS.md §30. Si se quiere "
+        "recuperar, hay que arreglar primero la lectura de su escala."
+    ),
 }
 
 
@@ -136,6 +162,23 @@ class CasoConsulta(BaseModel):
     def _completar_metricas(self) -> "CasoConsulta":
         if not self.metricas:
             object.__setattr__(self, "metricas", list(METRICAS_POR_DIMENSION[self.dimension]))
+        return self
+
+    @model_validator(mode="after")
+    def _sin_metricas_retiradas(self) -> "CasoConsulta":
+        """Un caso que pida una metrica retirada no carga.
+
+        Falla aqui y no al evaluar a proposito: descartarla en el runner la
+        dejaria desaparecer del informe sin que nadie pudiera distinguir entre
+        "se pidio y se ignoro" y "nunca se pidio". Y falla al cargar el dataset,
+        que es donde este proyecto rompe las cosas mal definidas.
+        """
+        for metrica in self.metricas:
+            motivo = METRICAS_RETIRADAS.get(metrica)
+            if motivo:
+                raise ValueError(
+                    f"el caso {self.id!r} pide la metrica {metrica.value!r}, {motivo}"
+                )
         return self
 
 

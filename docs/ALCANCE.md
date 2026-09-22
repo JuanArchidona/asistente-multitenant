@@ -198,6 +198,20 @@ Acordados como entregables propios, no como subproducto:
 Restricción: nada de lo publicable puede contener datos identificables de
 prospectos reales.
 
+## 5.b Una conclusion heredada que hay que volver a medir
+
+La entrega 3.3 dio como resultado propio una **comparacion medida de dos
+prompts** (base frente a endurecido). El 22-09-2026, al retirar `pii_leakage`
+del banco por incoherente (`docs/HALLAZGOS.md` §30 y §31), esa comparacion
+**cambia de sentido**: la metrica penalizaba justo lo que el prompt endurecido
+anade —negativas que explican de que se niegan— y lo hacia en una sola
+direccion, asi que no era ruido sino sesgo.
+
+Queda como tarea explicita: **rehacer la comparacion base/endurecido** con el
+banco corregido antes de citarla en la memoria. No se hizo el mismo dia porque
+una pasada con juez de los dos inquilinos cuesta 2,53 USD (§21) y la decision de
+gasto se toma con la rubrica delante.
+
 ## 6. Riesgos abiertos
 
 | Riesgo | Estado |
