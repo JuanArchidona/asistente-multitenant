@@ -232,33 +232,50 @@ def test_el_contador_sigue_siendo_del_tipo_que_deepeval_exige():
 def test_el_aviso_de_coste_usa_una_cifra_medida():
     """El aviso existe porque `--desde-trazas` no llama al sistema y es facil
     leer eso como 'esta ejecucion no cuesta'. El juez se lanza igual y es la
-    parte cara: 11 veces el coste del sistema, medido en reports/.
+    parte cara.
 
-    La cifra NO se congela aqui. Se recalcula desde los tokens que quedaron
-    registrados en `reports/juez_instrumentado` y la tabla de precios viva,
-    porque el fallo que hubo fue justo ese: la constante se escribio con un
-    precio de claude-sonnet-5 que no era el vigente y nadie lo notaba
-    (HALLAZGOS.md 21). Si `PRECIOS` cambia y la constante no, esto falla."""
-    from evals.runner import COSTE_JUEZ_POR_CASO_USD
+    La cifra NO se congela: se recalcula desde los tokens que quedaron
+    registrados en las ejecuciones que la midieron y la tabla de precios viva.
+    El primer fallo fue justo ese —una constante escrita con un precio que no
+    era el vigente (HALLAZGOS.md 21)— y el segundo, medirla por caso en vez de
+    por evaluacion, con lo que se descalibro al retirar una metrica del banco
+    (HALLAZGOS.md 32)."""
+    from evals.runner import COSTE_JUEZ_POR_METRICA_USD
     from src.provider import PRECIOS
 
-    # Tokens de reports/juez_instrumentado: 24 llamadas del juez sobre 3 casos.
-    entrada, salida, casos = 16_956, 4_954, 3
-    precio_entrada, precio_salida = PRECIOS["claude-sonnet-5"]
-    esperado = (entrada / 1e6 * precio_entrada + salida / 1e6 * precio_salida) / casos
+    # reports/juez_anthropic_c: 4 evaluaciones de `confidencialidad`.
+    entrada, salida, evaluaciones = 4439, 781, 4
+    pe, ps = PRECIOS["claude-sonnet-5"]
+    esperado = (entrada / 1e6 * pe + salida / 1e6 * ps) / evaluaciones
+    assert COSTE_JUEZ_POR_METRICA_USD["anthropic"] == pytest.approx(esperado, abs=1e-4)
 
-    assert COSTE_JUEZ_POR_CASO_USD == pytest.approx(esperado, abs=1e-4)
-    # Y tiene que seguir siendo mucho mayor que el coste por consulta del
-    # sistema, que es lo que hace que el aviso merezca la pena.
-    assert COSTE_JUEZ_POR_CASO_USD > 10 * 0.00245
+    # reports/juez_gemini_1: las mismas 4 evaluaciones con el juez de Gemini.
+    entrada, salida = 2694, 272
+    pe, ps = PRECIOS["gemini-3.6-flash"]
+    esperado = (entrada / 1e6 * pe + salida / 1e6 * ps) / evaluaciones
+    assert COSTE_JUEZ_POR_METRICA_USD["gemini"] == pytest.approx(esperado, abs=1e-4)
 
 
-# --- Separacion de claves ---
-#
-# El fallo que estas pruebas fijan: la clave del juez existia en el .env y en la
-# consola del proveedor desde el 20-sep, y el codigo no la leia nunca. El juez
-# facturaba a la clave del sistema, asi que la separacion que pedia el feedback
-# de la 3.3 estaba en todas partes menos donde importaba.
+def test_el_juez_sigue_siendo_mas_caro_que_responder():
+    """Es lo que hace que el aviso merezca la pena: con el juez de Anthropic una
+    sola evaluacion cuesta mas que atender una consulta entera."""
+    from evals.runner import COSTE_JUEZ_POR_METRICA_USD
+
+    coste_sistema_por_consulta = 0.00245  # medido, HALLAZGOS.md 17
+    assert COSTE_JUEZ_POR_METRICA_USD["anthropic"] > coste_sistema_por_consulta
+
+
+def test_el_juez_de_gemini_es_mas_barato_que_el_de_anthropic():
+    """Lo que hace viable repetir al juez: la unica correccion conocida de su
+    inestabilidad es la mayoria de varias pasadas (HALLAZGOS.md 32), y tres
+    pasadas del juez de Gemini cuestan menos que una sola de Anthropic."""
+    from evals.runner import COSTE_JUEZ_POR_METRICA_USD
+
+    assert (
+        3 * COSTE_JUEZ_POR_METRICA_USD["gemini"]
+        < COSTE_JUEZ_POR_METRICA_USD["anthropic"]
+    )
+
 
 def _cfg_juez(monkeypatch, tmp_path, **entorno):
     from src.config import load_config

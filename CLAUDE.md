@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **696 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **698 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -52,7 +52,7 @@ y control de acceso estructural. **696 tests en verde**, `ruff` limpio.
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
 | Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24, §26) |
 | Estabilidad del enrutador | Medida y resuelta: temperatura 0 quita la varianza, y la votación queda descartada por redundante (§27) |
-| Evaluación del juez | Hecha, y es el hallazgo más fuerte del día: el juez emite números que contradicen su propio razonamiento, en dos familias y a temperatura 0 (§30) |
+| Evaluación del juez | Hecha y completada: el número contradice su propio razonamiento, temperatura 0 no lo estabiliza y sus errores van todos en el mismo sentido (§30, §32) |
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
@@ -139,7 +139,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 696 tests, sin llamadas a API
+uv run pytest                                      # 698 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -247,9 +247,23 @@ y §14).
   métricas de juez que quedan arrastran el defecto del §30: lo que se puede
   afirmar es que **la evidencia estaba tapada**, no que el endurecido sea mejor.
   Pendiente de volver a medir cuando haya presupuesto de juez.
-- **El piloto del juez cruzado está incompleto por cuota**: 429 tras unas ocho
-  llamadas en el nivel gratuito, con 4 casos y 2 métricas. Completarlo exige
-  facturación en el proyecto `tfm-juez` y costaría céntimos (§30).
+- **Al juez la temperatura no le hace nada y sus errores van en un solo
+  sentido** (§32, piloto completado con 6 pasadas). Temperatura 0 deja la misma
+  inestabilidad que muestrear —2 casos de 4 en las dos familias— y de 24
+  veredictos, 4 son espurios y **los cuatro suspenden lo que debía aprobar**.
+  Ni uno al contrario. Consecuencia: **`casos_ok` de una pasada con juez es un
+  suelo**, y promediar pasadas empeora la cifra en vez de cancelar el error. La
+  única corrección conocida es la mayoría de tres, que da 4 de 4 en los dos
+  brazos.
+- **El juez recomendado pasa a ser `gemini-3.6-flash` repetido tres veces**: es
+  5,5 veces más barato por evaluación, así que tres pasadas cuestan menos que
+  una de `claude-sonnet-5`, y es además el único con independencia de familia
+  (§24). Cambiarlo por defecto es decisión de línea base y está sin tomar.
+- **Los costes de juez del proyecto son suelos**: 0,00417 y 0,00076 USD por
+  evaluación se midieron con `confidencialidad`, un G-Eval de una llamada,
+  mientras `faithfulness` descompone la respuesta y cuesta varias. Una pasada
+  completa de los dos bancos sale por 0,73 USD (Anthropic) o 0,40 USD (tres
+  pasadas de Gemini) **como mínimo** (§32).
 - **El juez muestrea aunque el código diga `temperature=0`.** `claude-sonnet-5`
   no admite el parámetro y DeepEval lo descarta sin avisar (§26). Explica la
   varianza del juez medida en la 3.3, y no tiene arreglo en este modelo: la

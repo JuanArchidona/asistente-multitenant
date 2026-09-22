@@ -55,12 +55,27 @@ from .variantes import (
     variante,
 )
 
-# Coste del juez por caso, medido en `reports/juez_instrumentado` (24 llamadas
-# sobre 3 casos) y recalculado al corregir el precio de claude-sonnet-5, que el
-# repo sobreestimaba un 50 %. Existe para poder avisar ANTES de gastar: el juez
-# cuesta 11 veces lo que el sistema, y una pasada completa de los dos bancos son
-# 2,53 USD. Ver docs/HALLAZGOS.md §17 y §21.
-COSTE_JUEZ_POR_CASO_USD = 0.0278
+# Coste del juez por **evaluacion de metrica**, no por caso. Medido el
+# 22-09-2026 en `reports/juez_anthropic_c` y `reports/juez_gemini_1`, cuatro
+# evaluaciones de `confidencialidad` cada una.
+#
+# Era un coste por caso (0,0278 USD) y dejo de servir el mismo dia que se retiro
+# `pii_leakage` del banco (§30, §31): los casos de las dimensiones afectadas
+# pasaron de dos metricas de juez a una, y el aviso empezo a sobreestimar **6,6
+# veces** —anunciaba 0,11 USD donde se gastaron 0,0167—. Un aviso de gasto
+# calibrado sobre "el caso" se descalibra en cuanto cambia lo que un caso pide;
+# calibrado sobre la unidad que de verdad se paga, no.
+#
+# Es un ORDEN DE MAGNITUD y no una cifra: las metricas no cuestan lo mismo entre
+# si. `confidencialidad` es un G-Eval de una llamada; `faithfulness` descompone
+# la respuesta en afirmaciones y emite un veredicto por cada una, asi que cuesta
+# varias. Estos numeros salen de `confidencialidad`, que es la barata.
+#
+# Ver docs/HALLAZGOS.md §17, §21 y §32.
+COSTE_JUEZ_POR_METRICA_USD = {
+    "anthropic": 0.00417,
+    "gemini": 0.00076,
+}
 
 RAIZ_REPO = Path(__file__).resolve().parents[1]
 RAIZ_REPORTES = RAIZ_REPO / "reports"
@@ -485,10 +500,27 @@ def suite_consultas(args) -> None:
             f"[runner] Juez: {cfg.judge_model} sobre generador {cfg.model_generator}. "
             f"Independencia {ind['tipo']}."
         )
-        print(f"[!] AVISO DE COSTE: el juez se ejecutara sobre {len(casos)} casos. "
-              f"Estimado {COSTE_JUEZ_POR_CASO_USD * len(casos):.2f} USD "
-              f"({COSTE_JUEZ_POR_CASO_USD:.4f} USD/caso, medido). "
-              f"Anade --sin-juez para no pagarlo.")
+        # Se cuentan las evaluaciones que se van a pedir de verdad, caso por
+        # caso, porque no todos los casos piden las mismas metricas de juez.
+        evaluaciones = sum(
+            len([m for m in caso.metricas if m in METRICAS_JUEZ]) for caso in casos
+        )
+        por_metrica = COSTE_JUEZ_POR_METRICA_USD.get(cfg.judge_provider)
+        if por_metrica is None:
+            # Sin cifra medida para este proveedor no se inventa una: se avisa
+            # de que no se sabe, que es la unica respuesta honesta antes de
+            # gastar. Un 0,00 aqui se leeria como "gratis".
+            print(f"[!] AVISO DE COSTE: {evaluaciones} evaluaciones de juez sobre "
+                  f"{len(casos)} casos, y NO hay coste medido para el proveedor "
+                  f"{cfg.judge_provider!r}: no se puede estimar. "
+                  "Anade --sin-juez para no pagarlo.")
+        else:
+            print(f"[!] AVISO DE COSTE: {evaluaciones} evaluaciones de juez sobre "
+                  f"{len(casos)} casos. Estimado {por_metrica * evaluaciones:.2f} USD "
+                  f"({por_metrica:.5f} USD por evaluacion, medido con "
+                  "`confidencialidad`, que es la metrica barata: faithfulness "
+                  "descompone la respuesta y cuesta varias llamadas). "
+                  "Anade --sin-juez para no pagarlo.")
         # La clave del juez, no la del sistema: es la que hace que la factura
         # del proveedor pueda responder cuánto cuesta evaluar.
         clave = (
