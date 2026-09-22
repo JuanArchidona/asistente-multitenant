@@ -116,14 +116,31 @@ def load_config() -> Config:
     raiz_corpus = os.getenv("CORPUS_PATH", "corpus")
     base_coleccion = os.getenv("CHROMA_COLLECTION", "corpus_empresa")
 
+    # Modelos del chat SEGUN EL PROVEEDOR. Hacia falta y no estaba: `gemini_model`
+    # se declaraba en `Config` y no se consultaba en ningun sitio, asi que con
+    # `LLM_PROVIDER=gemini` el sistema llamaba a Gemini pasandole nombres de
+    # modelo de Anthropic y fallaba con un 404. La abstraccion de proveedor
+    # existia en la forma —dos clases con la misma interfaz— y no en el hecho.
+    # Es una afirmacion que la memoria usa como justificacion, asi que no podia
+    # quedarse sin comprobar. Ver §29.
+    modelo_gemini = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+    if provider == "gemini":
+        modelo_router = os.getenv("GEMINI_MODEL_ROUTER", modelo_gemini)
+        modelo_generador = os.getenv("GEMINI_MODEL_GENERATOR", modelo_gemini)
+    else:
+        modelo_router = os.getenv("ANTHROPIC_MODEL_ROUTER", "claude-haiku-4-5-20251001")
+        modelo_generador = os.getenv(
+            "ANTHROPIC_MODEL_GENERATOR", "claude-haiku-4-5-20251001"
+        )
+
     cfg = Config(
         tenant=tenant,
         provider=provider,
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
-        model_router=os.getenv("ANTHROPIC_MODEL_ROUTER", "claude-haiku-4-5-20251001"),
-        model_generator=os.getenv("ANTHROPIC_MODEL_GENERATOR", "claude-haiku-4-5-20251001"),
+        model_router=modelo_router,
+        model_generator=modelo_generador,
         gemini_api_key=os.getenv("GEMINI_API_KEY", ""),
-        gemini_model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        gemini_model=modelo_gemini,
         embed_model=os.getenv("GEMINI_EMBED_MODEL", "gemini-embedding-001"),
         embed_dims=int(os.getenv("EMBED_DIMS", "768")),
         chroma_path=os.getenv("CHROMA_PATH", "data/chroma"),

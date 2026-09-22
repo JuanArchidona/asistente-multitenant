@@ -201,6 +201,9 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
         ["Latencia media por consulta", f"{resumen['latencia_media_s']} s"],
         ["Latencia p95", f"{resumen['latencia_p95_s']} s"],
     ]
+    sin_precio = sorted(
+        set(uso.get("modelos_sin_precio") or []) | set(uso_juez.get("modelos_sin_precio") or [])
+    )
     if uso:
         globales += [
             ["Llamadas al LLM del sistema", str(uso.get("llamadas", "-"))],
@@ -230,6 +233,17 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
                  f"tokens informados: su coste es una cota INFERIOR"),
             ]]
     out += [_tabla(["Indicador", "Valor"], globales), ""]
+    if sin_precio:
+        # Un coste incompleto que no se anuncia se lee como un coste bajo.
+        out += [
+            (
+                "> **AVISO: los costes de arriba son un suelo, no un total.** No hay "
+                f"precio en la tabla para {', '.join(f'`{m}`' for m in sin_precio)}, "
+                "asi que sus tokens estan contados y su gasto no. Anade el precio en "
+                "`src/provider.py` y vuelve a generar el informe."
+            ),
+            "",
+        ]
     out += _seccion_cobertura(resumen.get("cobertura_riesgo") or {})
     out += ["## Por métrica", ""]
 

@@ -170,6 +170,35 @@ def test_el_juez_acumula_los_tokens_que_gasta():
     assert r["coste_usd_estimado"] == pytest.approx(0.0030 + 0.0030)
 
 
+def test_un_modelo_sin_precio_se_declara_en_vez_de_valer_cero():
+    """`PRECIOS.get(modelo, (0.0, 0.0))` hacia desaparecer del total el gasto de
+    cualquier modelo que no estuviese en la tabla, y el informe decia que la
+    ejecucion habia costado menos de lo que costo. Paso de verdad al montar el
+    juez de Gemini sobre un modelo nuevo (HALLAZGOS.md 28)."""
+    from src.provider import Uso
+
+    uso = Uso()
+    uso.registrar("claude-haiku-4-5", 1000, 200)
+    uso.registrar("modelo-que-no-existe", 500_000, 100_000)
+
+    r = uso.resumen()
+    # Los tokens del desconocido SI se cuentan: lo que falta es su precio.
+    assert r["tokens_entrada"] == 501_000
+    assert r["modelos_sin_precio"] == ["modelo-que-no-existe"]
+    # Y el coste es solo el del modelo con precio, no un cero ni una invencion.
+    assert r["coste_usd_estimado"] == pytest.approx(1000 / 1e6 * 1.0 + 200 / 1e6 * 5.0)
+
+
+def test_con_todos_los_precios_no_se_declara_nada():
+    """La clave solo aparece cuando falta algo: si saliera siempre, dejaria de
+    significar que la cifra es un suelo."""
+    from src.provider import Uso
+
+    uso = Uso()
+    uso.registrar("claude-haiku-4-5", 100, 20)
+    assert "modelos_sin_precio" not in uso.resumen()
+
+
 def test_una_llamada_sin_tokens_no_se_cuenta_como_cero():
     """Un proveedor que devuelve un float pelado no trae tokens. Contarlo como
     cero haria que el coste del juez pareciera menor de lo que es, en silencio."""

@@ -64,6 +64,17 @@ PRECIOS = {
     "claude-sonnet-4-6": (3.00, 15.00),
     "claude-opus-5": (5.00, 25.00),
     "gemini-2.5-flash": (0.30, 2.50),
+    # Precio INTRODUCTORIO, confirmado en la pagina de precios de Google el
+    # 22-09-2026: 0,75/3,75 hasta el 31-12-2026 y **1,50/7,50 a partir del
+    # 01-01-2027**, es decir el doble.
+    #
+    # Se pone el vigente y no el futuro, y esto merece una nota porque el §21
+    # fue justo el error contrario: alli se puso el precio de lista en vez del
+    # vigente "para no subestimar", y el resultado fue sobreestimar un 50 % el
+    # coste de evaluar durante semanas. Un coste medido es de la fecha en que se
+    # midio; el precio que hay que usar es el que se factura ese dia, con la
+    # fecha del cambio escrita al lado para que no se podra en silencio.
+    "gemini-3.6-flash": (0.75, 3.75),
 }
 
 
@@ -120,10 +131,24 @@ class Uso:
     def coste_usd(self) -> float:
         total = 0.0
         for modelo, m in self.por_modelo.items():
-            precio_in, precio_out = PRECIOS.get(modelo, (0.0, 0.0))
+            # Un modelo que no esta en la tabla se saltaba con precio (0, 0):
+            # su gasto desaparecia del total y el informe decia que la ejecucion
+            # habia costado menos de lo que costo, sin que nada lo senalase. Es
+            # el fallback silencioso de siempre y estaba dentro de la
+            # contabilidad sobre la que se apoyan los §16, §17 y §21. Ahora el
+            # modelo sin precio se **declara** (`modelos_sin_precio`) y el
+            # total pasa a ser un suelo, no una cifra. Ver §28.
+            if modelo not in PRECIOS:
+                continue
+            precio_in, precio_out = PRECIOS[modelo]
             total += m["tokens_entrada"] / 1e6 * precio_in
             total += m["tokens_salida"] / 1e6 * precio_out
         return total
+
+    @property
+    def modelos_sin_precio(self) -> list[str]:
+        """Modelos con consumo registrado y sin precio en la tabla."""
+        return sorted(m for m in self.por_modelo if m not in PRECIOS)
 
     def resumen(self) -> dict:
         return {
@@ -131,6 +156,13 @@ class Uso:
             "tokens_entrada": self.tokens_entrada,
             "tokens_salida": self.tokens_salida,
             "coste_usd_estimado": round(self.coste_usd(), 6),
+            # Presente solo cuando falta algun precio. Que la clave aparezca es
+            # la senal de que la cifra de arriba es un suelo.
+            **(
+                {"modelos_sin_precio": self.modelos_sin_precio}
+                if self.modelos_sin_precio
+                else {}
+            ),
             "por_modelo": self.por_modelo,
         }
 
@@ -302,11 +334,21 @@ class GeminiChat(ChatProvider):
     ) -> str:
         from google.genai import types
 
+        # `temperature` y `max_tokens` estaban en la firma y se ignoraban. Es la
+        # misma forma de fallo que el §26 —un parametro que se acepta y se tira—
+        # y aqui la habria introducido yo al anadir la temperatura del
+        # enrutador: la rama de Anthropic la habria respetado y la de Gemini no,
+        # sin que nada lo dijera. Ver §29.
+        config = types.GenerateContentConfig(
+            system_instruction=system,
+            max_output_tokens=max_tokens,
+            **({} if temperature is None else {"temperature": temperature}),
+        )
         resp = con_reintentos(
             lambda: self.client.models.generate_content(
                 model=model,
                 contents=user,
-                config=types.GenerateContentConfig(system_instruction=system),
+                config=config,
             ),
             f"gemini:{model}",
         )
