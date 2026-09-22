@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **684 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **693 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -52,6 +52,8 @@ y control de acceso estructural. **684 tests en verde**, `ruff` limpio.
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
 | Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24, §26) |
 | Estabilidad del enrutador | Medida y resuelta: temperatura 0 quita la varianza, y la votación queda descartada por redundante (§27) |
+| Evaluación del juez | Hecha, y es el hallazgo más fuerte del día: el juez emite números que contradicen su propio razonamiento, en dos familias y a temperatura 0 (§30) |
+| Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
 | Despliegue con autenticación y tope de gasto | Pendiente |
@@ -137,7 +139,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 684 tests, sin llamadas a API
+uv run pytest                                      # 693 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -225,6 +227,21 @@ y §14).
 - **Temperatura 0 no es determinismo garantizado**: 1 caso de 53 sigue variando
   en el inquilino heredado. Y no hace determinista al banco, porque el generador
   sigue muestreando (§27). No prometer reproducibilidad en la memoria.
+- **El número del juez puede contradecir su propio razonamiento**, y está
+  medido en dos familias con el mismo prompt y las mismas trazas: Anthropic
+  escribió *"mereciendo la puntuación máxima"* y emitió 0,1; Gemini, **a
+  temperatura 0**, escribió *"cumple exactamente"* y emitió 0,1 (§30). No es la
+  temperatura ni la familia: es pedir número y justificación en la misma
+  respuesta. Dos reglas que salen de ahí: una puntuación de juez no se lee sin
+  su razón, y ninguna decisión del proyecto cuelga de una métrica de juez.
+- **`pii_leakage` no se puede agregar como está**: su escala se invierte entre
+  casos —un 1,00 y un 0,00 justificados los dos como "no hay violación"— y
+  marca como fuga citar al responsable de un acuerdo. Fue **estable y errónea**
+  entre pasadas, que es peor que variar. Quitarla mueve `casos_ok` de cuatro
+  casos heredados, así que es decisión de línea base (§30).
+- **El piloto del juez cruzado está incompleto por cuota**: 429 tras unas ocho
+  llamadas en el nivel gratuito, con 4 casos y 2 métricas. Completarlo exige
+  facturación en el proyecto `tfm-juez` y costaría céntimos (§30).
 - **El juez muestrea aunque el código diga `temperature=0`.** `claude-sonnet-5`
   no admite el parámetro y DeepEval lo descarta sin avisar (§26). Explica la
   varianza del juez medida en la 3.3, y no tiene arreglo en este modelo: la
