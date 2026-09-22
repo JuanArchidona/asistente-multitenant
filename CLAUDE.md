@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **647 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **665 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -48,6 +48,7 @@ y control de acceso estructural. **647 tests en verde**, `ruff` limpio.
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
 | Observabilidad y coste en producción | Hecha: registro por inquilino, coste por consulta (§20) |
 | Consulta de las dos ramas ante una categoría ambigua | Hecha y medida: cobertura del riesgo 0,778 → 1,0 (§22) |
+| Verificación determinista de citas | Hecha y medida sobre las 22 ejecuciones guardadas: 0 citas inventadas (§23) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
 | Despliegue con autenticación y tope de gasto | Pendiente |
@@ -133,7 +134,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 647 tests, sin llamadas a API
+uv run pytest                                      # 665 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -194,6 +195,11 @@ y §14).
   da. El precio medido es **+40 % de coste por caso y +0,5 s de latencia** en
   los casos del grupo, y hay que vigilarlo si se declaran más grupos: el coste
   crece con el tamaño del grupo, no con el número de grupos.
+- **La rama estructurada no dice de qué herramienta sale cada dato.** Responde
+  "según la búsqueda en el CRM" cuando el prompt pide la herramienta, y con
+  cinco publicadas eso no permite volver a la llamada que produjo el número. Es
+  el único defecto que el verificador de citas encontró, cuesta dos casos del
+  banco de la agencia y no afecta al heredado (§23).
 - **El camino documental heredado sigue presentando una denegación como una
   ausencia.** Si el permiso retiene todo lo recuperado, responde "no he
   encontrado documentación relevante". El camino mixto ya lo dice bien; el

@@ -1024,3 +1024,147 @@ instrumento: las categorías que bailan entre pasadas son las que el modelo duda
 y las que salen idénticas tres veces son las que el modelo no duda porque la
 pregunta admite de verdad las dos respuestas. Eso se arregla cambiando lo que el
 sistema hace con la duda, no insistiéndole al modelo en que no dude.
+
+## 23. Una metrica determinista se puede ejecutar sobre el pasado, y esta se estreno midiendose a si misma
+
+**Ejecuciones:** censo retroactivo sobre las 22 carpetas de `reports/`, sin una
+sola llamada a API, más `citas_agencia` y `citas_empresa` (reevaluación de
+trazas con `--desde-trazas --sin-juez`, coste cero).
+
+El prompt del generador lleva desde la 3.1 exigiendo *"cita la fuente y el
+archivo de donde sale la información"*, y **ninguna métrica lo comprobaba**. Las
+cinco deterministas miden lo que se **recuperó**: `hit_rate`, `recall_at_k`,
+`precision_at_k`, `mrr` y `routing`. Ninguna mira lo que la respuesta **citó**,
+y son cosas distintas: una respuesta puede estar perfectamente anclada al
+contexto y atribuir lo que dice a un documento que el sistema no recuperó nunca.
+Ese es el hueco por donde entra la cita inventada, que es la forma de
+alucinación más difícil de ver porque el texto es correcto.
+
+### Qué se comprueba y qué no
+
+De las tres rúbricas de atribución —estructural, resolubilidad y semántica— aquí
+se hacen las dos que no necesitan modelo:
+
+| Rúbrica | Pregunta | Coste |
+|---|---|---|
+| **Estructural** | ¿cita algo, habiendo algo que citar? | 0 |
+| **Resolubilidad** | ¿lo que cita se recuperó en este turno? | 0 |
+| Semántica | ¿el documento citado respalda la frase? | juez |
+
+La tercera **no se hace**, y no se insinúa que las dos primeras la cubran. Un
+documento recuperado y realmente citado puede seguir no respaldando la frase a
+la que va pegado.
+
+Las dos rúbricas extraen las citas con reglas **distintas a propósito**:
+
+- Para acusar de inventar una fuente solo se miran tokens inequívocos
+  (`algo.md`). Un falso positivo aquí acusa al sistema de fabricar fuentes, que
+  es la acusación más grave que hace este banco, así que la regla es
+  conservadora.
+- Para decidir si citó *algo* se acepta cualquier forma reconocible: el fichero
+  con o sin extensión, el nombre en prosa con los separadores en espacios, y la
+  herramienta con o sin el prefijo del servidor. Un falso negativo aquí acusa al
+  sistema de no citar cuando citó, así que la regla es generosa.
+
+### Lo que permite ser determinista
+
+**Que se puede ejecutar sobre el pasado.** Una métrica de juez solo mide desde
+el día en que se escribe, porque aplicarla a lo anterior cuesta lo mismo que
+generarlo. Esta se aplicó a las **22 ejecuciones guardadas** releyendo las
+trazas de disco, sin gastar un céntimo, y contesta una pregunta que hasta hoy no
+se podía plantear: desde cuándo cita mal el sistema.
+
+### El primer censo midió la métrica, no el sistema
+
+Salieron **seis citas a documentos no recuperados**, y las seis eran culpa de la
+métrica:
+
+| Lo que citó el modelo | Lo que hay en el corpus |
+|---|---|
+| `política_valoracion.md` | `politica_valoracion.md` |
+| `guía_estilo_python.md` | `guia_estilo_python.md` |
+
+El documento estaba recuperado y la cita era buena. El modelo escribe el nombre
+como lo escribiría cualquiera en español, con tilde, y la métrica comparaba
+bytes. Es exactamente el falso positivo que la regla conservadora estaba escrita
+para evitar, cometido en la primera ejecución. Arreglado canonizando los nombres
+sin acentos.
+
+### El segundo censo midió otra vez la métrica
+
+Con los acentos resueltos, la resolubilidad quedó en 100 % y la estructural en
+**83,9 %**: uno de cada seis casos con contexto recuperado no citaba ninguna
+fuente. Al desglosarlo por dimensión, el reparto no era uniforme:
+
+| Dimensión | No citaba |
+|---|---|
+| `fuera_de_alcance` | **47 %** |
+| `confidencialidad` | **42 %** |
+| `frontera` | 17 % |
+| `conocimiento` | 9 % |
+
+Y al leer las respuestas, decían exactamente lo que debían: *"el contexto
+recuperado no contiene información sobre seguros decenales"*. **Exigir una cita a
+una respuesta que no afirma nada es incoherente con lo que la rúbrica
+significa**: "cita de dónde sale lo que dices" no tiene sujeto cuando no dices
+nada. El razonamiento no depende de que el número incomode —depende de qué mide
+la rúbrica— y tiene precedente literal en este repositorio: es el mismo defecto
+que `alcance_riesgo` vino a arreglar en el §9, una métrica cuyo color no
+significaba lo que parecía.
+
+La rúbrica estructural pasa a aplicarse solo a los casos que el banco espera que
+se contesten. La puerta es `comportamiento_esperado`, que **lo declara el golden
+set y no la respuesta del sistema**: si dependiera de que la respuesta parezca
+una negativa, el sistema la aprobaría negándose más. La resolubilidad no lleva
+puerta, porque citar un documento que no se recuperó está mal también al
+negarse.
+
+### Lo medido, por fin sobre el sistema
+
+| | |
+|---|---|
+| **Citas resolubles** | **588 / 588 = 100 %** |
+| Citas a documentos no recuperados, en toda la historia del proyecto | **0** |
+| **Cita alguna fuente** | **575 / 589 = 97,6 %** |
+| Inquilino heredado, en las nueve ejecuciones que tiene | **100 % en todas** |
+
+**El sistema no ha inventado una cita nunca**, en 588 respuestas con fuente
+citable repartidas en 22 ejecuciones. Es la primera vez que eso se puede
+afirmar con un número en vez de por impresión, y es un argumento directo sobre
+trazabilidad para el capítulo de riesgos.
+
+Los 14 casos que no citan están **todos en el inquilino de la agencia** y se
+concentran en la rama estructurada. La causa es una y es la misma:
+
+> *"Según la búsqueda en el CRM, hay 9 inmuebles..."*
+
+El prompt pide indicar **de qué herramienta** sale cada dato, y con cinco
+herramientas publicadas "el CRM" no dice cuál produjo el número. No es un
+artefacto de la métrica: es una desviación real de la instrucción, y quien
+reciba ese 9 no puede volver a la llamada que lo generó.
+
+### Lo que le cuesta al banco
+
+| | Antes | Con las dos rúbricas |
+|---|---|---|
+| Inquilino heredado (53 casos) | 47 | **47** (idéntico) |
+| Inquilino agencia (38 casos) | 31 | **29** |
+
+**El banco heredado no se mueve**, así que sus `casos_ok` siguen siendo
+comparables con los de la 3.3. Los dos casos que caen en la agencia
+—`front-cart-01` y `know-cart-02`— caen solo por la rúbrica estructural y por la
+misma causa de arriba. El banco se aprieta en dos casos y los dos señalan el
+mismo defecto concreto, que es la forma útil de apretarse.
+
+### La lección
+
+Una métrica nueva **mide primero a su autor**. Esta necesitó dos censos contra
+sí misma —los acentos y la puerta de comportamiento— antes de decir nada del
+sistema, y las dos correcciones se podían haber razonado por adelantado leyendo
+qué significaba cada rúbrica; no se razonaron, y el precio fue ejecutar el censo
+tres veces. Que fuera determinista es lo que hizo que el precio fuera cero.
+
+Y el corolario práctico: **el coste de una métrica no es solo lo que cuesta
+ejecutarla, es a cuántas ejecuciones se puede aplicar.** Una métrica de juez
+mide el futuro; una determinista mide también el pasado, y con él responde
+preguntas sobre el sistema que ya nadie iba a pagar por contestar.

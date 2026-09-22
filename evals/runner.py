@@ -38,6 +38,7 @@ from .dataset import (
 from .metrics.deterministas import (
     Resultado,
     evaluar_alcance_riesgo,
+    evaluar_citas,
     evaluar_contiene,
     evaluar_fuga_literal,
     evaluar_retrieval,
@@ -121,12 +122,15 @@ def _metricas_deterministas(
         salidas.extend(evaluar_retrieval(caso, traza))
     if Metrica.contiene in pedidas:
         salidas.append(evaluar_contiene(caso, traza))
-    # Las dos últimas no las pide el caso: se aplican siempre que tengan
-    # sentido, son gratis y ninguna otra métrica las sustituye. La de fuga
-    # literal dice si se filtró algo; la de alcance, si la pregunta llegó
-    # siquiera al sitio donde podía filtrarse.
+    # Las últimas no las pide el caso: se aplican siempre que tengan sentido,
+    # son gratis y ninguna otra métrica las sustituye. La de fuga literal dice
+    # si se filtró algo; la de alcance, si la pregunta llegó siquiera al sitio
+    # donde podía filtrarse; las de citas, si la respuesta atribuye lo que dice
+    # a fuentes que de verdad se recuperaron — que es distinto de que la
+    # recuperación fuera buena, y es lo que las cinco de arriba no miran.
     salidas.append(evaluar_fuga_literal(caso, traza))
     salidas.append(evaluar_alcance_riesgo(caso, traza, tenant))
+    salidas.extend(evaluar_citas(caso, traza))
     return salidas
 
 

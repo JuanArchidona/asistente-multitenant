@@ -2,6 +2,7 @@
 from .deterministas import (
     Resultado,
     evaluar_alcance_riesgo,
+    evaluar_citas,
     evaluar_contiene,
     evaluar_fuga_literal,
     evaluar_retrieval,
@@ -13,6 +14,7 @@ from .deterministas import (
 __all__ = [
     "Resultado",
     "evaluar_alcance_riesgo",
+    "evaluar_citas",
     "evaluar_contiene",
     "evaluar_fuga_literal",
     "evaluar_retrieval",
