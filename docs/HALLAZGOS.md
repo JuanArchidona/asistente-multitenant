@@ -1168,3 +1168,114 @@ Y el corolario práctico: **el coste de una métrica no es solo lo que cuesta
 ejecutarla, es a cuántas ejecuciones se puede aplicar.** Una métrica de juez
 mide el futuro; una determinista mide también el pasado, y con él responde
 preguntas sobre el sistema que ya nadie iba a pagar por contestar.
+
+## 24. Ir a montar el instrumento independiente destapo que el instrumento no lo era
+
+**Fuente:** el 22-09-2026, al preparar un juez que no fuera de la familia del
+generador. No hubo que ejecutar nada: los dos defectos estaban en el camino que
+hay que recorrer para hacerlo.
+
+El feedback de la 3.3 pedía dos cosas que resultaron estar relacionadas: una
+clave por sistema y otra por juez, y evaluar también al juez. El §18 resolvió la
+primera y el §21 la confirmó contra la factura. Al ir a por la segunda —un juez
+de otra familia, que es la recomendación estándar— aparecieron dos huecos.
+
+### Primero: la separación de claves existía en el camino equivocado
+
+`JUDGE_PROVIDER=gemini` estaba implementado y documentado como la vía para tener
+un juez de otra familia. Pero:
+
+```python
+clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.judge_api_key
+```
+
+`GEMINI_API_KEY` es la clave de los **embeddings**, es decir del sistema. Y la
+validación que obliga a tener clave propia solo cubría el otro camino:
+
+```python
+if cfg.judge_provider == "anthropic" and not cfg.judge_api_key:
+```
+
+O sea: el único camino que permite cumplir la recomendación sobre familias era
+el único que **incumplía** la separación de gasto. Usarlo habría sumado el coste
+del juez al del sistema en la misma línea de factura y habría deshecho en
+silencio lo que el §18 arregló, justo mientras se arreglaba otra cosa.
+
+No llegó a pasar porque ese camino nunca se ejecutó, y no se ejecutó por un
+motivo que no tiene nada que ver: la cuota gratuita de Gemini. Es decir, **lo
+que impidió el fallo fue una limitación de cuota, no un control.** Eso no es un
+control, es suerte.
+
+Corregido con `GEMINI_API_KEY_JUEZ`, obligatoria cuando el juez es de Gemini y
+distinta de la de los embeddings, con las dos validaciones que abortan en el
+arranque y cinco pruebas. La exigencia es la misma que ya tenía Anthropic, y la
+asimetría anterior no tenía ninguna razón: era el camino menos recorrido.
+
+### Segundo: la limitación estaba escrita donde no sirve
+
+`Config` impide que el juez sea **el mismo modelo** que el generador. No impide
+—ni puede— que sean de la misma familia, que es la configuración real:
+`claude-sonnet-5` juzgando a `claude-haiku-4-5`. Eso estaba reconocido con
+honestidad en el docstring de `evals/metrics/juez.py`, que es exactamente donde
+no sirve: **estos informes están hechos para citarse en una memoria, y un caveat
+que no acompaña al número se pierde en cuanto alguien cita el número.**
+
+Ahora cada ejecución guarda en `resumen.json` y publica en `informe.md` qué tipo
+de independencia tiene su juez, y el aviso del runner deja de decir "distinto
+del generador" —que es cierto y suena a más de lo que es— para decir de qué tipo
+es la independencia.
+
+No cambia ningún resultado. Cambia lo que se puede afirmar a partir de ellos, y
+lo cambia en el sitio donde alguien lo va a leer.
+
+### Tres estados y no dos, por lo mismo
+
+La primera versión de `independencia_del_juez` tenía dos: misma familia o no.
+Con modelos cuyo nombre no reconoce —los de juguete de las pruebas, o cualquier
+modelo futuro— concluía **"independencia de capacidad y de familia"**, que es
+afirmar la lectura favorable a partir de no saber. Lo destapó una prueba propia
+cuyo comentario decía que la duda no autoriza a afirmar la peor lectura; el
+código había hecho lo contrario, afirmar la mejor.
+
+Hay un tercer estado, "sin determinar", y el informe dice que se lea como el
+caso peor. Es la misma disciplina que el `fallback` marcado del enrutador (§1) y
+que `denegados_por_permiso` (§20): **la diferencia entre no saber y saber que no,
+explícita en la traza.** Aparece por tercera vez en este proyecto, y las tres
+veces el impulso inicial fue colapsar los dos casos en uno.
+
+### Lo que queda preparado y lo que falta
+
+El experimento que responde al feedback está diseñado y no ejecutado, y la razón
+por la que no se ejecuta hoy está en el §17: un juez cuesta dinero y el crédito
+es un tope duro. El diseño:
+
+- **La comparación se ancla en lo determinista, no en el otro juez.** Preguntar
+  "¿coinciden los dos jueces?" no distingue quién acierta, y con un juez que ya
+  se midió cambiando de veredicto en el 50 % de los casos entre pasadas
+  idénticas, un desacuerdo no dice nada. Los casos de la dimensión `inyeccion`
+  tienen veredicto determinista por `fuga_literal`: la pregunta útil es **qué
+  juez coincide más con el veredicto que no varía**.
+- **Dos pasadas por juez**, para que la varianza dentro de cada juez sea visible
+  y no se confunda con el desacuerdo entre los dos.
+- **Cuatro casos**, que son los que declaran métricas de juez de
+  confidencialidad en el inquilino heredado. Es un piloto y se reportará como
+  tal: establece el método y el orden de magnitud, no una conclusión.
+- Coste estimado: **0,22 USD** de juez Anthropic (4 casos x 2 pasadas x 0,0278)
+  más lo que cueste Gemini, que a 0,30/2,50 por millón es calderilla.
+
+Falta una segunda clave de Gemini, que es gratis y tarda un minuto, y que el
+arranque ahora exige en vez de tirar de la de los embeddings.
+
+### La lección
+
+**Un instrumento de medida se comprueba recorriendo el camino que nunca se
+recorre.** Los dos defectos llevaban meses ahí, con la suite en verde y el
+docstring diciendo la verdad, y no los encontró nadie buscando fallos: los
+encontró intentar usar la funcionalidad. Es la cuarta vez en este proyecto que
+un hallazgo sale de comprobar algo que se daba por bueno (§18, §19, §20) y la
+segunda vez que lo que se daba por bueno era la propia separación de claves.
+
+Y un corolario sobre dónde se escriben las limitaciones: reconocerlas en un
+comentario del código es honesto pero insuficiente. **La limitación tiene que
+viajar con el número**, porque el número es lo que se cita y el comentario es lo
+que se queda en el repositorio.

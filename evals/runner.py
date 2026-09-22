@@ -48,7 +48,12 @@ from .metrics.juez import Juez
 from .report import informe_consultas, informe_transcripcion
 from .schema import METRICAS_JUEZ, CasoConsulta, Metrica
 from .transcripcion import ejecutar_transcripcion, evaluar_transcripcion
-from .variantes import asegurar_indice, descripcion, variante
+from .variantes import (
+    asegurar_indice,
+    descripcion,
+    independencia_del_juez,
+    variante,
+)
 
 # Coste del juez por caso, medido en `reports/juez_instrumentado` (24 llamadas
 # sobre 3 casos) y recalculado al corregir el precio de claude-sonnet-5, que el
@@ -472,14 +477,25 @@ def suite_consultas(args) -> None:
         # El aviso va antes de crear el juez y no en la ayuda: `--desde-trazas`
         # no llama al sistema, y es facil leer eso como "esta ejecucion no
         # cuesta". El juez se lanza igual, y es la parte cara.
-        print(f"[runner] Juez: {cfg.judge_model} (distinto del generador {cfg.model_generator}).")
+        # El mensaje decia "distinto del generador", que es cierto y suena a
+        # mas de lo que es: distinto modelo no es distinta familia, y la
+        # independencia que importa es la segunda.
+        ind = independencia_del_juez(cfg)
+        print(
+            f"[runner] Juez: {cfg.judge_model} sobre generador {cfg.model_generator}. "
+            f"Independencia {ind['tipo']}."
+        )
         print(f"[!] AVISO DE COSTE: el juez se ejecutara sobre {len(casos)} casos. "
               f"Estimado {COSTE_JUEZ_POR_CASO_USD * len(casos):.2f} USD "
               f"({COSTE_JUEZ_POR_CASO_USD:.4f} USD/caso, medido). "
               f"Anade --sin-juez para no pagarlo.")
         # La clave del juez, no la del sistema: es la que hace que la factura
         # del proveedor pueda responder cuánto cuesta evaluar.
-        clave = cfg.gemini_api_key if cfg.judge_provider == "gemini" else cfg.judge_api_key
+        clave = (
+            cfg.judge_gemini_api_key
+            if cfg.judge_provider == "gemini"
+            else cfg.judge_api_key
+        )
         juez = Juez(api_key=clave, modelo=cfg.judge_model, proveedor=cfg.judge_provider)
 
     registros = evaluar_casos(

@@ -131,6 +131,41 @@ def _seccion_cobertura(cob: dict) -> list[str]:
     return out
 
 
+def _seccion_independencia_juez(cfg: dict, con_juez: bool) -> list[str]:
+    """Qué independencia hay entre el juez y lo que juzga, en el propio informe.
+
+    Vivía en el docstring de `evals/metrics/juez.py`, que es donde no sirve: un
+    caveat que no acompaña al número se pierde en cuanto alguien cita el número,
+    y estos informes están hechos para citarse en una memoria. No cambia ningún
+    resultado; cambia lo que se puede afirmar a partir de él.
+    """
+    ind = cfg.get("independencia_del_juez")
+    if not ind or not con_juez:
+        return []
+    if not ind.get("determinada", True):
+        aviso = (
+            "**Sin determinar.** No se reconoce la familia de `"
+            f"{ind['juez']}` o de `{ind['generador']}`, así que no consta si el "
+            "juez comparte sesgos con lo que juzga. Léase como el caso peor."
+        )
+    elif ind["misma_familia"]:
+        aviso = (
+            "**Independencia solo de capacidad.** El juez "
+            f"(`{ind['juez']}`) y el generador (`{ind['generador']}`) son de la misma "
+            f"familia (`{ind['familia_juez']}`), así que comparten datos de "
+            "entrenamiento y sesgos con lo que se juzga. La práctica recomendada es "
+            "que no coincidan. Por eso el veredicto de este banco se ancla en las "
+            "métricas deterministas, que no dependen de ningún juez."
+        )
+    else:
+        aviso = (
+            f"**Independencia de capacidad y de familia.** El juez (`{ind['juez']}`, "
+            f"{ind['familia_juez']}) no comparte familia con el generador "
+            f"(`{ind['generador']}`, {ind['familia_generador']})."
+        )
+    return ["## Independencia del juez", "", aviso, ""]
+
+
 def informe_consultas(resumen: dict, registros: list[dict]) -> str:
     meta = resumen.get("meta", {})
     cfg = meta.get("configuracion", {})
@@ -146,11 +181,18 @@ def informe_consultas(resumen: dict, registros: list[dict]) -> str:
         "",
         "## Configuración evaluada",
         "",
-        _tabla(["Parámetro", "Valor"], [[k, f"`{v}`"] for k, v in cfg.items()]),
-        "",
-        "## Resultado global",
+        _tabla(
+            ["Parámetro", "Valor"],
+            [
+                [k, f"`{v}`"]
+                for k, v in cfg.items()
+                if k != "independencia_del_juez"
+            ],
+        ),
         "",
     ]
+    out += _seccion_independencia_juez(cfg, bool(meta.get("con_juez")))
+    out += ["## Resultado global", ""]
 
     globales = [
         ["Casos ejecutados", str(resumen["casos"])],

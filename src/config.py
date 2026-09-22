@@ -67,9 +67,16 @@ class Config:
     # los dos gastos se suman en la misma línea y la pregunta deja de tener
     # respuesta. Ver docs/HALLAZGOS.md §18.
     judge_api_key: str
-
     # --- Modelo que construye y critica el banco sintético (distinto del evaluado) ---
     builder_model: str
+
+    # La misma exigencia para el camino de Gemini. Hacía falta y no estaba: con
+    # `JUDGE_PROVIDER=gemini` el juez tiraba de `GEMINI_API_KEY`, que es la
+    # clave de los **embeddings**, o sea parte del sistema. El gasto del juez se
+    # habría sumado al del sistema en la misma línea de factura, deshaciendo en
+    # silencio lo que el §18 arregló para Anthropic — y encima solo en el camino
+    # que hace falta para tener un juez de otra familia. Ver §24.
+    judge_gemini_api_key: str = ""
 
 
 def load_config() -> Config:
@@ -125,6 +132,7 @@ def load_config() -> Config:
         judge_provider=os.getenv("JUDGE_PROVIDER", "anthropic").lower(),
         judge_model=os.getenv("JUDGE_MODEL", "claude-sonnet-5"),
         judge_api_key=os.getenv("ANTHROPIC_API_KEY_JUEZ", ""),
+        judge_gemini_api_key=os.getenv("GEMINI_API_KEY_JUEZ", ""),
         builder_model=os.getenv("BUILDER_MODEL", "claude-sonnet-5"),
     )
 
@@ -150,6 +158,23 @@ def load_config() -> Config:
     if cfg.judge_api_key and cfg.judge_api_key == cfg.anthropic_api_key:
         sys.exit(
             "[config] ANTHROPIC_API_KEY_JUEZ es la misma clave que ANTHROPIC_API_KEY. "
+            "Siendo la misma, el proveedor no puede separar los dos gastos y tener dos "
+            "variables solo aparenta que sí."
+        )
+    if cfg.judge_provider == "gemini" and not cfg.judge_gemini_api_key:
+        sys.exit(
+            "[config] JUDGE_PROVIDER=gemini pero falta GEMINI_API_KEY_JUEZ en .env. "
+            "GEMINI_API_KEY es la clave de los embeddings, que son parte del sistema: "
+            "usarla para el juez sumaría los dos gastos en la misma línea de factura "
+            "y la pregunta 'cuánto cuesta evaluar' dejaría de tener respuesta. "
+            "Crea una segunda clave de Gemini, o usa JUDGE_PROVIDER=anthropic."
+        )
+    if (
+        cfg.judge_gemini_api_key
+        and cfg.judge_gemini_api_key == cfg.gemini_api_key
+    ):
+        sys.exit(
+            "[config] GEMINI_API_KEY_JUEZ es la misma clave que GEMINI_API_KEY. "
             "Siendo la misma, el proveedor no puede separar los dos gastos y tener dos "
             "variables solo aparenta que sí."
         )

@@ -136,6 +136,62 @@ def asegurar_indice(cfg: Config, forzar: bool = False, verboso: bool = True) -> 
     return info
 
 
+# Familia de cada modelo, para saber si el juez es de la misma que el generador.
+# No basta con que sean modelos distintos: un juez de la misma familia comparte
+# datos de entrenamiento y sesgos con lo que juzga, y la práctica recomendada es
+# que no coincidan. `Config` ya impide que sean **el mismo** modelo; lo que no
+# puede hacer es abortar cuando coinciden de familia, porque esa es la
+# configuración con la que está medido todo el banco. Lo que sí se puede es que
+# la limitación **viaje en cada informe** en vez de vivir solo en un docstring:
+# un caveat que no acompaña al número se pierde en cuanto alguien cita el número.
+def familia_de(modelo: str) -> str:
+    m = (modelo or "").lower()
+    if m.startswith("claude"):
+        return "anthropic"
+    if m.startswith("gemini"):
+        return "google"
+    if m.startswith(("gpt", "o1")):
+        return "openai"
+    return "desconocida"
+
+
+def independencia_del_juez(cfg: Config) -> dict:
+    """Qué tipo de independencia hay entre el juez y lo que juzga.
+
+    Tres estados, no dos. Si no se reconoce la familia de alguno de los dos
+    modelos, ni se afirma que la comparten ni que no: no consta. La primera
+    versión de esto tenía dos estados y con familias desconocidas concluía
+    "independencia de capacidad y de familia", que es afirmar la lectura
+    favorable a partir de no saber. No afirmar la peor lectura no autoriza a
+    afirmar la mejor.
+    """
+    familia_juez = familia_de(cfg.judge_model)
+    familia_gen = familia_de(cfg.model_generator)
+    determinada = "desconocida" not in (familia_juez, familia_gen)
+    misma_familia = determinada and familia_juez == familia_gen
+    if not determinada:
+        tipo = (
+            "sin determinar: no se reconoce la familia de "
+            f"{cfg.judge_model!r} o de {cfg.model_generator!r}"
+        )
+    elif misma_familia:
+        tipo = (
+            "solo de capacidad: juez y generador son de la misma familia, así que "
+            "comparten datos de entrenamiento y sesgos con lo que se juzga"
+        )
+    else:
+        tipo = "de capacidad y de familia"
+    return {
+        "juez": cfg.judge_model,
+        "generador": cfg.model_generator,
+        "familia_juez": familia_juez,
+        "familia_generador": familia_gen,
+        "determinada": determinada,
+        "misma_familia": misma_familia,
+        "tipo": tipo,
+    }
+
+
 def descripcion(cfg: Config) -> dict:
     """Los parámetros que definen una ejecución, para dejarlos en el informe."""
     return {
@@ -151,5 +207,7 @@ def descripcion(cfg: Config) -> dict:
         "distance_threshold": cfg.distance_threshold,
         "gen_policy": cfg.gen_policy,
         "judge_model": cfg.judge_model,
+        "judge_provider": cfg.judge_provider,
+        "independencia_del_juez": independencia_del_juez(cfg),
         "collection": cfg.collection,
     }
