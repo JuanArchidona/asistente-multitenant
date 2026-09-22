@@ -1279,3 +1279,64 @@ Y un corolario sobre dónde se escriben las limitaciones: reconocerlas en un
 comentario del código es honesto pero insuficiente. **La limitación tiene que
 viajar con el número**, porque el número es lo que se cita y el comentario es lo
 que se queda en el repositorio.
+
+## 25. La prerruta determinista no se construye, y la razon es una cuenta de dos minutos
+
+**Fuente:** el banco del inquilino C cruzado con las tres pasadas del §22. Sin
+coste: solo leer el golden set y las trazas ya guardadas.
+
+La propuesta era razonable y se cae sola en cuanto se mira: **una prerruta
+determinista que absorba las consultas con identificador inequivoco** (`OP-`,
+`INM-`, `expediente NNNN`) antes de llamar al enrutador, para quitarle al modelo
+el trabajo facil y con el su varianza. El §22 habia medido un 13,2 % de deriva
+entre pasadas identicas, asi que atacarla parecia lo siguiente.
+
+Los dos numeros que la descartan:
+
+| | |
+|---|---|
+| De los 5 casos que cambian de categoria entre pasadas, cuantos llevan identificador | **0** |
+| De los 7 casos del banco que llevan identificador, cuantos estan en el grupo `expedientes`/`cartera` | **7 de 7** |
+
+Las dos filas dicen lo mismo desde lados opuestos. **Los identificadores viven
+exactamente donde el problema ya esta resuelto**, porque los 7 casos que los
+citan caen en el grupo de solapamiento, que consulta las dos ramas y cuyo
+reparto sale identico en las tres pasadas. Y la deriva vive exactamente donde
+los identificadores no llegan: las cinco consultas que bailan no citan ninguno y
+son ambiguedades de significado, no de referencia.
+
+> *"¿Que ingresos le pedimos a un candidato para alquilar?"* — `normativa` o
+> `procesos`.
+> *"el dueño kiere un 15% mas de lo q vale, le firmamos exclusiva?"* —
+> `comercial` o `procesos`.
+
+Ninguna expresion regular decide eso.
+
+Lo unico que quedaria a favor de la prerruta es el ahorro: saltarse la llamada
+al enrutador en 7 de 38 casos, un 18 %. El enrutador es Haiku y su llamada
+ronda los **0,0005 USD**, asi que el ahorro es de unos **0,0035 USD por pasada
+del banco** — por debajo del ruido de cualquier medicion de coste de este
+proyecto.
+
+Y tiene un contra que no es economico: seria **un camino que rodea al enrutador**,
+es decir al unico componente que informa de su propia confianza y que marca su
+fallback (§1). Una expresion regular que acierta el 99 % de las veces se
+equivoca en silencio el 1 %, sin confianza que mirar ni bandera que consultar.
+Cambiar varianza reportada por error mudo es un mal cambio aunque el 1 % sea
+cierto.
+
+**Decision: no se construye.** Lo que si atacaria la deriva medida es votacion
+por autoconsistencia en el enrutador —tres llamadas y mayoria, y sin mayoria
+consultar las categorias empatadas, reutilizando el camino mixto del §22— y eso
+es una decision de gasto aparte: demostrarla exige varias pasadas por
+configuracion, porque la afirmacion entera es sobre varianza y una sola pasada
+no dice nada. Estimado en **1,2 USD**, casi el 10 % del credito. Queda propuesto
+y sin ejecutar.
+
+### La leccion
+
+Esta anotacion existe porque **una propuesta descartada con un numero vale lo
+mismo que una implementada con un numero**, y cuesta dos minutos en vez de un
+dia. La cuenta que la descarta —cruzar los casos que derivan con los casos que
+llevan identificador— se podia haber hecho antes de proponerla; se propuso
+primero y se comprobo despues, que es el orden equivocado y el barato.

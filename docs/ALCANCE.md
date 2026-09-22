@@ -162,6 +162,12 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
 ### Bloque 3 — Lo que se cae primero si falta tiempo
 
 12. Clasificador con modelo pequeño local o afinado, con comparativa medida.
+    **Acotado el 22-09-2026 (§25):** la prerruta determinista por identificador
+    queda descartada con una cuenta de dos minutos —los identificadores viven
+    donde el problema ya está resuelto y la deriva del 13,2 % es semántica—. Lo
+    que queda en pie de este punto es la votación por autoconsistencia en el
+    enrutador, con abstención al grupo solapado, estimada en 1,2 USD porque
+    demostrarla exige varias pasadas por configuración.
 13. Canal de WhatsApp en entorno de pruebas.
 14. Prototipo en LangGraph para la comparativa de orquestación (si se cae, la
     comparativa se sostiene igual, argumentada sin prototipo).
