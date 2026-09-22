@@ -51,6 +51,35 @@ def test_otro_legitimo_no_se_confunde_con_fallback(cfg, chat_falso):
     assert ruta.fallback is False
 
 
+# --- Temperatura del enrutador ---
+#
+# Estas dos pruebas existen por lo que el §26 encontro: el juez pasaba
+# `temperature=0` a DeepEval, `claude-sonnet-5` no admite el parametro y la
+# libreria lo descartaba **en silencio**. El ajuste parecia puesto y no lo
+# estaba, y nadie se enteraba porque nada comprobaba que llegase. Un parametro
+# de muestreo que no se verifica es un parametro que no consta.
+
+def test_la_temperatura_del_enrutador_llega_al_proveedor(cfg_factory, chat_falso):
+    chat = chat_falso(['{"categoria": "rrhh", "justificacion": "x", "confianza": 0.9}'])
+    cfg = cfg_factory(router_temperature=0.0)
+    enrutar(cfg, chat, "consulta")
+    assert chat.temperaturas == [0.0]
+
+
+def test_sin_temperatura_configurada_no_se_envia_nada(cfg, chat_falso):
+    """`None` tiene que significar 'no mandes el parametro', no 'manda cero'.
+
+    Importa por dos motivos y los dos son reales: es como ha corrido todo el
+    banco hasta ahora, asi que mandar 0 por defecto moveria la linea base sin
+    decirlo; y los modelos de la generacion actual —Sonnet 5, Opus 5— responden
+    400 si se les manda, asi que enviarlo siempre romperia el sistema el dia que
+    el generador se conmute a uno de ellos.
+    """
+    chat = chat_falso(['{"categoria": "rrhh", "justificacion": "x", "confianza": 0.9}'])
+    enrutar(cfg, chat, "consulta")
+    assert chat.temperaturas == [None]
+
+
 # --- Política del generador ---
 
 def test_la_politica_del_prompt_es_conmutable(cfg_factory):

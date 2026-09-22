@@ -57,6 +57,12 @@ class Config:
     # --- Política del prompt del generador: 'base' (la de la 3.1) | 'hardened' ---
     gen_policy: str
 
+    # Temperatura del enrutador. `None` = no se envia, o sea la de por defecto
+    # del proveedor, que es como ha corrido todo el banco hasta el §26. Es un
+    # parametro y no una constante porque el efecto de fijarla en 0 hay que
+    # medirlo contra la linea base, no suponerlo.
+    router_temperature: float | None
+
     # --- Juez de evaluación (siempre distinto del generador) ---
     judge_provider: str
     judge_model: str
@@ -129,6 +135,11 @@ def load_config() -> Config:
         top_k=int(os.getenv("TOP_K", "4")),
         distance_threshold=float(umbral) if umbral else None,
         gen_policy=politica,
+        router_temperature=(
+            float(os.environ["ROUTER_TEMPERATURE"])
+            if os.getenv("ROUTER_TEMPERATURE")
+            else None
+        ),
         judge_provider=os.getenv("JUDGE_PROVIDER", "anthropic").lower(),
         judge_model=os.getenv("JUDGE_MODEL", "claude-sonnet-5"),
         judge_api_key=os.getenv("ANTHROPIC_API_KEY_JUEZ", ""),

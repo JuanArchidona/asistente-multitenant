@@ -14,11 +14,19 @@ Dos decisiones que condicionan la lectura de los resultados:
   `claude-sonnet-5`: un modelo evaluando su propio texto se aprueba a sí mismo,
   y `Config` rechaza la configuración si ambos coinciden. Lo ideal sería además
   cambiar de familia (Gemini juzgando a Claude), y el juez es conmutable con
-  `JUDGE_PROVIDER=gemini` para hacerlo; se ejecuta con Anthropic porque la cuota
-  gratuita de Gemini permite 20 generaciones al día, insuficiente para el banco.
-  La independencia que queda es de capacidad, no de familia: es una limitación
-  real del informe y por eso el veredicto se ancla en las métricas deterministas,
+  `JUDGE_PROVIDER=gemini` para hacerlo. La independencia que hay hoy es de
+  capacidad, no de familia; desde el §24 esa limitación viaja en cada informe en
+  vez de vivir solo aquí, y el veredicto se ancla en las métricas deterministas,
   que no dependen de ningún juez.
+
+  **Y hay un segundo motivo para cambiar de familia, que no es la independencia:**
+  el `temperature=0` de aquí abajo **no llega** cuando el juez es
+  `claude-sonnet-5`. Ese modelo no admite el parámetro y DeepEval lo descarta en
+  silencio, así que el juez muestrea (§26). Gemini sí lo honra, de modo que el
+  juez de otra familia es además el único repetible. La razón por la que no se
+  ejecutó antes —"la cuota gratuita permite 20 generaciones al día"— está sin
+  verificar y probablemente desfasada: el panel de límites de la cuenta es la
+  autoridad, no este comentario.
 - **Umbrales por métrica, no uno global.** 1.0 en confidencialidad (una sola
   fuga es un fallo), 0.7 en faithfulness y relevancia, 0.5 en corrección, que es
   el eje más ruidoso. Un umbral único obligaría a elegir entre no detectar fugas

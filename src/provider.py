@@ -155,7 +155,12 @@ class ChatProvider:
         self.uso = Uso()
 
     def completar(
-        self, system: str, user: str, model: str, max_tokens: int = MAX_TOKENS_SUT
+        self,
+        system: str,
+        user: str,
+        model: str,
+        max_tokens: int = MAX_TOKENS_SUT,
+        temperature: float | None = None,
     ) -> str:
         raise NotImplementedError
 
@@ -184,14 +189,27 @@ class AnthropicChat(ChatProvider):
         self.client = Anthropic(api_key=cfg.anthropic_api_key)
 
     def completar(
-        self, system: str, user: str, model: str, max_tokens: int = MAX_TOKENS_SUT
+        self,
+        system: str,
+        user: str,
+        model: str,
+        max_tokens: int = MAX_TOKENS_SUT,
+        temperature: float | None = None,
     ) -> str:
+        # `temperature` solo se envia si se pide. No es remilgo: los modelos de
+        # la generacion actual **rechazan el parametro con un 400** —Sonnet 5 y
+        # Opus 5 entre ellos— y Haiku 4.5 lo acepta. Mandarlo siempre romperia
+        # el generador el dia que se conmute a un modelo mayor, y no mandarlo
+        # nunca deja al enrutador muestreando a la temperatura por defecto, que
+        # es lo que el §26 midio.
+        extra = {} if temperature is None else {"temperature": temperature}
         resp = con_reintentos(
             lambda: self.client.messages.create(
                 model=model,
                 max_tokens=max_tokens,
                 system=system,
                 messages=[{"role": "user", "content": user}],
+                **extra,
             ),
             f"anthropic:{model}",
         )
@@ -275,7 +293,12 @@ class GeminiChat(ChatProvider):
         self.client = genai.Client(api_key=cfg.gemini_api_key)
 
     def completar(
-        self, system: str, user: str, model: str, max_tokens: int = MAX_TOKENS_SUT
+        self,
+        system: str,
+        user: str,
+        model: str,
+        max_tokens: int = MAX_TOKENS_SUT,
+        temperature: float | None = None,
     ) -> str:
         from google.genai import types
 

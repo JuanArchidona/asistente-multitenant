@@ -58,7 +58,12 @@ def _fallback(motivo: str) -> Enrutamiento:
 
 
 def enrutar(cfg: Config, chat: ChatProvider, consulta: str) -> Enrutamiento:
-    raw = chat.completar(system_router(cfg.tenant), consulta, cfg.model_router).strip()
+    raw = chat.completar(
+        system_router(cfg.tenant),
+        consulta,
+        cfg.model_router,
+        temperature=cfg.router_temperature,
+    ).strip()
 
     # Robustez: quitar fences de markdown si el modelo los añade.
     if raw.startswith("```"):

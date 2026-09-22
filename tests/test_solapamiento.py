@@ -127,7 +127,9 @@ class ChatConHerramientas:
 
         self.uso = _Uso()
 
-    def completar(self, system: str, user: str, model: str) -> str:
+    def completar(
+        self, system: str, user: str, model: str, temperature: float | None = None
+    ) -> str:
         self.llamadas.append((system, user, model))
         return self.respuestas.pop(0) if self.respuestas else self.respuesta_final
 

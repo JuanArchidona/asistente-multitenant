@@ -40,6 +40,8 @@ CONFIG_BASE = Config(
     top_k=4,
     distance_threshold=None,
     gen_policy="base",
+    # None = no se envia el parametro, que es como ha corrido todo el banco.
+    router_temperature=None,
     judge_provider="anthropic",
     judge_model="modelo-juez",
     # Distinta de anthropic_api_key a proposito: la separacion de claves es lo
@@ -69,9 +71,15 @@ class ChatFalso(ChatProvider):
         super().__init__()
         self.respuestas = list(respuestas)
         self.llamadas: list[tuple[str, str, str]] = []
+        # Se guarda aparte de `llamadas` para no cambiar la forma de una tupla
+        # de la que dependen las pruebas heredadas.
+        self.temperaturas: list[float | None] = []
 
-    def completar(self, system: str, user: str, model: str) -> str:
+    def completar(
+        self, system: str, user: str, model: str, temperature: float | None = None
+    ) -> str:
         self.llamadas.append((system, user, model))
+        self.temperaturas.append(temperature)
         self.uso.registrar(model, 10, 20)
         return self.respuestas.pop(0) if self.respuestas else ""
 

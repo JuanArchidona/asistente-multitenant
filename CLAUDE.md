@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-22)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **682 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **684 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -50,7 +50,8 @@ y control de acceso estructural. **682 tests en verde**, `ruff` limpio.
 | Consulta de las dos ramas ante una categoría ambigua | Hecha y medida: cobertura del riesgo 0,778 → 1,0 (§22) |
 | Verificación determinista de citas | Hecha y medida sobre las 22 ejecuciones guardadas: 0 citas inventadas (§23) |
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
-| Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24) |
+| Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24, §26) |
+| Estabilidad del enrutador | Medida y resuelta: temperatura 0 quita la varianza, y la votación queda descartada por redundante (§27) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
 | Despliegue con autenticación y tope de gasto | Pendiente |
@@ -136,7 +137,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 682 tests, sin llamadas a API
+uv run pytest                                      # 684 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -213,11 +214,22 @@ y §14).
   encontrado documentación relevante". El camino mixto ya lo dice bien; el
   heredado no, y arreglarlo mueve las respuestas de los casos de
   confidencialidad del inquilino A, así que es una medición aparte (§22).
-- **El enrutador no repite: 11 % de los casos en el inquilino A (§15) y 13,2 %
-  en el C, medido sobre tres pasadas con el prompt intacto** (§22). Ningún
-  acierto global del enrutador se puede reportar de una sola pasada. Los casos
-  de seguridad sí son estables, así que la cobertura se puede leer; el acierto
-  global no.
+- **La varianza del enrutador tiene arreglo y está sin aplicar por decisión.**
+  Venía de que `src/provider.py` no fijaba temperatura: con `ROUTER_TEMPERATURE=0`
+  la agencia pasa de 3 casos inestables de 38 a **0**, el acierto de enrutado
+  sube en los dos inquilinos y la cobertura del riesgo no se mueve (§27). El
+  valor por defecto **sigue siendo el de siempre** a propósito: cambiarlo
+  reinterpretaría en silencio la comparación con las 15 ejecuciones anteriores,
+  y es una decisión de línea base. Mientras no se cambie, sigue en pie que
+  ningún acierto de enrutado se puede reportar de una sola pasada (§15, §22).
+- **Temperatura 0 no es determinismo garantizado**: 1 caso de 53 sigue variando
+  en el inquilino heredado. Y no hace determinista al banco, porque el generador
+  sigue muestreando (§27). No prometer reproducibilidad en la memoria.
+- **El juez muestrea aunque el código diga `temperature=0`.** `claude-sonnet-5`
+  no admite el parámetro y DeepEval lo descarta sin avisar (§26). Explica la
+  varianza del juez medida en la 3.3, y no tiene arreglo en este modelo: la
+  única vía a un juez repetible es el juez de Gemini, que es además el de otra
+  familia.
 
 ## 9. Superficies de trabajo y cómo se sincronizan
 
