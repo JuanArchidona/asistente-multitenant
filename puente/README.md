@@ -11,12 +11,46 @@ es solo la puesta en marcha.
 
 | Herramienta | Que hace |
 |---|---|
+| `encargos_tfm` | Devuelve los encargos pendientes **literales**, sin argumentos y sin lanzar ninguna sesion. Es como se entera la app de lo que tiene que hacer. |
 | `consultar_tfm` | Responde una pregunta sobre el repositorio leyendo el arbol real, incluido lo no pusheado. **Solo lectura.** |
-| `registrar_tfm` | Anade una entrada al registro de trabajo. `append` determinista sobre un fichero de ruta fija. |
+| `registrar_tfm` | Anade una entrada al registro de trabajo. `append` determinista sobre un fichero de ruta fija. Con el campo opcional `encargo` marca ese encargo como atendido. |
 
-No expone nada mas. Quien llama controla **el texto de una pregunta y seis
-campos de texto**; binario, directorio, banderas, lista de herramientas y ruta
-del registro son constantes de `servidor.mjs`.
+No expone nada mas. Quien llama controla **el texto de una pregunta y siete
+campos de texto**; binario, directorio, banderas, lista de herramientas y rutas
+del buzon y del registro son constantes de `servidor.mjs`.
+
+### El buzon: escribirlo no es una herramienta
+
+Los encargos se dejan desde la linea de ordenes, o sea desde Claude Code:
+
+```bash
+node puente/encargar.mjs --titular T --pide P --para Q --terminado C --donde D
+node puente/encargar.mjs --listar
+```
+
+Los cinco campos son obligatorios. Un encargo sin criterio de terminado o sin
+sitio donde dejar el resultado se cumple a medias y nadie puede decir que no.
+
+**No hay herramienta MCP para escribir en el buzon, y es deliberado.** A la app
+la puede dirigir un modelo al que se le cuele una instruccion en un documento o
+en una pagina web; si escribir fuera una herramienta, ese modelo podria
+fabricarse la orden de trabajo que luego dice haber cumplido. Quien ejecuta los
+encargos no puede darse encargos a si mismo.
+
+Por el mismo motivo, **marcar un encargo como atendido lo hace el puente y no
+quien dice haberlo hecho**: solo ocurre cuando `registrar_tfm` cita el
+identificador. Los tres casos se distinguen en vez de colapsarse:
+
+| Caso | Que pasa |
+|---|---|
+| El identificador no existe | **Falla y no registra nada.** Registrarlo dejaria una entrada que dice atender algo que nadie pidio, y el encargo real seguiria pendiente. |
+| El encargo ya estaba atendido | Se registra, y la respuesta avisa de que es una segunda entrada sobre el mismo. |
+| Sin campo `encargo` | Se registra como trabajo sin encargo previo, y el registro lo dice. |
+
+El formato del buzon lo compone `servidor.mjs`, de donde `encargar.mjs` importa:
+dos sitios escribiendo el mismo formato es un sitio donde el formato se
+desincroniza. Por eso el bucle de stdio del servidor solo arranca si es el punto
+de entrada.
 
 **Lo que la sesion hija NO puede leer.** `--restricted` confina las herramientas
 de fichero al directorio de trabajo, y el directorio de trabajo **es** el
@@ -25,8 +59,8 @@ lista de denegacion explicita (`DENEGADAS` en `servidor.mjs`) sobre `.env` y
 `.git/config`, para `Read` y para `Grep`. Ver `docs/HALLAZGOS.md` §19.
 
 `medir_tfm` todavia no existe: es el punto 4 del §7 de
-`docs/SINCRONIZACION_SUPERFICIES.md` y no se monta hasta que el rastro demuestre
-ser fiable.
+`docs/SINCRONIZACION_SUPERFICIES.md`, el unico que queda, y no se monta hasta
+que el rastro demuestre ser fiable.
 
 ## Como declararlo en la app
 
@@ -66,6 +100,19 @@ mala:
 Si contesta con la lista real del `git status` local, el puente funciona. Si
 contesta con lo que hay en GitHub, o dice que no lo sabe, esta respondiendo por
 el conector y el puente no esta activo.
+
+Para el buzon, la prueba es que vea un encargo que el conector no puede ver
+—porque el fichero no esta versionado—:
+
+> Usa encargos_tfm y dime que encargos tengo pendientes.
+
+Y el ciclo entero se comprueba desde la linea de ordenes, sin la app, hablando
+JSON-RPC con el servidor. Lo verificado el 22-09-2026: `tools/list` publica las
+tres herramientas; un `registrar_tfm` con `encargo` inexistente devuelve
+`isError` y **no crea el fichero de registro**; con un identificador mal formado
+tambien falla; con el identificador bueno marca el encargo y deja el rastro
+cruzado en las dos direcciones; y una segunda llamada sobre el mismo encargo
+avisa en vez de pasar por la primera.
 
 ## Cuando NO usarlo
 

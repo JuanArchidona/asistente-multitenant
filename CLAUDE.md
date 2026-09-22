@@ -221,14 +221,23 @@ y §14).
 
 ## 9. Superficies de trabajo y cómo se sincronizan
 
-El proyecto se trabaja desde dos sitios, y el flujo entre ellos es **de una sola
-dirección**.
+El proyecto se trabaja desde dos sitios. **Sobre el estado del proyecto el flujo
+es de una sola dirección**; sobre el trabajo por hacer, desde el 22-09-2026 hay
+un canal de vuelta.
 
 | | Claude Code | Proyecto **MASTER IA TFM** en la app de Claude |
 |---|---|---|
 | Para qué | Todo el desarrollo: código, corpus, bancos, mediciones, documentación | Lo que Claude Code no puede hacer |
 | Concretamente | | Tareas de navegador con Claude in Chrome (formularios, altas), discusión de diseño, redacción de material |
 | Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
+| Encargos | **Los escribe**, con `node puente/encargar.mjs` | **Los lee**, con `encargos_tfm` |
+| Registro de lo hecho | **Lo lee**, en `puente/REGISTRO_APP.md` | **Lo escribe**, con `registrar_tfm` |
+
+Los dos ficheros del puente **no están versionados** y por eso no los ve el
+conector de GitHub: toda lectura desde la app pasa obligatoriamente por el
+puente. Escribir en el buzón es lo único que la app no puede hacer, y es
+deliberado: quien ejecuta los encargos no puede darse encargos a sí mismo. El
+detalle está en `docs/SINCRONIZACION_SUPERFICIES.md`.
 
 **El repositorio es la fuente de verdad y la app no.** Sus instrucciones de
 proyecto lo dicen: ante una contradicción, gana lo que haya aquí. Y por el mismo
@@ -240,9 +249,16 @@ ya pasó con la primera versión, escrita el 20 de septiembre y desfasada el 21.
 ### Lo que sostiene la sincronización
 
 `/cierre` al terminar la jornada. Escribe la entrada de bitácora, actualiza este
-documento y hace commit y push. **Sin ese push, la app no se entera de nada** y
-la siguiente sesión de Claude Code arranca con un mapa viejo. Lo que no está en
-el repositorio no existe.
+documento y hace commit y push. **Sin ese push, la app no se entera del estado**
+y la siguiente sesión de Claude Code arranca con un mapa viejo. Lo que no está
+en el repositorio no existe.
+
+El buzón y el registro son la excepción y no la contradicen: viven fuera de git
+a propósito, así que no se sincronizan por push sino por el puente, y lo que
+llega por ahí **no es estado del proyecto sino trabajo pendiente o rastro de lo
+hecho**. Cuando algo del registro afecta al alcance, se traslada a mano a
+`docs/ALCANCE.md` o a este documento desde Claude Code, que es lo que mantiene
+la dirección única sobre el estado.
 
 ### Al cambiar de repositorio
 

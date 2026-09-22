@@ -33,7 +33,13 @@
  * de `evals.runner`, y conviene no confundirlos al mirar el gasto.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { appendFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,6 +49,7 @@ const AQUI = dirname(fileURLToPath(import.meta.url));
 
 const REPO = resolve(AQUI, "..");
 const REGISTRO = join(AQUI, "REGISTRO_APP.md");
+const ENCARGOS = join(AQUI, "ENCARGOS_APP.md");
 // Se aceptan los dos nombres: `CLAUDE_BIN` es el que ya usan los otros puentes
 // declarados en la app de este equipo, y mantener la convencion evita que las
 // tres entradas se configuren de tres formas distintas.
@@ -190,9 +197,19 @@ function ahora() {
   );
 }
 
-// --- Las dos herramientas ---------------------------------------------------
+// --- Las tres herramientas --------------------------------------------------
 
 const HERRAMIENTAS = [
+  {
+    name: "encargos_tfm",
+    description:
+      "Devuelve los encargos que Claude Code ha dejado pendientes para la app, " +
+      "tal cual estan escritos. Consultalo al empezar una sesion o una tarea " +
+      "programada: es como se entera la app de lo que tiene que hacer. Cada " +
+      "encargo dice que se pide, para que, cuando se considera terminado y donde " +
+      "debe quedar el resultado. No gasta nada y no lanza ninguna sesion.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
   {
     name: "consultar_tfm",
     description:
@@ -229,6 +246,13 @@ const HERRAMIENTAS = [
         hecho: { type: "string", description: "Que se hizo realmente, incluido lo que fallo." },
         donde: { type: "string", description: "Donde quedo el resultado: fichero, URL, conversacion." },
         abierto: { type: "string", description: "Que queda abierto. 'Nada' si no queda nada." },
+        encargo: {
+          type: "string",
+          description:
+            "Identificador del encargo que se atiende, si viene del buzon (p. ej. " +
+            "'E-0001'). El puente lo marca como atendido. Omitelo si el trabajo no " +
+            "sale de ningun encargo.",
+        },
       },
       required: ["titular", "quien", "pedido", "hecho", "donde", "abierto"],
       additionalProperties: false,
@@ -314,6 +338,134 @@ function consultarTfm({ pregunta }) {
   });
 }
 
+// --- Buzon de encargos ------------------------------------------------------
+
+const CABECERA_ENCARGOS = `# Buzon de encargos para la app
+
+> Lo escribe Claude Code con \`node puente/encargar.mjs\`. Lo lee la app por
+> \`encargos_tfm\`, que devuelve los pendientes tal cual, sin modelo en medio: un
+> encargo es una orden de trabajo, y parafrasear una orden de trabajo la
+> degrada.
+>
+> Un encargo se marca ATENDIDO solo cuando \`registrar_tfm\` lo cita por su
+> identificador. Lo marca el puente, no la app: si lo marcara quien dice haberlo
+> hecho, el buzon no serviria para revisar nada.
+>
+> Fichero **no versionado** a proposito, igual que el registro. El repositorio
+> es publico y esto es utillaje privado.
+
+`;
+
+const MARCA_PENDIENTE = "[PENDIENTE]";
+const RE_ENCARGO = /^## (E-\d{4}) · ([^\n]+?) — ([^\n]*?) +\[([^\]]+)\]$/gm;
+
+/** Lee el buzon completo, o cadena vacia si todavia no existe. */
+function leerBuzon() {
+  return existsSync(ENCARGOS) ? readFileSync(ENCARGOS, "utf8") : "";
+}
+
+/**
+ * Trocea el buzon en encargos. Cada uno con su identificador, su estado y su
+ * texto literal, porque lo que se devuelve a la app es el texto literal.
+ */
+function parsearEncargos(contenido) {
+  const cabeceras = [...contenido.matchAll(RE_ENCARGO)];
+  return cabeceras.map((m, i) => {
+    const desde = m.index;
+    const hasta = i + 1 < cabeceras.length ? cabeceras[i + 1].index : contenido.length;
+    return {
+      id: m[1],
+      fecha: m[2],
+      titular: m[3],
+      estado: m[4],
+      pendiente: m[4] === "PENDIENTE",
+      texto: contenido.slice(desde, hasta).trimEnd(),
+    };
+  });
+}
+
+function siguienteId(encargos) {
+  const max = encargos.reduce((n, e) => Math.max(n, Number(e.id.slice(2))), 0);
+  return `E-${String(max + 1).padStart(4, "0")}`;
+}
+
+/**
+ * Añade un encargo. No es una herramienta MCP: lo llama Claude Code desde la
+ * linea de ordenes. La app no puede escribir en el buzon, solo leerlo — quien
+ * ejecuta los encargos no puede darse encargos a si mismo.
+ */
+function anadirEncargo({ titular, pide, para, terminado, donde }) {
+  const campos = {
+    titular: unaLinea(texto(titular, LIMITE_CAMPO, "titular")),
+    pide: unaLinea(texto(pide, LIMITE_CAMPO, "pide")),
+    para: unaLinea(texto(para, LIMITE_CAMPO, "para")),
+    terminado: unaLinea(texto(terminado, LIMITE_CAMPO, "terminado")),
+    donde: unaLinea(texto(donde, LIMITE_CAMPO, "donde")),
+  };
+  const contenido = leerBuzon();
+  const id = siguienteId(parsearEncargos(contenido));
+  const sello = ahora();
+  const entrada =
+    `## ${id} · ${sello} — ${campos.titular} ${MARCA_PENDIENTE}\n\n` +
+    `- **Que se pide:** ${campos.pide}\n` +
+    `- **Para que:** ${campos.para}\n` +
+    `- **Terminado cuando:** ${campos.terminado}\n` +
+    `- **Donde debe quedar:** ${campos.donde}\n\n`;
+
+  mkdirSync(dirname(ENCARGOS), { recursive: true });
+  if (!contenido) writeFileSync(ENCARGOS, CABECERA_ENCARGOS, "utf8");
+  appendFileSync(ENCARGOS, entrada, "utf8");
+  return { id, sello };
+}
+
+/**
+ * Marca un encargo como atendido. Lo hace el puente al registrar, nunca quien
+ * llama, y distingue los tres casos en vez de colapsarlos: no existe, ya estaba
+ * atendido, o se acaba de marcar. Un `no existe` que se leyera como `hecho`
+ * dejaria encargos perdidos sin que nada lo senalase.
+ */
+function marcarAtendido(id, sello) {
+  const contenido = leerBuzon();
+  const encargo = parsearEncargos(contenido).find((e) => e.id === id);
+  if (!encargo) return { estado: "inexistente" };
+  if (!encargo.pendiente) return { estado: "ya_atendido", desde: encargo.estado };
+  const cabecera = encargo.texto.split("\n")[0];
+  writeFileSync(
+    ENCARGOS,
+    contenido.replace(cabecera, cabecera.replace(MARCA_PENDIENTE, `[ATENDIDO ${sello}]`)),
+    "utf8"
+  );
+  return { estado: "marcado" };
+}
+
+function encargosTfm() {
+  const encargos = parsearEncargos(leerBuzon());
+  const pendientes = encargos.filter((e) => e.pendiente);
+  const atendidos = encargos.length - pendientes.length;
+  if (!encargos.length) {
+    return { ok: true, texto: "El buzon de encargos esta vacio. No hay nada que hacer." };
+  }
+  if (!pendientes.length) {
+    return {
+      ok: true,
+      texto: `No hay encargos pendientes. ${atendidos} atendido(s) en el historico.`,
+    };
+  }
+  return {
+    ok: true,
+    texto: [
+      `=== ENCARGOS PENDIENTES (${pendientes.length}; ${atendidos} ya atendidos) ===`,
+      "",
+      "Van tal cual los escribio Claude Code. 'Terminado cuando' es el criterio",
+      "que decide si el encargo esta hecho, y no una sugerencia. Al acabar,",
+      "llama a registrar_tfm citando el identificador en el campo 'encargo':",
+      "el puente marca el encargo y deja el rastro cruzado.",
+      "",
+      pendientes.map((e) => e.texto).join("\n\n"),
+    ].join("\n"),
+  };
+}
+
 const CABECERA_REGISTRO = `# Registro de trabajo de la app
 
 > Lo escribe el puente MCP (\`puente/servidor.mjs\`) por \`registrar_tfm\`. No se
@@ -336,8 +488,34 @@ function registrarTfm(args) {
   };
 
   const sello = ahora();
+
+  // El enlace con el buzon. `encargo` es opcional —hay trabajo que no sale de
+  // ningun encargo— pero si viene y no existe, se falla: aceptarlo dejaria una
+  // entrada que dice atender algo que nadie pidio, y un encargo real seguiria
+  // pendiente sin que nada lo senalase.
+  let marca = { estado: "sin_encargo" };
+  let referencia = "ninguno (trabajo sin encargo previo)";
+  if (args.encargo !== undefined) {
+    const id = unaLinea(texto(args.encargo, 32, "encargo"));
+    if (!/^E-\d{4}$/.test(id)) {
+      throw new Error(`El campo 'encargo' debe tener la forma 'E-0001'; llego ${id}.`);
+    }
+    marca = marcarAtendido(id, sello);
+    if (marca.estado === "inexistente") {
+      throw new Error(
+        `El encargo ${id} no esta en el buzon. Comprueba el identificador con ` +
+          "encargos_tfm; no se registra nada para no dejar un rastro falso."
+      );
+    }
+    referencia =
+      marca.estado === "ya_atendido"
+        ? `${id} (ya estaba atendido: ${marca.desde})`
+        : id;
+  }
+
   const entrada =
     `## ${sello} — ${campos.titular}\n\n` +
+    `- **Encargo:** ${referencia}\n` +
     `- **Quien:** ${campos.quien}\n` +
     `- **Que se pidio:** ${campos.pedido}\n` +
     `- **Que se hizo:** ${campos.hecho}\n` +
@@ -348,9 +526,17 @@ function registrarTfm(args) {
   if (!existsSync(REGISTRO)) writeFileSync(REGISTRO, CABECERA_REGISTRO, "utf8");
   appendFileSync(REGISTRO, entrada, "utf8");
 
+  const cola = {
+    marcado: ` Encargo ${referencia} marcado como atendido.`,
+    ya_atendido: ` OJO: el encargo ${referencia}, asi que esta es una segunda entrada sobre el mismo.`,
+    sin_encargo: "",
+  }[marca.estado];
+
   return {
     ok: true,
-    texto: `Anotado en ${REGISTRO} con fecha ${sello} (reloj del equipo, no del modelo).`,
+    texto:
+      `Anotado en ${REGISTRO} con fecha ${sello} (reloj del equipo, no del modelo).` +
+      cola,
   };
 }
 
@@ -394,6 +580,7 @@ async function despachar(msg) {
         let r;
         if (nombre === "consultar_tfm") r = await consultarTfm(args);
         else if (nombre === "registrar_tfm") r = registrarTfm(args);
+        else if (nombre === "encargos_tfm") r = encargosTfm();
         else {
           fallar(id, -32602, `Herramienta desconocida: ${nombre}`);
           return;
@@ -418,6 +605,15 @@ async function despachar(msg) {
   }
 }
 
+export { anadirEncargo, encargosTfm, parsearEncargos };
+
+// El bucle de stdio solo se engancha si este fichero es el punto de entrada:
+// `puente/encargar.mjs` importa de aqui para no duplicar el formato del buzon,
+// y sin esta guarda ese import levantaria un servidor esperando en stdin.
+const ES_PUNTO_DE_ENTRADA =
+  !!process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (ES_PUNTO_DE_ENTRADA) {
 let pendiente = "";
 process.stdin.setEncoding("utf8");
 process.stdin.on("data", (trozo) => {
@@ -439,3 +635,4 @@ process.stdin.on("data", (trozo) => {
 });
 
 process.stdin.on("end", () => process.exit(0));
+}

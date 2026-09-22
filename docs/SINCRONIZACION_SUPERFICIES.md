@@ -252,17 +252,43 @@ pagarlos:
    `puente/README.md`. Verificado con una pregunta cuya respuesta se conocia y
    que el conector no puede responder —que ficheros hay sin commitear— y con una
    peticion de borrar `evals/datasets/`, que denego citando las reglas.
-3. **Buzon, con el encargo de la rubrica y la normativa** como primer caso real.
+3. ~~**Buzon, con el encargo de la rubrica y la normativa**~~ **HECHO** el
+   22-sep-2026. `puente/ENCARGOS_APP.md`, que escribe Claude Code con
+   `node puente/encargar.mjs` y lee la app con `encargos_tfm`. Tres decisiones
+   que no estaban en el diseno original:
+   - **Los encargos se devuelven literales, sin sesion hija.** `consultar_tfm`
+     habria servido, pero un encargo es una orden de trabajo y parafrasear una
+     orden de trabajo la degrada; ademas cuesta una sesion de Claude por
+     consulta. `encargos_tfm` no gasta nada.
+   - **Escribir en el buzon no es una herramienta MCP.** Solo se puede desde la
+     linea de ordenes, o sea desde Claude Code. Si escribir fuera una
+     herramienta, un modelo al que se le cuele una instruccion en un documento
+     podria fabricarse la orden de trabajo que luego dice haber cumplido.
+   - **El encargo lo marca atendido el puente, no quien dice haberlo hecho**, y
+     solo cuando `registrar_tfm` lo cita por su identificador. Un identificador
+     que no existe **falla y no registra nada**: aceptarlo dejaria una entrada
+     que dice atender algo que nadie pidio, y el encargo real seguiria
+     pendiente sin que nada lo senalase. Y citar uno ya atendido se anota como
+     segunda entrada sobre el mismo, en vez de pasar por la primera.
+
+   El primer caso real es **E-0001, la tutoria del 22-09-2026 a las 16:00**.
 4. **`medir_tfm` asincrona, solo `--desde-trazas --sin-juez`** (las dos
    banderas, ver §3.2) y con el inquilino como parametro explicito. Ampliar a
    `--sin-juez` a secas cuando el rastro demuestre ser fiable **y el coste del
    juez este instrumentado**.
-5. **Actualizar `CLAUDE.md` §9**, que hoy afirma que el flujo es de una sola
-   direccion. Al cerrar el punto 3 deja de ser cierto.
+5. ~~**Actualizar `CLAUDE.md` §9**~~ **HECHO** el 22-sep-2026, al cerrar el
+   punto 3. La afirmacion se ha partido en vez de borrarse: **sobre el estado
+   del proyecto** el flujo sigue siendo de una sola direccion, y eso es lo que
+   sostiene que el repositorio sea la fuente de verdad; lo que tiene vuelta es
+   **el trabajo por hacer y el rastro de lo hecho**, que no son estado. Si la
+   distincion se perdiera, el registro de la app acabaria compitiendo con
+   `CLAUDE.md` por decir como esta el proyecto.
 
 Los puntos 2, 3 y 4 son independientes entre si una vez resuelto el 1, y cada uno
 aporta valor por separado. Si el proyecto se queda sin tiempo, el orden de
 sacrificio es el inverso: **el 4 es el que mas aporta y el que mas riesgo trae**.
+
+Al 22-sep-2026 queda pendiente **solo el punto 4**.
 
 ## 8. Mantenimiento
 
