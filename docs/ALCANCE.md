@@ -155,6 +155,14 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
 7. Capa de gobernanza: anonimización de PII antes de salir al LLM, filtrado por
    permisos en la recuperación, HITL y registro de quién preguntó qué.
 8. Análisis de riesgos y encaje con el EU AI Act (absorbe el Módulo 4).
+   **Subido de prioridad el 22-09-2026**: el tutor lo nombró expresamente como
+   requisito y confirmó que puede ir dentro del TFM
+   (`docs/TUTORIA_2026-09-22.md`). No espera a la rúbrica: el material del
+   módulo ya está disponible y sus cuatro resultados de aprendizaje sirven de
+   especificación. El sustrato técnico está hecho y medido —control de acceso
+   antes del modelo, redacción de PII, aislamiento estructural, registro por
+   inquilino, resistencia a inyección, citas verificadas—; lo que falta es el
+   encaje normativo y **el análisis de sesgos, del que no hay nada**.
 9. Servidor MCP del Catastro como fuente externa real.
 10. Observabilidad en producción y coste acumulado por tenant.
 11. Canal de correo, de extremo a extremo.

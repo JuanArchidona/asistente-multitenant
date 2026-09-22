@@ -59,6 +59,8 @@ y control de acceso estructural. **698 tests en verde**, `ruff` limpio.
 | Despliegue con autenticación y tope de gasto | Pendiente |
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
+| Análisis de IA responsable y AI Act (absorbe el Módulo 4) | Pendiente, y **requisito nombrado por el tutor** el 22-09 |
+| Análisis de sesgos | Pendiente, y **no existe nada**: es el hueco más claro del Módulo 4 |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
 decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes
@@ -162,20 +164,32 @@ y §14).
 
 ## 8. Riesgos abiertos
 
-- **Nada del TFM está publicado, y está comprobado, no supuesto.** Búsqueda
-  exhaustiva del campus el 2026-09-21 (`docs/CAMPUS_2026-09-21.md`): la sección
-  del Módulo 5 existe y responde "Proyecto final no disponible"; no hay
-  enunciado, ni rúbrica, ni fecha de entrega, ni entregables, ni formato de
-  memoria, y el foro del módulo lleva 0 réplicas desde abril. Se amplía el
-  riesgo: **tampoco existe en el campus reglamento, normativa de integridad
-  académica, norma sobre reutilización de trabajos propios ni política de uso de
-  IA**.
-- **La fecha de defensa es una inferencia.** Lo único con fechas es una imagen
-  del calendario que marca el 20 de octubre como "Sesión cierre" y que no usa
-  las palabras defensa, entrega ni TFM. Toda la planificación cuelga de eso.
-- **Vía abierta para resolverlo**: tutoría de 30 minutos con Iraitz Montalbán
-  —director del máster, corrector de todas las entregas y tutor del TFM— en
-  `cal.com/iraitz-montalban/30min`, sin depender de que nadie conteste un correo.
+- **Resuelto en la tutoría del 22-09** (`docs/TUTORIA_2026-09-22.md`), que era
+  la vía abierta para los cuatro riesgos que el campus no permitía cerrar:
+  **partir de entregas propias ya calificadas es admisible y no hay que
+  declararlo**, el **uso de IA es libre**, la defensa es **a finales de octubre**
+  y el **enunciado y la rúbrica llegan al desbloquearse el Módulo 5, al acabar
+  el 4, en 2-3 semanas** (en torno al 6-13 de octubre). El planteamiento del
+  proyecto le pareció bien tal cual.
+- **Lo que sigue sin saberse:** el **formato de la defensa** —duración, si hay
+  demo en vivo, si hay tribunal— no se abordó, y de eso depende si hace falta
+  dejar el despliegue público funcionando o basta con una grabación.
+- **La rúbrica llega tarde para decidir línea base, y eso cambia la
+  estrategia.** Entre que aparece (6-13 de octubre) y la defensa (finales de
+  mes) hay una o dos semanas. Tomar en esa ventana una decisión que **invalida
+  la comparación con las ejecuciones anteriores** no deja tiempo de volver a
+  medir. Por eso las decisiones de línea base **se toman ahora**: lo que la
+  rúbrica puede cambiar es cómo se presentan las cifras, no qué configuración es
+  la buena.
+- **La securización es ahora un requisito nombrado por el tutor**, no una
+  prioridad media del bloque 2. Y no es ciberseguridad: el Módulo 4 es *"IA
+  responsable: riesgos, ética y normativa"* y su material ya está disponible en
+  `Master/Módulo 4/4.1/Documentación/`. Sus cuatro resultados de aprendizaje son
+  la especificación del capítulo que falta —riesgos éticos, impacto del AI Act,
+  diseño con criterios de IA responsable y evaluación de riesgos legales o
+  sociales— y se puede avanzar sin esperar a que el módulo se libere. **El
+  proyecto ya tiene el sustrato técnico medido y le falta el encaje normativo y
+  el análisis de sesgos, que no existe.**
 - **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
   prepago, 12,66 USD de crédito y **recarga automática desactivada**: es un tope
   duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que
