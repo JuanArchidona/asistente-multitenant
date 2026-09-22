@@ -61,6 +61,9 @@ y control de acceso estructural. **716 tests en verde**, `ruff` limpio.
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | Pendiente, y **requisito nombrado por el tutor** el 22-09 |
 | Análisis de sesgos | **Hecho y medido** en la capa de recuperación y en el enrutado: ningún eje alcanza su suelo (§34). La capa de generación sigue sin medir |
+| Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
+| Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
+| Registro de riesgos y clasificación por el AI Act | Pendiente, y **es lo siguiente**: el esqueleto del capítulo del Módulo 4 |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
 decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes

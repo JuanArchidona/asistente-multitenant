@@ -4,6 +4,163 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-22 — Sesión 5: la tutoría, y catorce hallazgos de mirar con desconfianza
+
+La sesión más larga del proyecto: **18 commits, 34 hallazgos (del 21 al 34),
+716 tests** y la tutoría que cierra cuatro riesgos abiertos desde julio. Gasto:
+**1,40 USD** de los 12,66 de crédito.
+
+El hilo que la recorre no se planificó. Catorce de los hallazgos salieron de
+**mirar un resultado con desconfianza**, no de buscar fallos, y en varios el
+error estaba en el instrumento y no en el sistema.
+
+**Hecho, por orden:**
+
+- **Precio de `claude-sonnet-5` corregido (§21).** La consola marcó 0,06 USD
+  contra los 0,083 que predecía el repo: es 2,00/10,00 y no 3,00/15,00, que es
+  el de Sonnet 4.6. Evaluar cuesta **x11 y no x17**; una pasada completa 2,53 USD
+  y no 3,80. El test congelaba `0.1252 / 3`, un literal en USD, así que no podía
+  detectar que un factor fuese falso; ahora recalcula desde los tokens y la tabla
+  de precios viva.
+- **Solapamiento `expedientes`/`cartera` resuelto (§22).** Grupo declarativo en
+  el manifiesto y camino mixto: una consulta ambigua consulta las dos ramas en
+  vez de elegir. **Cobertura del riesgo 0,778 → 1,0**, y el caso que en
+  producción se quedaba sin respuesta ya la da. Precio medido: +40 % de coste por
+  caso. De paso, la prueba por la vía contraria de que el solapamiento no era
+  ruido: el reparto sale **idéntico en tres pasadas** mientras el 13,2 % de los
+  demás casos cambia de categoría.
+- **Verificador determinista de citas (§23).** El prompt exigía citar la fuente y
+  nada lo comprobaba. Dos rúbricas sin modelo, aplicadas **retroactivamente a las
+  22 ejecuciones guardadas a coste cero**: **588 de 588 citas resolubles, cero
+  inventadas en toda la historia del proyecto**. La métrica se estrenó
+  midiéndose a sí misma dos veces: los acentos y la puerta de comportamiento.
+- **Clave propia del juez también en el camino de Gemini (§24).** Usaba la de los
+  embeddings, o sea la del sistema, y solo en el único camino que permite tener un
+  juez de otra familia. Lo que impedía el fallo era una cuota ajena, no un
+  control. Y la limitación de familia dejó de vivir en un docstring: viaja en
+  cada `resumen.json` y cada `informe.md`.
+- **Prerruta determinista descartada (§25)** con una cuenta de dos minutos:
+  ninguno de los 5 casos que derivan lleva identificador, y los 7 que lo llevan
+  están todos en el grupo ya resuelto.
+- **El juez nunca corrió a temperatura 0 (§26).** `claude-sonnet-5` no admite el
+  parámetro y DeepEval lo descarta **en silencio**. Explica la varianza medida en
+  la 3.3 y no tiene arreglo en ese modelo.
+- **Varianza del enrutador medida y resuelta (§27).** Venía de que el proveedor no
+  fijaba temperatura. A 0: **3 casos inestables de 38 pasan a 0** y elige la misma
+  categoría que la mayoría de cinco muestras en los 38. **La votación por
+  autoconsistencia queda descartada por redundante**, y con ella los 1,2 USD que
+  costaba demostrarla.
+- **Tres defectos que solo aparecieron al usar el camino de Gemini (§28, §29).**
+  Un modelo sin precio costaba **cero en silencio**, dentro de la contabilidad
+  sobre la que se apoyan tres hallazgos de coste. La conmutación de proveedor era
+  una forma y no un hecho: `gemini_model` se declaraba y no se leía. Y
+  `gemini-2.5-flash` ya no se sirve a proyectos nuevos, así que nadie que clonase
+  el repo podría reproducirla.
+- **El juez emite números que contradicen su propio razonamiento (§30, §32).**
+  Escribió *"mereciendo la puntuación máxima"* y puso 0,1. Piloto completado con
+  seis pasadas: **temperatura 0 no lo estabiliza** —2 casos de 4 en las dos
+  familias— y de 24 veredictos **4 son espurios y los cuatro suspenden lo que
+  debía aprobar**. Ni uno al contrario.
+- **`pii_leakage` retirada del banco (§31).** Su escala se invertía entre casos y
+  **penalizaba al sistema por nombrar a la persona cuyos datos estaba
+  protegiendo**: una denegación correcta sacaba 0,00. Afectaba a 17 casos, no a
+  6, porque era métrica por defecto de dos dimensiones enteras.
+- **La comparación base/endurecido cerrada, y con métrica determinista (§33).**
+  Con juez es imposible: 5 y 6 casos de 10 cambian de veredicto entre tres
+  pasadas idénticas. La decide `fuga_literal`: **la política base filtra el
+  salario individual de un empleado y un dato de salud** citando el anexo
+  confidencial, y la endurecida no filtra ninguno — **8/10 frente a 10/10**.
+- **Buzón de encargos** (`puente/encargar.mjs` y `encargos_tfm`), con la tutoría
+  como primer caso real, **E-0001**. Escribir en el buzón no es herramienta MCP a
+  propósito: quien ejecuta los encargos no puede darse encargos a sí mismo.
+- **Tutoría con Iraitz** (`docs/TUTORIA_2026-09-22.md`). Cierra cuatro riesgos
+  abiertos desde julio.
+- **Las dos decisiones de línea base aplicadas** (`ALCANCE.md` §5.c), sin gastar
+  nada: las ejecuciones `temp0` de la mañana ya eran la línea base nueva.
+- **Banco de sesgos (§34).** Ningún eje —género, edad, origen, discapacidad—
+  alcanza el doble de su suelo de ruido, y el enrutado es estable en las seis
+  variantes de nombre. Trece pruebas que no comprueban que el código funcione
+  sino que **los pares sigan emparejados**.
+- **Análisis del Módulo 4** (`docs/MODULO_4.md`) y reorganización de su material.
+
+**Decisiones:**
+
+- **`ROUTER_TEMPERATURE=0` y juez por defecto `gemini-3.6-flash`**, con el corte
+  de comparabilidad fechado en `ALCANCE.md` §5.c. Se tomaron hoy y no esperando
+  la rúbrica porque la tutoría la situó en 2-3 semanas con la defensa a finales
+  de mes: tomarlas en esa ventana no dejaría tiempo de volver a medir.
+- **La mayoría de tres NO se automatiza.** El §33 midió que sobre 10 casos tres
+  pasadas no alcanzan; automatizarla habría vendido como resuelto algo que no lo
+  está.
+- **`pii_leakage` fuera, con puerta en la carga del dataset** y no en la
+  evaluación: descartarla en el runner la habría dejado desaparecer del informe
+  sin distinguir "se pidió y se ignoró" de "nunca se pidió".
+- **Votación por autoconsistencia y prerruta determinista descartadas**, las dos
+  con la cuenta que las descarta escrita.
+- **El material docente del máster no entra en el repositorio.** Es obra de un
+  profesor y el repositorio es público; commitearlo sería redistribuirla, y son
+  38 MB que git no olvida. Vive en `Master/Módulo N/`, se cita desde
+  `docs/MODULO_4.md`, y hay regla en `.gitignore`.
+- **Prepago de 5 EUR con recarga desactivada** en el proyecto `tfm-juez` de
+  Google, que replica el tope duro que ya tiene la cuenta de Anthropic.
+
+**Medido:**
+
+| | |
+|---|---|
+| Cobertura del riesgo, inquilino C | 0,778 → **1,0** |
+| Citas resolubles, 22 ejecuciones | **588 / 588**, cero inventadas |
+| Casos inestables del enrutador, a temperatura 0 | 3 de 38 → **0** |
+| Veredictos espurios del juez, y todos en el mismo sentido | **4 de 24** |
+| Base frente a endurecido, `fuga_literal` | 8/10 frente a **10/10** |
+| Ejes de sesgo por encima de su suelo | **0 de 4** |
+| Coste del día | **1,40 USD** de 12,66 |
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Registro estructurado de riesgos con la matriz de Rumsfeld del 4.4** y
+      mapeo a MITRE ATLAS y AIUC-1. Es el esqueleto del capítulo del Módulo 4 y
+      no cuesta ejecuciones: coloca los 34 hallazgos en una estructura que el
+      módulo reconoce. **Es lo siguiente.**
+- [ ] **Clasificación por el artículo 6 del AI Act, por inquilino.** El mismo
+      sistema es de riesgo limitado o de alto riesgo según el inquilino, y el
+      manifiesto es donde se declara.
+- [ ] **Red-teaming con herramienta** (garak o DeepTeam). Los casos de inyección
+      del banco son curados a mano.
+- [ ] **Human-in-the-loop**, que cierra OWASP #8 y la falta de supervisión humana.
+- [ ] **Derechos del RGPD sobre el índice**: el camino de borrado, cronometrado.
+- [ ] **Cadena de suministro**: un AIBOM. Cierra OWASP #5 y es baratísimo.
+- [ ] **`inj-04` es una inyección que el enrutador manda a `otro`** y nunca llega
+      al control. Es defecto de enrutado, no de gobernanza.
+- [ ] **El camino documental heredado presenta una denegación por permiso como
+      una ausencia.** El camino mixto ya lo dice bien; el heredado no, y
+      arreglarlo mueve las respuestas del inquilino A.
+- [ ] Sesgo en la **capa de generación**, que es la que el §34 deja declarada sin
+      medir.
+- [ ] Despliegue con autenticación, canales y alta cronometrada, del alcance.
+
+**Notas:**
+
+- **El Módulo 5 se libera al acabar el 4, en 2-3 semanas**, y con él el enunciado,
+  la rúbrica y la fecha exacta. La defensa es a finales de octubre.
+- **Lo único que sigue sin saberse es el formato de la defensa**: duración, demo
+  en vivo o grabada, tribunal. De eso depende si hay que dejar el despliegue
+  funcionando.
+- **Partir de las entregas propias calificadas es admisible y no hay que
+  declararlo**, y el uso de IA es libre. Los dos riesgos que más trabajo podían
+  costar quedan cerrados.
+- **Catorce hallazgos de una sesión, y el patrón se repite:** el §21, el §23, el
+  §26, el §28, el §29, el §31, el §33 y el §34 salieron de mirar un resultado y
+  preguntarse por qué salía así. En cuatro de ellos el error estaba en el
+  instrumento, no en el sistema. Y tres veces —§25, §33, §34— el corolario fue el
+  mismo: la comprobación que descartaba lo que estaba haciendo se podía haber
+  hecho **antes** de empezar.
+- **Dos afirmaciones mías corregidas el mismo día**: que la mayoría de tres
+  resolvía la inestabilidad del juez (§32, corregido en el §33) y que
+  securización no era ciberseguridad (corregido al leer los cuatro apartados del
+  Módulo 4, no solo el 4.1).
+- Documento de apoyo para la tutoría en Notion, como página privada.
+
 ## 2026-09-21 (tarde) — Sesión 4: el puente, el coste medido y la observabilidad
 
 Sesión de infraestructura y de medición. No se tocó el sistema evaluado: ni el
