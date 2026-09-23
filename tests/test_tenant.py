@@ -131,7 +131,8 @@ def test_el_recuperador_abre_la_coleccion_del_inquilino_y_no_otra(cfg, monkeypat
             return object()
 
     monkeypatch.setattr(modulo.chromadb, "PersistentClient", ClienteFalso)
-    monkeypatch.setattr(modulo, "GeminiEmbedder", lambda cfg: object())
+    # `**kw`: el recuperador pasa ahora `uso=` al embedder (§37).
+    monkeypatch.setattr(modulo, "GeminiEmbedder", lambda cfg, **kw: object())
 
     agencia = Tenant.model_validate(_manifiesto(id="agencia"))
     for tenant in (TENANT_BASE, agencia):

@@ -149,7 +149,7 @@ def test_el_permiso_viaja_dentro_del_where_de_chroma(cfg, monkeypatch):
 
     monkeypatch.setattr(modulo.chromadb, "PersistentClient", ClienteFalso)
     monkeypatch.setattr(
-        modulo, "GeminiEmbedder", lambda cfg: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
+        modulo, "GeminiEmbedder", lambda cfg, **kw: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
     )
 
     r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
@@ -182,7 +182,7 @@ def test_la_consulta_de_auditoria_no_saca_el_texto_restringido(cfg, monkeypatch)
         lambda path: type("C", (), {"get_collection": lambda s, n: ColeccionFalsa()})(),
     )
     monkeypatch.setattr(
-        modulo, "GeminiEmbedder", lambda cfg: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
+        modulo, "GeminiEmbedder", lambda cfg, **kw: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
     )
 
     r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
@@ -211,7 +211,7 @@ def test_el_rol_amplia_lo_que_el_where_deja_pasar(cfg, monkeypatch):
         lambda path: type("C", (), {"get_collection": lambda s, n: ColeccionFalsa()})(),
     )
     monkeypatch.setattr(
-        modulo, "GeminiEmbedder", lambda cfg: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
+        modulo, "GeminiEmbedder", lambda cfg, **kw: type("E", (), {"embed_consulta": lambda s, c: [0.0]})()
     )
 
     r = modulo.Retriever(replace(cfg, tenant=AGENCIA))
