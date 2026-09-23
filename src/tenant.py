@@ -121,6 +121,130 @@ class CategoriaTenant(BaseModel):
         return _validar_identificador(v, "fuente") if v else v
 
 
+# Clasificación por el Reglamento (UE) 2024/1689 (AI Act), artículo 6.
+#
+# Va en el manifiesto y no en código porque **el mismo sistema cae en casillas
+# distintas según el inquilino**: el corpus de uno toca el anexo III (salarios
+# y evaluaciones de la plantilla, punto 4) y el de otro toca otro punto
+# (solvencia de personas físicas, punto 5). Lo que no cambia es la regla, y la
+# regla es lo que este modelo valida:
+#
+#   - Tocar el anexo III sin declararse de alto riesgo exige alegar la
+#     excepción del artículo 6.3 con su condición, su justificación y los usos
+#     que se excluyen para sostenerla. El apartado 4 dice que quien la alegue
+#     "documentará su evaluación": aquí la documentación es este bloque, y la
+#     evaluación es un ValueError si falta.
+#   - El último párrafo del 6.3 dice que un sistema que perfile personas
+#     "siempre se considerará de alto riesgo". Una excepción con perfilado se
+#     rechaza.
+#   - El artículo 50.1 exige que quien interactúa sepa que lo hace con una IA.
+#     El texto con el que se cumple es `aviso_usuario`, y lo imprime la
+#     interfaz delante de cada respuesta.
+#
+# Las citas literales y el calendario vigente (Reglamento (UE) 2026/1744, que
+# retrasa el alto riesgo del anexo III al 2 de diciembre de 2027) están en
+# docs/MODULO_4.md, sección del artículo 6. Registro de riesgos: docs/RIESGOS.md.
+
+CLASIFICACION_TRANSPARENCIA = "transparencia_art_50"
+CLASIFICACION_ALTO_RIESGO = "alto_riesgo_anexo_iii"
+CLASIFICACIONES_AI_ACT = (CLASIFICACION_TRANSPARENCIA, CLASIFICACION_ALTO_RIESGO)
+
+# Las cuatro condiciones del artículo 6.3, por su letra.
+CONDICIONES_ART_6_3 = {
+    "a": "tarea de procedimiento limitada",
+    "b": "mejorar el resultado de una actividad humana previamente realizada",
+    "c": "detectar patrones de decisión sin sustituir la valoración humana",
+    "d": "tarea preparatoria para una evaluación",
+}
+
+_RE_PUNTO_ANEXO_III = re.compile(r"^[1-8][a-z]?$")
+
+
+class ExcepcionArt63(BaseModel):
+    """La alegación de que un sistema del anexo III no es de alto riesgo."""
+
+    condicion: str
+    justificacion: str = Field(min_length=20)
+    usos_excluidos: list[str] = Field(min_length=1)
+    perfila_personas: bool
+
+    @field_validator("condicion")
+    @classmethod
+    def _condicion_valida(cls, v: str) -> str:
+        if v not in CONDICIONES_ART_6_3:
+            raise ValueError(
+                f"condición del artículo 6.3 inválida: {v!r}. "
+                f"Usa una letra de {sorted(CONDICIONES_ART_6_3)}."
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _el_perfilado_siempre_es_alto_riesgo(self) -> "ExcepcionArt63":
+        if self.perfila_personas:
+            raise ValueError(
+                "no cabe la excepción del artículo 6.3 en un sistema que perfila "
+                "personas: el último párrafo del apartado 3 lo declara siempre de "
+                "alto riesgo. Clasifícalo como alto_riesgo_anexo_iii."
+            )
+        return self
+
+
+class ClasificacionAIAct(BaseModel):
+    """Lo que el inquilino declara sobre sí mismo ante el artículo 6."""
+
+    clasificacion: str
+    puntos_anexo_iii: list[str] = Field(default_factory=list)
+    excepcion_art_6_3: ExcepcionArt63 | None = None
+    aviso_usuario: str = Field(min_length=10)
+    evaluado: str = Field(min_length=10)  # fecha ISO de la evaluación
+    fuentes: list[str] = Field(min_length=1)
+
+    @field_validator("clasificacion")
+    @classmethod
+    def _clasificacion_valida(cls, v: str) -> str:
+        if v not in CLASIFICACIONES_AI_ACT:
+            raise ValueError(
+                f"clasificación inválida: {v!r}. Usa una de {CLASIFICACIONES_AI_ACT}."
+            )
+        return v
+
+    @field_validator("puntos_anexo_iii")
+    @classmethod
+    def _puntos_validos(cls, v: list[str]) -> list[str]:
+        malos = [p for p in v if not _RE_PUNTO_ANEXO_III.match(p)]
+        if malos:
+            raise ValueError(
+                f"puntos del anexo III inválidos: {malos}. Usa el número del punto "
+                "y, si procede, la letra: '4', '5b'."
+            )
+        return v
+
+    @model_validator(mode="after")
+    def _anexo_iii_sin_salida_es_alto_riesgo(self) -> "ClasificacionAIAct":
+        toca_anexo = bool(self.puntos_anexo_iii)
+        if (
+            self.clasificacion == CLASIFICACION_TRANSPARENCIA
+            and toca_anexo
+            and self.excepcion_art_6_3 is None
+        ):
+            raise ValueError(
+                f"el inquilino toca el anexo III ({self.puntos_anexo_iii}) y se "
+                "declara de transparencia sin alegar la excepción del artículo "
+                "6.3. O se alega y se documenta, o es alto_riesgo_anexo_iii."
+            )
+        if self.clasificacion == CLASIFICACION_ALTO_RIESGO and not toca_anexo:
+            raise ValueError(
+                "alto_riesgo_anexo_iii exige declarar qué puntos del anexo III lo "
+                "sitúan ahí."
+            )
+        if self.excepcion_art_6_3 is not None and not toca_anexo:
+            raise ValueError(
+                "se alega la excepción del artículo 6.3 sin tocar el anexo III: la "
+                "excepción no tiene de qué exceptuar."
+            )
+        return self
+
+
 class Tenant(BaseModel):
     """Un cliente del sistema, con todo lo que lo distingue de los demás."""
 
@@ -133,6 +257,9 @@ class Tenant(BaseModel):
     solapamientos: list[list[str]] = Field(default_factory=list)
     servidores_mcp: list[ServidorMCP] = Field(default_factory=list)
     politica: PoliticaAcceso = Field(default_factory=PoliticaAcceso)
+    # Obligatorio: un inquilino sin clasificación no arranca. Es la forma de
+    # que el alta de un cliente nuevo incluya la evaluación del artículo 6.
+    ai_act: ClasificacionAIAct
 
     @field_validator("id")
     @classmethod

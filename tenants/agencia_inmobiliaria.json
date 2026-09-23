@@ -87,5 +87,29 @@
         "motivo": "Solvencia: solo se responde a dirección."
       }
     ]
+  },
+  "ai_act": {
+    "clasificacion": "transparencia_art_50",
+    "puntos_anexo_iii": [
+      "5b"
+    ],
+    "excepcion_art_6_3": {
+      "condicion": "a",
+      "justificacion": "El asistente reproduce el estado de la cartera y lo que consta en el expediente de una operacion, incluida la solvencia acreditada de las partes. Es una tarea de procedimiento limitada: consultar y citar lo que ya esta firmado o registrado. Toca el punto 5(b) del anexo III porque los expedientes contienen ingresos y solvencia de personas fisicas, pero el sistema no evalua la solvencia ni decide la admision de un cliente: los ingresos y los datos identificativos se redactan salvo a direccion, y la valoracion la hace la agencia.",
+      "usos_excluidos": [
+        "evaluar la solvencia o establecer una calificacion crediticia de una persona",
+        "decidir o recomendar la admision o el rechazo de un cliente",
+        "ordenar o puntuar a las partes de una operacion por su capacidad economica"
+      ],
+      "perfila_personas": false
+    },
+    "aviso_usuario": "Respuesta generada por un asistente de IA a partir de la documentacion y el CRM de Domara Inmobiliaria. Los datos de una operacion se confirman en su expediente.",
+    "evaluado": "2026-09-23",
+    "fuentes": [
+      "Reglamento (UE) 2024/1689, texto original: https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "Consolidado a 27-07-2026 (sin efecto juridico): https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:02024R1689-20260727",
+      "Reglamento (UE) 2026/1744 (Omnibus digital sobre IA), DO: https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=OJ:L_202601744 y BOE DOUE-L-2026-81147",
+      "docs/MODULO_4.md, seccion del articulo 6 (citas literales y calendario)"
+    ]
   }
 }

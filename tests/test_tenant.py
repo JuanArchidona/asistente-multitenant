@@ -44,6 +44,13 @@ def _manifiesto(**cambios) -> dict:
         "nombre": "Inquilino de prueba",
         "contexto_enrutador": "el asistente de una prueba",
         "categorias": [{"nombre": "uno", "descripcion": "la primera", "fuente": "uno"}],
+        # Obligatoria desde el 23-09-2026; lo que valida está en test_ai_act.py.
+        "ai_act": {
+            "clasificacion": "transparencia_art_50",
+            "aviso_usuario": "Respuesta generada por un asistente de IA.",
+            "evaluado": "2026-09-23",
+            "fuentes": ["prueba"],
+        },
     }
     base.update(cambios)
     return base

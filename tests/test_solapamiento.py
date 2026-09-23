@@ -75,6 +75,13 @@ def _tenant(**cambios) -> dict:
             {"nombre": "otra_mas", "descripcion": "la segunda", "fuente": "otra_mas"},
             {"nombre": "tercera", "descripcion": "la tercera", "fuente": "tercera"},
         ],
+        # Obligatoria desde el 23-09-2026; lo que valida está en test_ai_act.py.
+        "ai_act": {
+            "clasificacion": "transparencia_art_50",
+            "aviso_usuario": "Respuesta generada por un asistente de IA.",
+            "evaluado": "2026-09-23",
+            "fuentes": ["prueba"],
+        },
     }
     return {**base, **cambios}
 

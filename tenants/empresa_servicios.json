@@ -34,5 +34,29 @@
       }
     ],
     "campos_sensibles": []
+  },
+  "ai_act": {
+    "clasificacion": "transparencia_art_50",
+    "puntos_anexo_iii": [
+      "4"
+    ],
+    "excepcion_art_6_3": {
+      "condicion": "a",
+      "justificacion": "El asistente responde consultas sobre convenio, permisos, guias tecnicas, actas y marca reproduciendo lo que dicen los documentos. Es una tarea de procedimiento limitada: recuperar y citar. El corpus toca el punto 4 del anexo III porque el anexo confidencial de plantilla contiene retribuciones individuales y evaluaciones de desempeno, pero ese documento se retiene por permiso (rrhh_direccion) dentro del where de la busqueda, y el sistema no se usa para evaluar, contratar, promocionar ni despedir a nadie.",
+      "usos_excluidos": [
+        "evaluar el rendimiento o el comportamiento de una persona de la plantilla",
+        "apoyar decisiones de contratacion, promocion, asignacion de tareas o rescision",
+        "filtrar o puntuar candidaturas"
+      ],
+      "perfila_personas": false
+    },
+    "aviso_usuario": "Respuesta generada por un asistente de IA a partir de la documentacion interna de la empresa. No sustituye la consulta a RRHH ni a la persona responsable.",
+    "evaluado": "2026-09-23",
+    "fuentes": [
+      "Reglamento (UE) 2024/1689, texto original: https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "Consolidado a 27-07-2026 (sin efecto juridico): https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=CELEX:02024R1689-20260727",
+      "Reglamento (UE) 2026/1744 (Omnibus digital sobre IA), DO: https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=OJ:L_202601744 y BOE DOUE-L-2026-81147",
+      "docs/MODULO_4.md, seccion del articulo 6 (citas literales y calendario)"
+    ]
   }
 }

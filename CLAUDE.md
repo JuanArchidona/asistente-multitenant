@@ -30,10 +30,10 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-22)
+## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **716 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **790 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -59,11 +59,11 @@ y control de acceso estructural. **716 tests en verde**, `ruff` limpio.
 | Despliegue con autenticación y tope de gasto | Pendiente |
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
-| Análisis de IA responsable y AI Act (absorbe el Módulo 4) | Pendiente, y **requisito nombrado por el tutor** el 22-09 |
+| Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |
 | Análisis de sesgos | **Hecho y medido** en la capa de recuperación y en el enrutado: ningún eje alcanza su suelo (§34). La capa de generación sigue sin medir |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
-| Registro de riesgos y clasificación por el AI Act | Pendiente, y **es lo siguiente**: el esqueleto del capítulo del Módulo 4 |
+| Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
 decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes
@@ -138,13 +138,15 @@ reports/          Evidencia de cada ejecución
 docs/
   ALCANCE.md      Decisiones cerradas y alcance por bloques
   HALLAZGOS.md    Hallazgos medidos, con la ejecución que los respalda
+  RIESGOS.md      Registro de riesgos: Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia
+  MODULO_4.md     Qué aporta el Módulo 4 y qué falta; artículo 6 con citas
 ```
 
 ## 7. Comandos
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 716 tests, sin llamadas a API
+uv run pytest                                      # 790 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

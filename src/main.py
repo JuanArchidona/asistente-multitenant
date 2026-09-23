@@ -26,6 +26,9 @@ def main() -> None:
     sistema = Sistema(cfg, registro=registro)
     traza = sistema.responder(consulta)
 
+    # Artículo 50.1 del AI Act: quien interactúa con el sistema tiene que saber
+    # que es una IA. El texto lo declara el inquilino en su manifiesto.
+    print(f"[{cfg.tenant.ai_act.aviso_usuario}]\n")
     print(traza["respuesta"])
     print("\n--- traza ---")
     detalle = {k: v for k, v in traza.items() if k not in ("respuesta", "contexto_recuperado")}

@@ -187,12 +187,18 @@ la práctica recomendada, y eso se puede citar:
 
 ## Los huecos, por orden de lo que aporta cerrarlos
 
-1. **Registro estructurado de riesgos con la matriz de Rumsfeld y el atlas de
-   riesgos.** Es el esqueleto del capítulo y no cuesta ejecuciones: coloca los
-   34 hallazgos en una estructura que el módulo reconoce. Añade el mapeo a MITRE
-   ATLAS y al AIUC-1 que el material enlaza.
-2. **Clasificación por el artículo 6, por inquilino.** El análisis de arriba,
-   escrito, con el manifiesto como sitio donde se declara.
+1. ~~**Registro estructurado de riesgos con la matriz de Rumsfeld y el atlas de
+   riesgos.**~~ **HECHO** el 23-09-2026: `docs/RIESGOS.md`, 23 filas con
+   cuadrante, casilla OWASP, técnica ATLAS, dominio AIUC-1, evidencia y
+   estado, y `tests/test_riesgos.py` que falla si una fila cita un hallazgo
+   inexistente o una casilla del OWASP se queda sin fila.
+2. ~~**Clasificación por el artículo 6, por inquilino.**~~ **HECHO** el
+   23-09-2026: bloque `ai_act` en `tenants/<id>.json`, validado por
+   `src/tenant.py` con la regla del 6.3 codificada (tocar el anexo III sin
+   excepción documentada no valida; perfilar personas no admite excepción), y
+   el aviso del artículo 50 impreso por `src/main.py` delante de cada
+   respuesta. Los dos inquilinos tocan el anexo III (puntos 4 y 5b) y alegan la
+   excepción 6.3(a) con sus usos excluidos por escrito.
 3. **Red-teaming con herramienta.** Los casos de inyección del banco son
    curados a mano. `garak` o DeepTeam los generan, y el material los nombra. Es
    la diferencia entre "probé lo que se me ocurrió" y "probé una batería

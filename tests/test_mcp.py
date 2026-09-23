@@ -114,6 +114,17 @@ def test_usar_el_cliente_sin_abrir_falla_en_vez_de_colgarse():
 
 # --- Coherencia del manifiesto ---
 
+# Un manifiesto sin clasificación por el AI Act no valida (tests/test_ai_act.py),
+# y los validadores de modelo no corren si falta un campo. Estas pruebas miran
+# otra cosa, así que llevan la clasificación mínima válida.
+AI_ACT_MINIMO = {
+    "clasificacion": "transparencia_art_50",
+    "aviso_usuario": "Respuesta generada por un asistente de IA.",
+    "evaluado": "2026-09-23",
+    "fuentes": ["prueba"],
+}
+
+
 def test_una_categoria_estructurada_sin_servidor_se_rechaza():
     """Enrutaría a la nada y parecería un corpus incompleto."""
     with pytest.raises(ValidationError, match="ningún servidor MCP"):
@@ -124,6 +135,7 @@ def test_una_categoria_estructurada_sin_servidor_se_rechaza():
             "categorias": [
                 {"nombre": "datos", "descripcion": "x", "destino": "estructurado"}
             ],
+            "ai_act": AI_ACT_MINIMO,
         })
 
 
@@ -142,6 +154,7 @@ def test_una_categoria_estructurada_no_puede_declarar_fuente():
                 }
             ],
             "servidores_mcp": [{"nombre": "crm", "comando": "python", "args": []}],
+            "ai_act": AI_ACT_MINIMO,
         })
 
 
