@@ -128,3 +128,18 @@ def test_un_reintento_por_cuota_no_se_cuenta_dos_veces(cfg):
     e.embed_consulta("hola")
     assert intentos["n"] == 2
     assert uso.por_modelo[cfg.embed_model]["llamadas"] == 1
+
+
+def test_el_registro_de_produccion_anota_los_embeddings_y_la_falta_de_precio(cfg, tmp_path):
+    """Sin esto el registro diria "esta consulta costo X" con la misma seguridad
+    tanto si X lo incluye todo como si no."""
+    from src.observabilidad import Registro
+
+    uso = Uso()
+    uso.registrar("claude-haiku-4-5", 100, 20)
+    _embedder(cfg, uso, contar_exacto=False).embed_consulta("una consulta cualquiera")
+    r = Registro("t", raiz=tmp_path)
+    fila = r.anotar({"consulta": "x", "tenant": "t", "usuario": "u", "respuesta": "r"}, uso.resumen())
+    assert fila["tokens_embebidos"] == round(len("una consulta cualquiera") / CARACTERES_POR_TOKEN)
+    assert fila["modelos_sin_precio"] == [cfg.embed_model]
+    assert fila["tokens_entrada"] == 100

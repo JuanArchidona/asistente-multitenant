@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **835 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **836 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -144,13 +144,20 @@ docs/
   HALLAZGOS.md    Hallazgos medidos, con la ejecución que los respalda
   RIESGOS.md      Registro de riesgos: Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia
   MODULO_4.md     Qué aporta el Módulo 4 y qué falta; artículo 6 con citas
+  AIBOM.md        Inventario generado (scripts/generar_aibom.py); no se edita
+  INCIDENTES.md   Plan de respuesta: botón rojo, quién avisa, qué se registra
+  RETENCION.md    Política del registro de producción: 90 días, supresión con lápida
+  DESPLIEGUE.md   Interfaz desplegada: usuarios, tope blando, Render
+  GUION_DEMO.md   La demostración de la defensa, paso a paso y con lo que debe verse
+app.py            Interfaz Streamlit: entrada con credencial, un inquilino por usuario
+render.yaml       Blueprint de Render
 ```
 
 ## 7. Comandos
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 835 tests, sin llamadas a API
+uv run pytest                                      # 836 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

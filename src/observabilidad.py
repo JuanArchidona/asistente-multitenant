@@ -183,6 +183,17 @@ class Registro:
             registro["tokens_entrada"] = uso.get("tokens_entrada")
             registro["tokens_salida"] = uso.get("tokens_salida")
             registro["coste_usd"] = uso.get("coste_usd_estimado")
+            # Los embeddings de la consulta, aparte (§37), y la señal de que el
+            # coste es un suelo si algún modelo no tiene precio (§28, §35). Sin
+            # esto el registro diría "esta consulta costó X" con la misma
+            # seguridad tanto si X lo incluye todo como si no.
+            embebidos = sum(
+                m.get("tokens_embebidos", 0) for m in (uso.get("por_modelo") or {}).values()
+            )
+            if embebidos:
+                registro["tokens_embebidos"] = embebidos
+            if uso.get("modelos_sin_precio"):
+                registro["modelos_sin_precio"] = uso["modelos_sin_precio"]
 
         if self.guardar_respuesta:
             registro["respuesta"] = respuesta
