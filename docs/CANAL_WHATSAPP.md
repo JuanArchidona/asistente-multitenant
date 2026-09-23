@@ -72,8 +72,13 @@ uv run python -m src.canal_whatsapp_servidor --simular "¿Cuántos días de vaca
 lo que se usó para medir antes de tener credenciales. Cuesta una consulta.
 
 En Render, `render.yaml` declara un segundo servicio (`asistente-whatsapp`)
-con el mismo repositorio y este arranque. No se crea hasta que se sincroniza
-el blueprint, y pide los valores de arriba. En local, para que Meta llegue
+con el mismo repositorio y este arranque. El blueprint se sincroniza solo
+con cada push, así que el servicio **ya existe y aparece en rojo**: se creó
+al publicar el fichero y falló a propósito porque no tenía las variables de
+arriba (el servidor sale con `[whatsapp] Faltan variables de entorno: ...`).
+Está con `autoDeploy: false` para que no vuelva a intentarlo con cada push;
+cuando existan las credenciales, se rellenan en el servicio y se despliega a
+mano desde el dashboard. Hasta entonces se puede suspender. En local, para que Meta llegue
 al portátil hace falta un túnel (`ngrok http 8080`), y la URL cambia en cada
 arranque.
 

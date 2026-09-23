@@ -48,13 +48,17 @@ services:
         value: "4"
 
   # Canal de WhatsApp (docs/CANAL_WHATSAPP.md). Mismo repositorio, otro
-  # arranque. No se crea hasta sincronizar el blueprint, y pide los valores
-  # WHATSAPP_* de la app de Meta; sin WHATSAPP_APP_SECRET no arranca.
+  # arranque. El blueprint se sincroniza solo con cada push, asi que el
+  # servicio se creo al publicarlo y fallo a proposito: sin los valores
+  # WHATSAPP_* de la app de Meta el servidor no arranca (un webhook sin firma
+  # acepta mensajes de cualquiera). autoDeploy en falso hasta que existan las
+  # credenciales; entonces se despliega a mano desde el dashboard.
   - type: web
     name: asistente-whatsapp
     runtime: python
     region: frankfurt
     plan: free
+    autoDeploy: false
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_whatsapp_servidor
     healthCheckPath: /salud
