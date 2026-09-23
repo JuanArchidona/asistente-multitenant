@@ -256,9 +256,23 @@ el encargo y deja el rastro cruzado; una segunda llamada sobre el mismo avisa.
 | Hook sin avisos pendientes | No escribe nada, sale con 0 |
 | Modo invalido en `encargar.mjs` | Rechazado |
 
-Lo que **no** esta medido a 23-09-2026, y hay que medir con el primer caso real:
-que la app ejecute un encargo desde el enlace profundo, y que una tarea
-programada registre un encargo desatendido.
+**23-09-2026, primer encargo real desde el enlace (E-0001):** el enlace
+`cowork/new` abrio la conversacion con la orden en la caja y la app la
+ejecuto al pulsar enviar. Leyo el encargo por `encargos_tfm`, pero
+`consultar_tfm` **supero los 60 s que la app tolera** por llamada, y fuera del
+proyecto la app **no tiene el conector de GitHub**, asi que no pudo leer
+`docs/TUTORIA_2026-09-22.md`; pidio los datos a Juan en vez de inventarlos
+(correcto) y no registro. La misma pregunta desde Claude Code tardo **13,9 s**.
+Consecuencias aplicadas: el tope del puente baja de 150 a **50 s**, para que
+sea el puente quien devuelva el error y no el cliente; y cada sesion de
+lectura deja una linea con su duracion en `puente/puente.log`, porque sin eso
+la proxima desviacion solo se puede suponer. El encargo se cerro desde Claude
+Code con un registro que dice exactamente eso.
+
+Lo que **no** esta medido a 23-09-2026: que una tarea programada registre un
+encargo desatendido. Y no es necesario para el ciclo: solo lo seria si se
+quisiera que la app trabajase sin Juan, y los encargos que mas valen (campus,
+formularios) necesitan a Juan de todos modos.
 
 ## Cuando NO usarlo
 

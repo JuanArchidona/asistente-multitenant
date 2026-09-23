@@ -100,10 +100,14 @@ const BANDERAS = [
   "--output-format", "text",
 ];
 
-// La app corta a unos 4 minutos desde el chat y a 60 s desde una tarea
-// programada. Se corta antes a proposito, para devolver un error legible en vez
-// de que lo corte el cliente y parezca otra cosa.
-const TIMEOUT_MS = 150_000;
+// La app corta una llamada a herramienta a los 60 s: medido desde una tarea
+// programada el 21-09 y visto en pantalla desde un chat de Cowork el 23-09
+// ("tu ordenador no respondio en 60 segundos"). El tope del puente tiene que
+// ir por debajo, para devolver un error legible en vez de que lo corte el
+// cliente y se lea como que el equipo no responde. Una consulta normal tarda
+// entre 8 y 15 s (`puente/puente.log` guarda cada duracion).
+const TIMEOUT_MS = 50_000;
+const LOG = join(AQUI, "puente.log");
 
 const LIMITE_PREGUNTA = 4000;
 const LIMITE_CAMPO = 1000;
@@ -338,6 +342,25 @@ function consultarTfm({ pregunta }) {
  * es la misma: la sesion hija no puede escribir ni ejecutar nada.
  */
 function sesionLectura(prompt) {
+  const inicio = Date.now();
+  return sesionLecturaSinLog(prompt).then((r) => {
+    // Una linea por sesion, con la duracion. Es lo que faltaba el 23-09 para
+    // saber por que una consulta desde la app supero los 60 s cuando la misma
+    // pregunta desde aqui tardo 14: sin registro solo se puede suponer.
+    try {
+      appendFileSync(
+        LOG,
+        `${ahora()}\t${r.ok ? "ok" : "fallo"}\t${((Date.now() - inicio) / 1000).toFixed(1)}s\t${r.texto.slice(0, 120).replace(/\s+/g, " ")}\n`,
+        "utf8"
+      );
+    } catch {
+      // El log no cambia ningun estado; si no se puede escribir, no se rompe la consulta.
+    }
+    return r;
+  });
+}
+
+function sesionLecturaSinLog(prompt) {
   return new Promise((resolver) => {
     const hijo = spawn(CLAUDE_BIN, BANDERAS, {
       cwd: REPO,
@@ -890,6 +913,8 @@ const ES_PUNTO_DE_ENTRADA =
 
 if (ES_PUNTO_DE_ENTRADA) {
 let pendiente = "";
+let enVuelo = 0;
+let stdinCerrado = false;
 process.stdin.setEncoding("utf8");
 process.stdin.on("data", (trozo) => {
   pendiente += trozo;
@@ -905,9 +930,23 @@ process.stdin.on("data", (trozo) => {
       fallar(null, -32700, "JSON invalido");
       continue;
     }
-    despachar(msg).catch((e) => fallar(msg?.id ?? null, -32603, e.message));
+    enVuelo += 1;
+    despachar(msg)
+      .catch((e) => fallar(msg?.id ?? null, -32603, e.message))
+      .finally(() => {
+        enVuelo -= 1;
+        if (stdinCerrado && enVuelo === 0) process.exit(0);
+      });
   }
 });
 
-process.stdin.on("end", () => process.exit(0));
+// Al cerrarse la entrada se sale, pero no antes de responder lo que este en
+// vuelo. Descubierto el 23-09-2026 midiendo `consultar_tfm` con la entrada
+// canalizada desde un script: el proceso moria al llegar el EOF y la
+// consulta, que tarda decenas de segundos, se quedaba sin respuesta. La app
+// mantiene la entrada abierta y no lo sufria; una medicion desde fuera si.
+process.stdin.on("end", () => {
+  stdinCerrado = true;
+  if (enVuelo === 0) process.exit(0);
+});
 }
