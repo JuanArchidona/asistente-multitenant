@@ -32,8 +32,9 @@ Una afirmación sin número no vale.**
 
 ## 2. Estado (2026-09-23)
 
-Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **1033 tests en verde**, `ruff` limpio.
+Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
+control de acceso estructural, una escritura con aprobación humana y un
+servicio público desplegado. **1033 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -42,7 +43,7 @@ y control de acceso estructural. **1033 tests en verde**, `ruff` limpio.
 | Rama documental (RAG heredado) | Hecho |
 | Rama estructurada (MCP) | Hecho |
 | Control de acceso en las dos ramas | Hecho y medido |
-| Bancos de evaluación por inquilino | Hecho (53 + 38 casos) |
+| Bancos de evaluación por inquilino | Hecho (53 + 40 + 28 casos) |
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
