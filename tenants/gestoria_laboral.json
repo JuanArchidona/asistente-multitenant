@@ -1,0 +1,75 @@
+{
+  "id": "gestoria_laboral",
+  "nombre": "Asesoria Marin y Lasheras",
+  "descripcion": "Gestoria laboral y fiscal ficticia de Zaragoza, 6 personas, que lleva nominas, altas y bajas e impuestos de unas 40 pymes. Tercer inquilino del sistema, dado de alta el 23-09-2026 cronometrando cada paso (HALLAZGOS.md s43) para medir la afirmacion de que un cliente nuevo no exige tocar codigo. Solo rama documental: es el alta minima.",
+  "contexto_enrutador": "el asistente interno de una gestoria laboral y fiscal",
+  "categorias": [
+    {
+      "nombre": "laboral",
+      "descripcion": "altas y bajas en la Seguridad Social y sus plazos, contratos, nominas (calendario de cierre, variaciones, pagas, finiquitos), convenios y quien lleva cada cosa en materia laboral.",
+      "fuente": "laboral",
+      "destino": "documental"
+    },
+    {
+      "nombre": "fiscal",
+      "descripcion": "calendario fiscal, modelos tributarios, IVA, IRPF, retenciones, plazos de presentacion y de domiciliacion, cierre de recepcion de facturas del trimestre y quien presenta cada impuesto.",
+      "fuente": "fiscal",
+      "destino": "documental"
+    },
+    {
+      "nombre": "clientes",
+      "descripcion": "la ficha de un cliente concreto: quien es, actividad, contacto, datos bancarios y condiciones pactadas con el despacho.",
+      "fuente": "clientes",
+      "destino": "documental"
+    },
+    {
+      "nombre": "procedimientos",
+      "descripcion": "como entra la documentacion al despacho (portal, correo, registro de entrada, firma) y el protocolo de datos personales. No los plazos de nominas ni los fiscales, que tienen su categoria.",
+      "fuente": "procedimientos",
+      "destino": "documental"
+    },
+    {
+      "nombre": "actas",
+      "descripcion": "preguntas sobre decisiones, acuerdos o tareas de reuniones internas pasadas.",
+      "fuente": "actas",
+      "destino": "documental"
+    }
+  ],
+  "solapamientos": [],
+  "servidores_mcp": [],
+  "escrituras": [],
+  "aprobacion_requiere": "",
+  "politica": {
+    "documentos_restringidos": [
+      {
+        "archivo": "ficha_cliente_horno_lasheras_confidencial.md",
+        "requiere": "socio",
+        "motivo": "Datos identificativos, bancarios y honorarios pactados de un cliente."
+      }
+    ],
+    "campos_sensibles": []
+  },
+  "ai_act": {
+    "clasificacion": "transparencia_art_50",
+    "puntos_anexo_iii": [
+      "4"
+    ],
+    "excepcion_art_6_3": {
+      "condicion": "a",
+      "justificacion": "El asistente responde consultas sobre plazos, procedimientos y normativa reproduciendo la documentacion del despacho. Es una tarea de procedimiento limitada: recuperar y citar. Toca el punto 4 del anexo III porque el despacho gestiona nominas y contratos de los trabajadores de sus clientes, pero el sistema no decide ni recomienda nada sobre ninguna persona: no evalua rendimiento, no interviene en contrataciones ni despidos, y la ficha de cliente con datos personales se retiene por permiso dentro de la busqueda.",
+      "usos_excluidos": [
+        "evaluar, clasificar o comparar a trabajadores de los clientes",
+        "recomendar contrataciones, despidos o sanciones",
+        "calcular o proponer condiciones retributivas individuales"
+      ],
+      "perfila_personas": false
+    },
+    "aviso_usuario": "Respuesta generada por un asistente de IA a partir de la documentacion interna de Asesoria Marin y Lasheras. Los plazos y modelos se confirman en la sede electronica correspondiente.",
+    "evaluado": "2026-09-23",
+    "fuentes": [
+      "Reglamento (UE) 2024/1689, texto original: https://eur-lex.europa.eu/eli/reg/2024/1689/oj",
+      "Reglamento (UE) 2026/1744 (Omnibus digital sobre IA), DO: https://eur-lex.europa.eu/legal-content/ES/TXT/?uri=OJ:L_202601744",
+      "docs/MODULO_4.md, seccion del articulo 6 (citas literales y calendario)"
+    ]
+  }
+}

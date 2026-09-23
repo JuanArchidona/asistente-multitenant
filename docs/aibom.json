@@ -1085,6 +1085,12 @@
     },
     {
       "type": "data",
+      "name": "corpus/gestoria_laboral",
+      "documents": 6,
+      "origin": "sintetico, escrito para el proyecto; ningun dato real"
+    },
+    {
+      "type": "data",
       "name": "datos/agencia_inmobiliaria/crm.json",
       "documents": 1,
       "origin": "sintetico, generado con semilla fija por scripts/generar_crm_agencia.py"

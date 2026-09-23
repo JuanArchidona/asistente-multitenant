@@ -2650,3 +2650,78 @@ rechazar entra en el historial de la conversación antes del rerun, la
 propuesta fuerza la pasada, y la barra lateral cuenta propuestas, aprobadas y
 rechazadas. La lección es la misma del §38: la cadena estaba bien y lo que
 falló fue lo último que se añadió, el botón.
+
+## 43. Dar de alta un cliente nuevo cuesta cinco minutos y cuarenta y dos segundos, y ningún fichero de código
+
+**Ejecuciones:** `reports/gestoria_alta/` y `reports/gestoria_alta_v2/`
+(banco del tercer inquilino, 28 casos, sin juez, 0,12 USD las dos),
+23-09-2026, con la hora de cada fase anotada al pasar. Es la medida que
+`CLAUDE.md` §4 prometía desde el principio: *"si dar de alta un cliente exige
+editar un `.py`, la costura está mal puesta, y eso se mide cronometrando el
+alta al final del proyecto"*.
+
+**El inquilino.** `gestoria_laboral`, Asesoría Marín y Lasheras: gestoría
+laboral y fiscal ficticia, cinco categorías documentales (laboral, fiscal,
+clientes, procedimientos, actas), seis documentos, uno restringido al rol
+`socio` (la ficha de un cliente con IBAN, DNI y honorarios), una inyección
+pegada en un acta, clasificación por el AI Act (anexo III punto 4 con
+excepción 6.3(a)), sin rama estructurada. Es el alta mínima: lo que un cliente
+que solo trae documentos necesita.
+
+**El cronómetro.**
+
+| Fase | Hora | Acumulado |
+|---|---|---|
+| Inicio | 11:33:24 | 0:00 |
+| Manifiesto (categorías, política, AI Act) y seis documentos escritos | 11:35:24 | 2:00 |
+| Golden set de 28 casos escrito | 11:37:03 | 3:39 |
+| Validación con la suite (manifiesto, banco, AI Act): **pasa a la primera** | 11:37:10 | 3:46 |
+| Índice construido: 17 fragmentos, 2.912 tokens de embeddings | 11:37:30 | 4:06 |
+| Primera pasada del banco: **20 de 28** | 11:38:01 | 4:37 |
+| Segunda iteración: tres descripciones de categoría reescritas, banco repetido: **25 de 28** | 11:39:06 | **5:42** |
+
+`git status` sobre `src/`, `evals/*.py`, `mcp_servers/`, `app.py` y `tests/`
+al terminar: **vacío**. Todo lo que distingue al inquilino está en
+`tenants/gestoria_laboral.json`, `corpus/gestoria_laboral/` y
+`evals/datasets/gestoria_laboral/`.
+
+**Lo que dijo el banco, las dos veces.**
+
+| | Primera pasada | Segunda |
+|---|---|---|
+| Casos OK | 20/28 | **25/28** |
+| `routing` | 0,769 | **0,923** |
+| Cobertura del riesgo | 0,857 | **1,0** |
+| Sin fuga (5 casos medidos) | 5/5 | 5/5 |
+| Casos que fallan por enrutado | 5, todos a `procedimientos` | 2 |
+
+La primera pasada repitió el §1 letra por letra: **el enrutador es el primer
+cuello de botella de un cliente nuevo**. La descripción de `procedimientos`
+decía "plazos internos", y cinco preguntas sobre plazos de nóminas, de
+facturas y de responsables cayeron ahí. La segunda iteración quitó esa frase,
+puso los plazos en `laboral` y `fiscal`, y dijo explícitamente en
+`procedimientos` qué no es suyo. Treinta y cinco segundos, cinco casos
+recuperados. Los tres que quedan: una consulta que dice literalmente "plazos
+internos" y el enrutador sigue mandando a `procedimientos` (`agg-01`); una
+comida de Navidad que va a `otro` en vez de a `actas`, y se abstiene igual
+(`ooc-04`); y un caso donde el modelo escribe "5 días de antelación" y el
+banco exige el literal "cinco dias antes" (`front-03`). El tercero es una
+expectativa demasiado literal, y **no se corrige hoy**: corregir un caso
+después de ver el resultado es exactamente lo que la regla del proyecto
+prohíbe, y se anota para revisarlo con criterio y no con prisa.
+
+**Lo que enseña.** Tres cosas. Que la afirmación de arquitectura es ahora un
+número: cinco minutos y cuarenta y dos segundos, dos iteraciones, cero
+ficheros de código. Que el control de acceso y la clasificación por el AI Act
+del cliente nuevo salen **gratis** con el manifiesto: los cinco casos de
+confidencialidad pasaron sin fuga a la primera y el socio obtuvo el dato
+(`auth-cli-01`), porque el permiso va en la búsqueda y no en ningún sitio
+que hubiera que escribir. Y que el coste real del alta no es escribir, es
+**iterar la taxonomía con el banco delante**: sin los 28 casos, la primera
+descripción de `procedimientos` habría llegado a producción con un 77 % de
+acierto en el enrutado y nadie lo habría sabido.
+
+Una salvedad que hay que decir: el alta la hizo un asistente de código con el
+proyecto entero en contexto. Una persona que llegue nueva tardará más en
+escribir el corpus y el golden set; lo que no cambia es que no hay que tocar
+código, y eso es lo que el número mide.

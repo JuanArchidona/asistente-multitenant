@@ -71,6 +71,7 @@ Cada llamada a un modelo es una transferencia de datos a este servicio
 |---|---|---|
 | `corpus/agencia_inmobiliaria` | 10 | sintetico, escrito para el proyecto; ningun dato real |
 | `corpus/empresa_servicios` | 7 | sintetico, escrito para el proyecto; ningun dato real |
+| `corpus/gestoria_laboral` | 6 | sintetico, escrito para el proyecto; ningun dato real |
 | `datos/agencia_inmobiliaria/crm.json` | 1 | sintetico, generado con semilla fija por scripts/generar_crm_agencia.py |
 
 ## Como se mantiene

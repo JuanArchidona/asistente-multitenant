@@ -145,6 +145,14 @@ def test_el_tope_por_defecto_es_pequeno(monkeypatch, tmp_path):
     assert 0 < tope <= 5
 
 
-def test_el_ejemplo_versionado_es_json_valido_con_cuatro_usuarios():
+def test_el_ejemplo_versionado_cubre_cada_inquilino_con_y_sin_roles():
+    """Dos usuarios por inquilino: uno sin roles y uno con el rol que abre lo
+    restringido. Es lo que la demo necesita para ensenar el control de acceso."""
     datos = json.loads(FICHERO_EJEMPLO.read_text(encoding="utf-8"))
-    assert len(datos["usuarios"]) == 4
+    por_tenant: dict[str, list[list[str]]] = {}
+    for u in datos["usuarios"]:
+        por_tenant.setdefault(u["tenant"], []).append(u["roles"])
+    assert set(por_tenant) == set(listar_tenants())
+    for tenant, roles in por_tenant.items():
+        assert any(r == [] for r in roles), f"{tenant}: falta un usuario sin roles"
+        assert any(r for r in roles), f"{tenant}: falta un usuario con rol"
