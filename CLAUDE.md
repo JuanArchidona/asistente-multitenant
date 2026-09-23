@@ -56,7 +56,7 @@ y control de acceso estructural. **840 tests en verde**, `ruff` limpio.
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | Pendiente |
-| Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render pendiente**: `render.yaml` listo, falta crear el servicio (tarea de navegador) |
+| Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). El servicio se suspende fuera de las pruebas |
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |

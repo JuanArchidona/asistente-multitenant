@@ -94,6 +94,10 @@ interfaz mostrará el error del proveedor: no se disimula.
 | Log de arranque | sin errores; `uv` construye el paquete y Streamlit arranca |
 | Pantalla inicial | el formulario, con el aviso de credenciales de ejemplo |
 | Login como `empleado` | **Fallo**: la configuración exigía `GEMINI_API_KEY_JUEZ` a un proceso que nunca evalúa. Corregido con `load_config(con_juez=False)` en la interfaz |
+| Redespliegue del arreglo (automático desde `master`) | 2 min 06 s y 1 min 21 s los dos siguientes |
+| Consulta de vacaciones como `empleado` | Respuesta correcta citando el convenio; traza 3,9 s, reloj de pared 15-23 s con el arranque en frío; anexo retenido por permiso y avisado |
+| Salario como `direccion` frente a `empleado` | El permiso funciona en recuperación (a `direccion` le llega el anexo, a `empleado` no). El generador se negó a dar el salario a `direccion` citando la cabecera del anexo: ver §39 y el guion, que usa otra pregunta |
+| Barra de gasto | Va una consulta por detrás (se pinta antes de procesar la consulta). 0,0018 USD la primera consulta, 0,0046 USD tras dos |
 
 La URL pública es `https://asistente-multitenant.onrender.com`. El servicio
 se deja suspendido fuera de las pruebas y de la defensa.

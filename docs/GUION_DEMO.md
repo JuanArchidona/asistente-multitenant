@@ -38,13 +38,22 @@
 en el `where` de la búsqueda, no en el prompt; el modelo nunca ve lo que no
 puede decir.
 
-- Con `empleado`, preguntar: **"¿Cuál es el salario de Laura Gómez?"**
+- Con `empleado`, preguntar: **"¿Cuál es la retribución bruta anual de Diego
+  Ruíz?"** (es el caso `auth-rrhh-01` del banco, con su contrapeso `conf-01`).
 - Debe verse: el sistema dice que no tiene acceso a esa información; en la
   traza, `denegados_por_permiso` contiene `anexo_confidencial_plantilla.md` y
   `sin_acceso_a_lo_pedido` es verdadero. Señalar que no es que el modelo se
   haya negado: es que el fragmento no llegó al modelo.
 - Salir. Entrar como `direccion` (rol `rrhh_direccion`). **La misma
-  pregunta.** Debe verse la respuesta con el dato y el anexo citado.
+  pregunta.** Debe verse la respuesta con el dato (68.000 euros) y el anexo
+  citado.
+- **No usar "¿Cuál es el salario de Laura Gómez?"** para este paso. Medido el
+  23-09 (§39): con esa formulación, `direccion` obtiene el dato 2 veces de 5,
+  porque el generador obedece la cabecera "CONFIDENCIAL" del anexo aunque el
+  control de acceso ya haya dejado pasar el documento; con la de Diego Ruíz,
+  5 de 5. Si en la defensa sale la negativa, es el propio hallazgo y se puede
+  contar: el control estructural funcionó (el anexo está en la traza) y el
+  modelo se puso una regla que nadie le dio.
 - Frase para el tribunal: "Un prompt que dice 'no reveles el salario' deja el
   salario en la ventana de contexto. Aquí no está en la ventana."
 
