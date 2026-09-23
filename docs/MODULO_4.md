@@ -97,12 +97,42 @@ es trivial y que conviene que sea el núcleo del capítulo normativo:
 > y el manifiesto es donde eso se declara.**
 
 Un asistente interno de conocimiento sobre procedimientos y normativa cae en
-**riesgo limitado**: obligación de información, artículo 50, en vigor desde el 2
-de agosto de 2026. Pero el corpus del inquilino heredado incluye **datos de
-plantilla con salarios individuales y evaluaciones de desempeño**, y el anexo III
-del reglamento sitúa en **alto riesgo** los sistemas usados en empleo y gestión
-de trabajadores. Si el asistente se usara para apoyar decisiones sobre personas,
-cambia de categoría.
+la obligación de transparencia del **artículo 50.1**: *"los sistemas de IA
+destinados a interactuar directamente con personas físicas se diseñen y
+desarrollen de forma que las personas físicas de que se trate estén informadas
+de que están interactuando con un sistema de IA"*. La etiqueta "riesgo
+limitado" es doctrinal, no aparece en el artículo. Aplica desde el **2 de
+agosto de 2026** (regla general del artículo 113), así que **ya está en
+aplicación en la fecha de la defensa**. Pero el corpus del inquilino heredado
+incluye **datos de plantilla con salarios individuales y evaluaciones de
+desempeño**, y el **anexo III, punto 4** ("Empleo, gestión de los trabajadores
+y acceso al autoempleo") sitúa en **alto riesgo** los sistemas destinados a
+*"supervisar y evaluar el rendimiento y el comportamiento"* o a decidir sobre
+promoción o rescisión. Si el asistente se usara para apoyar decisiones sobre
+personas, cambia de categoría. La vía de salida es el **artículo 6.3**: no es
+de alto riesgo un sistema del anexo III que *"no plantee un riesgo importante
+de causar un perjuicio a la salud, la seguridad o los derechos fundamentales"*,
+por ejemplo por hacer una *"tarea de procedimiento limitada"*, y quien lo
+alegue *"documentará su evaluación"* (apartado 4). Esa documentación es
+exactamente el manifiesto del inquilino.
+
+**El calendario cambió el 27 de julio de 2026, y hay que citarlo con el texto
+vigente.** El Reglamento (UE) 2026/1744, de 8 de julio de 2026 (el "Ómnibus
+digital sobre IA", DO L de 24 de julio de 2026), reescribió el artículo 113:
+las obligaciones de los sistemas de alto riesgo del anexo III pasan del 2 de
+agosto de 2026 al **2 de diciembre de 2027**, y las de los sistemas integrados
+en productos del anexo I al 2 de agosto de 2028. Para la clasificación por
+inquilino eso significa que, en octubre de 2026, el artículo 50 obliga y el
+capítulo III de alto riesgo todavía no; la clasificación se defiende como
+diseño anticipado, no como cumplimiento exigible. Fuentes: texto original en
+EUR-Lex (`eur-lex.europa.eu/eli/reg/2024/1689/oj`), consolidado a 27-07-2026
+(`CELEX:02024R1689-20260727`, que "no surte efecto jurídico" y remite al DO),
+Ómnibus en EUR-Lex (`OJ:L_202601744`) y en el BOE (`DOUE-L-2026-81147`), y
+la página de la Comisión sobre el marco regulatorio de la IA, que confirma las
+dos fechas nuevas. Las citas literales las trajo la app de Claude el
+23-09-2026 leyendo EUR-Lex (encargo E-0004 del puente); la existencia del
+Ómnibus y las fechas se contrastaron desde Claude Code contra la Comisión y el
+BOE, porque EUR-Lex no se deja leer desde un proceso sin navegador.
 
 Que eso se pueda decidir **por inquilino** y quede escrito en
 `tenants/<id>.json` es un argumento de arquitectura que sale directamente de una

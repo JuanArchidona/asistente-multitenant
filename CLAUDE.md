@@ -294,6 +294,14 @@ y §14).
   única vía a un juez repetible es el juez de Gemini, que es además el de otra
   familia.
 
+- **El calendario del AI Act cambió el 27-07-2026 y el capítulo tiene que
+  citar el texto vigente.** El Reglamento (UE) 2026/1744 (Ómnibus digital
+  sobre IA) retrasa las obligaciones de alto riesgo del anexo III al **2 de
+  diciembre de 2027**; el artículo 50 (informar de que se interactúa con una
+  IA) aplica desde el 2 de agosto de 2026 y ya rige en la defensa. La
+  clasificación por inquilino se presenta como diseño anticipado, no como
+  cumplimiento exigible. Contrastado el 23-09 contra la Comisión y el BOE;
+  citas literales y fuentes en `docs/MODULO_4.md`, sección del artículo 6.
 - **El resultado de sesgo es nulo en una capa, no una ausencia de sesgo.**
   Ningún eje —género, edad, origen, discapacidad— alcanza el doble de su suelo
   de ruido en la recuperación, y el enrutado es estable en las seis variantes de
