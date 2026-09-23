@@ -9,8 +9,9 @@
 > abajo y marcadas como CORRECCION, porque un documento que describe mal una
 > puerta de gasto es peor que no tenerlo.
 >
-> Estado de montaje: los puntos 1 y 2 del §7 estan **hechos** (`puente/`). Los
-> puntos 3, 4 y 5 siguen siendo propuesta.
+> Estado de montaje a 23-09-2026: los puntos 1, 2, 3, 5 y 6 del §7 estan
+> **hechos** (`puente/`). Queda el 4 (`medir_tfm`). El 6 es el cierre del
+> ciclo: la app avisa a Claude Code y Claude Code se entera solo.
 
 ## 1. El punto de partida, y por que importa
 
@@ -284,11 +285,53 @@ pagarlos:
    distincion se perdiera, el registro de la app acabaria compitiendo con
    `CLAUDE.md` por decir como esta el proyecto.
 
-Los puntos 2, 3 y 4 son independientes entre si una vez resuelto el 1, y cada uno
-aporta valor por separado. Si el proyecto se queda sin tiempo, el orden de
+6. **Cerrar el ciclo: que Claude Code se entere solo.** **HECHO** el
+   23-sep-2026. Hasta entonces el canal de vuelta terminaba en un fichero que
+   alguien tenia que acordarse de leer, y el primer caso real lo demostro: la
+   tutoria (E-0001) se registro desde Claude Code sin pasar por la app, y el
+   buzon se quedo diciendo PENDIENTE. Cuatro piezas, todas en `puente/`:
+   - **Modo del encargo**, `desatendido` o `supervisado`, que decide quien
+     encarga. `encargos_tfm` admite `solo_desatendidos` para que una tarea
+     programada no intente lo que no puede hacer, y dice cuantos deja fuera.
+   - **Enlace profundo** `claude://claude.ai/project/<uuid>?q=...` desde
+     `encargar.mjs --abrir`: abre la app en el proyecto con la orden en la
+     caja. **No auto-envia**, y esta documentado como decision deliberada: la
+     ida totalmente desatendida solo existe por la tarea programada.
+   - **Aviso y analisis al registrar.** `registrar_tfm` crea un aviso en
+     `AVISOS_CODE.md` y lanza `analizar.mjs` desprendido: una sesion de solo
+     lectura (las mismas banderas que `consultar_tfm`) que anota en 10-30 s si
+     el resultado cumple el criterio, que hay que contrastar, a que afecta y
+     que accion propone. El puente es un proceso vivo justo cuando llega el
+     resultado, asi que el evento es el disparador: ni demonio, ni detector
+     que caduque, ni tarea de Windows.
+   - **Hook de Claude Code** (`.claude/settings.json`, `UserPromptSubmit`):
+     `avisos.mjs --hook` inyecta los avisos sin atender en cada prompt, y no
+     escribe nada si no hay. Es la regla que no hay que acordarse de aplicar.
+
+   **La cadena termina en Claude Code**, y es la regla que no se negocia. Un
+   puente equivalente de este equipo la formulo el 21-09 tras tres errores en
+   una manana que solo se cazaron porque habia dos miradas distintas: si los
+   dos lados reaccionan automaticamente el uno al otro, la segunda mirada se
+   convierte en un eco. Aqui esta impuesta por estructura (la sesion de
+   analisis no puede escribir) y por texto (la inyeccion dice que volver a
+   encargar pasa por Juan).
+
+   **Lo que ese puente equivalente midio y este hereda sin volver a pagar**:
+   una tarea programada alcanza el puente MCP local pero no el navegador ni
+   la carpeta; corta a unos 60 s; y su ciclo desatendido no funciono nunca
+   (15 pasadas, 0 encargos, 8 caidas por leer el buzon con una sesion de
+   Claude Code entera). Aqui `encargos_tfm` es literal y el analisis corre
+   fuera del proceso de la app, asi que la hipotesis merece medirse otra
+   vez; hasta que una tarea programada registre un encargo real, el modo
+   desatendido es hipotesis y no capacidad.
+
+Los puntos 2, 3, 4 y 6 son independientes entre si una vez resuelto el 1, y cada
+uno aporta valor por separado. Si el proyecto se queda sin tiempo, el orden de
 sacrificio es el inverso: **el 4 es el que mas aporta y el que mas riesgo trae**.
 
-Al 22-sep-2026 queda pendiente **solo el punto 4**.
+Al 23-sep-2026 queda pendiente **solo el punto 4**, y dos mediciones del 6 que
+solo se pueden hacer con la app: un encargo ejecutado desde el enlace profundo
+y un encargo desatendido registrado por la tarea programada.
 
 ## 8. Mantenimiento
 

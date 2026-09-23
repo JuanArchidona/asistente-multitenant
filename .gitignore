@@ -26,6 +26,10 @@ Thumbs.db
 # TFM resulta pedir lo contrario. Ver docs/SINCRONIZACION_SUPERFICIES.md §4.
 puente/ENCARGOS_APP.md
 puente/REGISTRO_APP.md
+# Y el canal de vuelta (avisos a Claude Code con su analisis) y el identificador
+# del proyecto de la app: mismo motivo. Anadidos el 2026-09-23.
+puente/AVISOS_CODE.md
+puente/proyecto.local.json
 # Material docente del master. Vive en `Master/Modulo N/N.X/Documentacion/`,
 # fuera de este repositorio, por dos motivos: es obra de un profesor y este
 # repositorio es publico, asi que commitearlo seria redistribuirla; y son

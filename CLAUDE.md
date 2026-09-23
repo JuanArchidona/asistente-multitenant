@@ -319,14 +319,20 @@ un canal de vuelta.
 | Para qué | Todo el desarrollo: código, corpus, bancos, mediciones, documentación | Lo que Claude Code no puede hacer |
 | Concretamente | | Tareas de navegador con Claude in Chrome (formularios, altas), discusión de diseño, redacción de material |
 | Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
-| Encargos | **Los escribe**, con `node puente/encargar.mjs` | **Los lee**, con `encargos_tfm` |
+| Encargos | **Los escribe**, con `node puente/encargar.mjs`, declarando el modo (`desatendido` o `supervisado`) y abriendo la app con `--abrir` si hace falta a Juan | **Los lee**, con `encargos_tfm`; los desatendidos, la tarea programada del proyecto |
 | Registro de lo hecho | **Lo lee**, en `puente/REGISTRO_APP.md` | **Lo escribe**, con `registrar_tfm` |
+| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho; los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
 
-Los dos ficheros del puente **no están versionados** y por eso no los ve el
+Los ficheros del puente **no están versionados** y por eso no los ve el
 conector de GitHub: toda lectura desde la app pasa obligatoriamente por el
 puente. Escribir en el buzón es lo único que la app no puede hacer, y es
-deliberado: quien ejecuta los encargos no puede darse encargos a sí mismo. El
-detalle está en `docs/SINCRONIZACION_SUPERFICIES.md`.
+deliberado: quien ejecuta los encargos no puede darse encargos a sí mismo. Y
+**la cadena termina en Claude Code**: un aviso nunca genera un encargo nuevo
+por sí solo; si la acción es volver a encargar, pasa por Juan. Desde el
+23-09-2026 el ciclo está montado y medido en simulación; lo que falta medir con
+la app son dos cosas, un encargo ejecutado desde el enlace profundo y uno
+desatendido registrado por la tarea programada. El detalle está en
+`docs/SINCRONIZACION_SUPERFICIES.md` §7.6 y `puente/README.md`.
 
 **El repositorio es la fuente de verdad y la app no.** Sus instrucciones de
 proyecto lo dicen: ante una contradicción, gana lo que haya aquí. Y por el mismo
