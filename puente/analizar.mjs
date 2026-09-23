@@ -78,7 +78,10 @@ const prompt = [
   entradaRegistro(aviso.selloRegistro),
 ].join("\n");
 
-const r = await sesionLectura(prompt);
+// El analisis no lo espera la app, asi que no le aplica su corte de 60 s. El
+// primero real (A-0002) tardo 42,8 s: con el tope de 50 s de consultar_tfm se
+// habria cortado a la siguiente pregunta un poco mas larga.
+const r = await sesionLectura(prompt, 150_000);
 const sello = ahora();
 const bloque = r.ok
   ? `### Analisis automatico (${sello})\n\n${r.texto}`

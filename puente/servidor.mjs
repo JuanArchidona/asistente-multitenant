@@ -341,9 +341,9 @@ function consultarTfm({ pregunta }) {
  * automatico de `analizar.mjs`; las banderas son las mismas porque la garantia
  * es la misma: la sesion hija no puede escribir ni ejecutar nada.
  */
-function sesionLectura(prompt) {
+function sesionLectura(prompt, timeoutMs = TIMEOUT_MS) {
   const inicio = Date.now();
-  return sesionLecturaSinLog(prompt).then((r) => {
+  return sesionLecturaSinLog(prompt, timeoutMs).then((r) => {
     // Una linea por sesion, con la duracion. Es lo que faltaba el 23-09 para
     // saber por que una consulta desde la app supero los 60 s cuando la misma
     // pregunta desde aqui tardo 14: sin registro solo se puede suponer.
@@ -360,7 +360,7 @@ function sesionLectura(prompt) {
   });
 }
 
-function sesionLecturaSinLog(prompt) {
+function sesionLecturaSinLog(prompt, timeoutMs) {
   return new Promise((resolver) => {
     const hijo = spawn(CLAUDE_BIN, BANDERAS, {
       cwd: REPO,
@@ -378,11 +378,11 @@ function sesionLecturaSinLog(prompt) {
       resolver({
         ok: false,
         texto:
-          `La consulta supero el limite de ${TIMEOUT_MS / 1000} s y se corto. ` +
+          `La consulta supero el limite de ${timeoutMs / 1000} s y se corto. ` +
           `No es una respuesta parcial: no hay respuesta. Reformula la pregunta ` +
           `para que abarque menos, o leelo por el conector si ya esta pusheado.`,
       });
-    }, TIMEOUT_MS);
+    }, timeoutMs);
 
     hijo.stdout.on("data", (d) => (salida += d));
     hijo.stderr.on("data", (d) => (error += d));
