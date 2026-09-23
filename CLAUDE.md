@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **790 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **796 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -146,7 +146,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 790 tests, sin llamadas a API
+uv run pytest                                      # 796 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -296,6 +296,14 @@ y §14).
   única vía a un juez repetible es el juez de Gemini, que es además el de otra
   familia.
 
+- **El modelo de embeddings está en retirada y su coste no lo contabiliza
+  nadie** (§35, destapado por el AIBOM el 23-09). `gemini-embedding-001`
+  cierra el 14-05-2028 con sucesor `gemini-embedding-2`, ya no aparece en la
+  página de precios, y `src/embeddings.py` no cuenta tokens. Migrar de modelo
+  de embeddings **invalida el índice y mueve las métricas de recuperación**:
+  es decisión de línea base con corte fechado, como la del 22-09, no un
+  cambio de configuración. Hasta entonces, toda cifra de coste del proyecto
+  excluye los embeddings y hay que decirlo al citarla.
 - **El calendario del AI Act cambió el 27-07-2026 y el capítulo tiene que
   citar el texto vigente.** El Reglamento (UE) 2026/1744 (Ómnibus digital
   sobre IA) retrasa las obligaciones de alto riesgo del anexo III al **2 de

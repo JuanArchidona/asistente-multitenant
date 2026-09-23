@@ -2196,3 +2196,53 @@ se ven leyendo el codigo. No se vieron; se vieron al mirar el resultado y
 preguntarse por que un eje salia tan alto. **Mirar el resultado con desconfianza
 funciono las tres veces, y es mas barato que acertar a la primera, pero solo
 funciona si se mira.**
+
+## 35. El inventario destapó, al generarse, que el modelo de embeddings está en retirada y cuesta cero
+
+**Ejecución:** ninguna. Salió de `uv run python scripts/generar_aibom.py`, la
+primera vez que se ejecutó, el 23-09-2026.
+
+**Qué se buscaba.** Cerrar el riesgo R-09 (cadena de suministro, OWASP LLM 5)
+con un AIBOM generado desde los ficheros del repositorio. La prueba
+`test_todo_modelo_por_defecto_tiene_precio` se escribió antes de generar nada,
+como control: un modelo sin precio en la tabla de `provider.py` cuesta cero en
+silencio, y eso ya había pasado una vez (§28).
+
+**Qué salió.** La prueba falló a la primera. El inventario listaba cuatro
+modelos por defecto y uno, `gemini-embedding-001`, no tenía precio. Al tirar
+del hilo:
+
+- `src/embeddings.py` **no contabiliza nada**: ni tokens ni coste. Cada
+  indexación y cada consulta llaman al modelo de embeddings y ninguna cifra de
+  coste del proyecto lo incluye. Es el §28 otra vez, en la única llamada que
+  no pasa por la capa de proveedor.
+- La página de precios de Google **ya no lista `gemini-embedding-001`**: lista
+  `gemini-embedding-2` a 0,20 USD por millón de tokens de entrada. Contrastado
+  el 23-09-2026.
+- La página de retiradas de Google lo da como **retirado, con cierre el 14 de
+  mayo de 2028** y sucesor `gemini-embedding-2`. Y `text-embedding-004`, el
+  que las entregas anteriores dejaron de usar, cerró el 14 de enero de 2026,
+  como decía `CLAUDE.md` del máster.
+- El inventario contaba 11 documentos en el corpus de la agencia y son 10: el
+  README de la raíz del inquilino no lo indexa `ingest.py`. Corregido en el
+  generador; es el mismo error que un inventario escrito a mano no habría
+  detectado nunca porque nadie lo habría contado.
+
+**Qué se hizo.** El AIBOM muestra el modelo como "sin precio en la tabla" en
+vez de omitirlo, y la prueba afirma que la lista de modelos sin precio es
+exactamente `["gemini-embedding-001"]`: si aparece otro, o si este deja de
+estarlo, la suite lo dice. No se le ha puesto un precio porque el proveedor ya
+no lo publica y ponerlo de memoria sería el §21 al revés.
+
+**Qué queda.** Dos decisiones, y las dos son de línea base: contabilizar los
+tokens de embeddings en la capa de proveedor, y migrar a `gemini-embedding-2`
+antes de que la retirada lo fuerce. La segunda invalida el índice y mueve las
+métricas de recuperación de los 91 casos, así que no es un cambio de
+configuración: es un corte de comparabilidad como el del 22-09 (`ALCANCE.md`
+§5.c) y hay que fecharlo igual.
+
+**Lo que enseña.** Un inventario generado vale por lo que descubre al
+generarse, no por lo que lista. Aquí la primera ejecución rindió tres
+hallazgos —un coste sin contabilizar, un modelo en retirada y un documento de
+más— y ninguno habría salido de una lista escrita a mano, porque una lista
+escrita a mano lista lo que uno cree que tiene.

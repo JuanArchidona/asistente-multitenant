@@ -35,9 +35,9 @@
 | R-04 | Exfiltración de credenciales por un agente hijo (puente) | DC | 7 | AML.T0053, AML.T0057 | B | §19 | `--restricted`, sin `Write`, lista de denegación sobre `.env` y `.git/config` | **Medido.** Sin la lista leía el `.env` entero (31 líneas con claves); con ella lo deniega y lo dice. Descubierto probando, no diseñando |
 | R-05 | Alucinación: citas a documentos que no existen | CC | 9 | — | D | §23 | Verificador determinista de citas, aplicable al pasado a coste cero | **Medido.** 588 de 588 citas resolubles en 22 ejecuciones, cero inventadas. Residual: la rama estructurada no dice de qué herramienta sale cada dato |
 | R-06 | Sobre-dependencia del juez LLM como instrumento de medida | DC | 9 | — | D | §26, §30, §32, §33 | Ninguna decisión cuelga de una métrica de juez; el veredicto lo anclan métricas deterministas | **Medido.** 4 de 24 veredictos espurios, todos suspendiendo lo que debía aprobar; `casos_ok` con juez es un suelo; `temperature=0` descartado en silencio por el SDK |
-| R-07 | Cambio de comportamiento del proveedor sin aviso (API, modelos retirados, parámetros ignorados) | CD | 5 | AML.T0010 | D | §26, §28, §29 | Tabla de precios viva con test que recalcula desde tokens; conmutación de proveedor verificada de extremo a extremo; modelos con fecha en el identificador | **Medido, dos instancias.** `gemini-2.5-flash` retirado para proyectos nuevos; `claude-sonnet-5` descarta `temperature`; un modelo sin precio costaba cero |
+| R-07 | Cambio de comportamiento del proveedor sin aviso (API, modelos retirados, parámetros ignorados) | CD | 5 | AML.T0010 | D | §26, §28, §29, §35 | Tabla de precios viva con test que recalcula desde tokens; conmutación de proveedor verificada de extremo a extremo; modelos con fecha en el identificador; el AIBOM lista cada modelo con su precio o sin él | **Medido, tres instancias.** `gemini-2.5-flash` retirado para proyectos nuevos; `claude-sonnet-5` descarta `temperature`; `gemini-embedding-001` en retirada (cierre anunciado el 14-05-2028) sin precio publicado y sin contabilizar |
 | R-08 | Coste descontrolado y denegación de servicio económica | CC | 4 | AML.T0034, AML.T0029 | E | §16, §17, §21 | Prepago con recarga automática desactivada en los dos proveedores (tope duro); coste por consulta en el registro de producción; clave propia para el juez | **Medido.** Tope 12,66 USD; evaluar cuesta x11 funcionar; una pasada completa con juez 2,53 USD. Residual: sin límite de peticiones por usuario |
-| R-09 | Cadena de suministro: dependencias, modelos y servidores ajenos | CD | 5 | AML.T0010 | B | `uv.lock` | Dependencias fijadas con `uv.lock`; servidores MCP como procesos aparte | **Hueco.** Sin AIBOM ni inventario de modelos y versiones; el material cita el incidente de LiteLLM de marzo de 2026 |
+| R-09 | Cadena de suministro: dependencias, modelos y servidores ajenos | CD | 5 | AML.T0010 | B | `AIBOM.md`, §35 | AIBOM generado desde `uv.lock`, `config.py`, `provider.py` y los manifiestos, con test que falla si difiere; servidores MCP como procesos aparte | **Por construcción, y ya rindió.** 10 paquetes directos y 119 transitivos fijados; al generarse destapó que el modelo de embeddings está en retirada y sin coste contabilizado (§35). Residual: la versión de Node del puente no está fijada, y el inventario lo dice |
 | R-10 | Envenenamiento del corpus o del índice | CC | 3 | AML.T0020 | B | `scripts/`, §10, §14 | Corpus sintético generado con semilla fija; firma del índice sobre corpus, política y esquema | **Por construcción, no medido como ataque.** Un cliente real trae su corpus y esta mitigación desaparece: hay que decirlo |
 | R-11 | Índice obsoleto que responde vacío en vez de fallar | DC | — | — | D | §10, §14 | La firma del índice cubre corpus, política y esquema; un índice que no coincide se reconstruye | **Medido.** Costó una ejecución entera descubrir que la firma no cubría el corpus; el segundo eje (§14) apareció donde el arreglo del primero no llegaba |
 | R-12 | Denegación presentada como ausencia ("no he encontrado documentación") | CC | 9 | — | D | §22 | El camino mixto distingue "retenido por permiso" de "no existe" | **Parcial.** El camino documental heredado sigue confundiéndolos; arreglarlo mueve las respuestas del inquilino A y es medición aparte |
@@ -51,7 +51,7 @@
 | R-20 | Salida insegura: la respuesta se ejecuta en algún sitio | CC | 2 | — | B | `agent.py` | La salida es texto para una persona; no alimenta ningún intérprete ni acción | **Por construcción.** Volverá a evaluarse si un canal (correo, WhatsApp) reenvía la salida |
 | R-21 | Contenido inapropiado sin moderación | DC | — | — | C | `MODULO_4.md` | Categoría `otro` con prompt sin fuente para lo fuera de ámbito | **Hueco justificado.** Es el único guardarraíl de los nueve que falta; en un asistente interno sobre documentación propia el vector es la consulta, no el corpus, y R-01 lo cubre en parte. Justificar por qué no está vale tanto como ponerlo |
 | R-22 | Robo del modelo | — | 10 | — | — | — | — | **No aplica.** No hay modelo propio |
-| R-23 | Incidente sin plan: lo que no sabemos que no sabemos | DD | — | — | E | `CLAUDE.md` §8 | Botón rojo de facto: el tope de prepago agota una fuga en una hora | **Hueco.** No hay plan de comunicación ni de respuesta a incidentes; el material los pide para este cuadrante |
+| R-23 | Incidente sin plan: lo que no sabemos que no sabemos | DD | — | — | E | `INCIDENTES.md`, §19, §21, §28, §29 | Botón rojo en orden (revocar, parar, congelar evidencia, rotar); quién avisa a quién; todo incidente termina en un hallazgo | **Parcial.** El plan está escrito y tiene tres precedentes tratados con su formato; **no hay simulacro cronometrado**, ni canal de aviso de usuarios, ni retención definida del registro |
 
 ## 3. Vista por cuadrante de Rumsfeld
 
@@ -98,14 +98,18 @@ el apartado 4 exigirá entonces.
 
 ## 5. Los huecos, por orden de lo que cuesta cerrarlos
 
-1. **R-09, AIBOM**: inventario de dependencias, modelos y versiones. Media
-   hora, y cierra OWASP 5.
-2. **R-23, plan de incidentes**: una página. Qué se para, quién avisa a quién,
-   qué se registra.
-3. **R-17, borrado cronometrado**: un script y una medida.
-4. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
+1. ~~**R-09, AIBOM**~~ **Hecho** el 23-09: `AIBOM.md` generado y vigilado por
+   test. Destapó el §35 al generarse.
+2. ~~**R-23, plan de incidentes**~~ **Escrito** el 23-09: `INCIDENTES.md`. Le
+   falta el simulacro cronometrado.
+3. **R-07 y §35, el modelo de embeddings**: contabilizar su coste y decidir la
+   migración a `gemini-embedding-2` antes de que la retirada la fuerce. Cambiar
+   de modelo de embeddings invalida el índice y mueve las métricas de
+   recuperación: es decisión de línea base, no un cambio de configuración.
+4. **R-17, borrado cronometrado**: un script y una medida.
+5. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
    algo, cuando exista.
-5. **R-13, sesgo en generación**: exige un criterio de equivalencia que no
+6. **R-13, sesgo en generación**: exige un criterio de equivalencia que no
    dependa del juez, y por eso está último.
 
 ## 6. Mantenimiento

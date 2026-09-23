@@ -1,0 +1,1016 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "asistente-multitenant"
+    },
+    "runtime": {
+      "python": "3.11",
+      "requires_python": ">=3.11",
+      "lock_revision": 3
+    },
+    "generated_by": "scripts/generar_aibom.py"
+  },
+  "components": [
+    {
+      "type": "library",
+      "name": "anthropic",
+      "version": "0.121.0",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "chromadb",
+      "version": "1.5.9",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "deepeval",
+      "version": "4.1.7",
+      "source": "https://pypi.org/simple",
+      "group": "judge"
+    },
+    {
+      "type": "library",
+      "name": "google-genai",
+      "version": "2.17.0",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "mcp",
+      "version": "2.2.0",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "pydantic",
+      "version": "2.13.4",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "pypdf",
+      "version": "6.15.0",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "pytest",
+      "version": "9.1.1",
+      "source": "https://pypi.org/simple",
+      "group": "dev"
+    },
+    {
+      "type": "library",
+      "name": "python-dotenv",
+      "version": "1.2.2",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
+      "name": "ruff",
+      "version": "0.16.2",
+      "source": "https://pypi.org/simple",
+      "group": "dev"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "aiohappyeyeballs",
+      "version": "2.7.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "aiohttp",
+      "version": "3.14.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "aiosignal",
+      "version": "1.4.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "annotated-doc",
+      "version": "0.0.5",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "annotated-types",
+      "version": "0.8.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "anyio",
+      "version": "4.14.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "attrs",
+      "version": "26.1.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "backoff",
+      "version": "2.2.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "bcrypt",
+      "version": "5.0.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "build",
+      "version": "1.5.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "certifi",
+      "version": "2026.7.22",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "cffi",
+      "version": "2.1.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "charset-normalizer",
+      "version": "3.4.9",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "click",
+      "version": "8.3.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "colorama",
+      "version": "0.4.6",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "cryptography",
+      "version": "50.0.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "distro",
+      "version": "1.9.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "docstring-parser",
+      "version": "0.18.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "durationpy",
+      "version": "0.10",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "execnet",
+      "version": "2.1.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "filelock",
+      "version": "3.32.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "flatbuffers",
+      "version": "25.12.19",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "frozenlist",
+      "version": "1.8.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "fsspec",
+      "version": "2026.7.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "google-auth",
+      "version": "2.56.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "googleapis-common-protos",
+      "version": "1.75.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "grpcio",
+      "version": "1.83.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "h11",
+      "version": "0.16.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "hf-xet",
+      "version": "1.6.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httpcore",
+      "version": "1.0.9",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httpcore2",
+      "version": "2.13.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httptools",
+      "version": "0.8.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httpx",
+      "version": "0.28.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httpx2",
+      "version": "2.13.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "httpx2-jsfetch",
+      "version": "1.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "huggingface-hub",
+      "version": "1.16.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "idna",
+      "version": "3.18",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "importlib-resources",
+      "version": "7.1.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "iniconfig",
+      "version": "2.3.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "jinja2",
+      "version": "3.1.6",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "jiter",
+      "version": "0.16.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "jsonschema",
+      "version": "4.26.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "jsonschema-specifications",
+      "version": "2025.9.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "kubernetes",
+      "version": "36.0.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "markdown-it-py",
+      "version": "4.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "markupsafe",
+      "version": "3.0.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "mcp-types",
+      "version": "2.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "mdurl",
+      "version": "0.1.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "mmh3",
+      "version": "5.2.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "multidict",
+      "version": "6.7.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "nest-asyncio",
+      "version": "1.6.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "numpy",
+      "version": "2.4.6",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "numpy",
+      "version": "2.5.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "oauthlib",
+      "version": "3.3.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "onnxruntime",
+      "version": "1.28.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "openai",
+      "version": "2.53.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-api",
+      "version": "1.44.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-exporter-otlp-proto-common",
+      "version": "1.44.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-exporter-otlp-proto-grpc",
+      "version": "1.44.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-proto",
+      "version": "1.44.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-sdk",
+      "version": "1.44.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-semantic-conventions",
+      "version": "0.65b0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "orjson",
+      "version": "3.11.9",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "overrides",
+      "version": "7.7.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "packaging",
+      "version": "26.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pluggy",
+      "version": "1.6.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "portalocker",
+      "version": "4.1.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "posthog",
+      "version": "7.38.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "prompt-toolkit",
+      "version": "3.0.53",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "propcache",
+      "version": "0.5.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "protobuf",
+      "version": "7.35.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyasn1",
+      "version": "0.6.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyasn1-modules",
+      "version": "0.4.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pybase64",
+      "version": "1.5.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pycparser",
+      "version": "3.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pydantic-core",
+      "version": "2.46.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pydantic-settings",
+      "version": "2.15.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyfiglet",
+      "version": "1.0.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pygments",
+      "version": "2.20.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyjwt",
+      "version": "2.14.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pypika",
+      "version": "0.51.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyproject-hooks",
+      "version": "1.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pytest-asyncio",
+      "version": "1.4.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pytest-repeat",
+      "version": "0.9.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pytest-rerunfailures",
+      "version": "16.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pytest-xdist",
+      "version": "3.8.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "python-dateutil",
+      "version": "2.9.0.post0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "python-multipart",
+      "version": "0.0.32",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pywin32",
+      "version": "312",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pyyaml",
+      "version": "6.0.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "questionary",
+      "version": "2.1.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "referencing",
+      "version": "0.37.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "requests",
+      "version": "2.34.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "requests-oauthlib",
+      "version": "2.0.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "rich",
+      "version": "14.3.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "rpds-py",
+      "version": "2026.6.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "setuptools",
+      "version": "84.0.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "shellingham",
+      "version": "1.5.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "six",
+      "version": "1.17.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "sniffio",
+      "version": "1.3.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "sse-starlette",
+      "version": "3.4.11",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "starlette",
+      "version": "1.6.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "tabulate",
+      "version": "0.9.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "tenacity",
+      "version": "9.1.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "tokenizers",
+      "version": "0.23.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "tqdm",
+      "version": "4.70.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "truststore",
+      "version": "0.10.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "typer",
+      "version": "0.27.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "typing-extensions",
+      "version": "4.16.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "typing-inspection",
+      "version": "0.4.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "urllib3",
+      "version": "2.7.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "uvicorn",
+      "version": "0.52.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "uvloop",
+      "version": "0.22.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "watchfiles",
+      "version": "1.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "wcwidth",
+      "version": "0.8.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "websocket-client",
+      "version": "1.9.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "websockets",
+      "version": "16.1.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "wheel",
+      "version": "0.47.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "yarl",
+      "version": "1.24.5",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "machine-learning-model",
+      "name": "claude-haiku-4-5-20251001",
+      "supplier": "Anthropic",
+      "endpoint": "https://api.anthropic.com",
+      "roles": [
+        "ANTHROPIC_MODEL_GENERATOR",
+        "ANTHROPIC_MODEL_ROUTER"
+      ],
+      "price_usd_per_mtok": [
+        1.0,
+        5.0
+      ]
+    },
+    {
+      "type": "machine-learning-model",
+      "name": "claude-sonnet-5",
+      "supplier": "Anthropic",
+      "endpoint": "https://api.anthropic.com",
+      "roles": [
+        "BUILDER_MODEL"
+      ],
+      "price_usd_per_mtok": [
+        2.0,
+        10.0
+      ]
+    },
+    {
+      "type": "machine-learning-model",
+      "name": "gemini-3.6-flash",
+      "supplier": "Google",
+      "endpoint": "https://generativelanguage.googleapis.com",
+      "roles": [
+        "GEMINI_MODEL",
+        "JUDGE_MODEL"
+      ],
+      "price_usd_per_mtok": [
+        0.75,
+        3.75
+      ]
+    },
+    {
+      "type": "machine-learning-model",
+      "name": "gemini-embedding-001",
+      "supplier": "Google",
+      "endpoint": "https://generativelanguage.googleapis.com",
+      "roles": [
+        "GEMINI_EMBED_MODEL"
+      ],
+      "price_usd_per_mtok": null
+    },
+    {
+      "type": "service",
+      "name": "Anthropic",
+      "endpoint": "https://api.anthropic.com"
+    },
+    {
+      "type": "service",
+      "name": "Google",
+      "endpoint": "https://generativelanguage.googleapis.com"
+    },
+    {
+      "type": "service",
+      "protocol": "mcp",
+      "name": "agencia_inmobiliaria/crm",
+      "command": "python -m mcp_servers.agencia_crm",
+      "runtime": "python (fijado por .python-version y uv.lock)",
+      "tenant": "agencia_inmobiliaria"
+    },
+    {
+      "type": "service",
+      "protocol": "mcp",
+      "name": "puente/servidor.mjs",
+      "command": "node puente/servidor.mjs",
+      "runtime": "node, SIN FIJAR en el repositorio (sin package.json ni .nvmrc); sin dependencias",
+      "tenant": null
+    },
+    {
+      "type": "data",
+      "name": "corpus/agencia_inmobiliaria",
+      "documents": 10,
+      "origin": "sintetico, escrito para el proyecto; ningun dato real"
+    },
+    {
+      "type": "data",
+      "name": "corpus/empresa_servicios",
+      "documents": 7,
+      "origin": "sintetico, escrito para el proyecto; ningun dato real"
+    },
+    {
+      "type": "data",
+      "name": "datos/agencia_inmobiliaria/crm.json",
+      "documents": 1,
+      "origin": "sintetico, generado con semilla fija por scripts/generar_crm_agencia.py"
+    }
+  ]
+}
