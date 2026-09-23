@@ -45,7 +45,7 @@
 | R-14 | Agencia excesiva: el sistema actúa sin supervisión humana | CC | 8 | — | C | `ALCANCE.md` | Ninguna herramienta escribe en el sistema del cliente; las cinco del CRM son de lectura | **Parcial.** Human-in-the-loop pendiente; hoy lo cubre que no haya acciones, no un control |
 | R-15 | Encadenamiento de agentes sin persona en medio (Claude Code y la app) | CD | 8 | — | C | `SINCRONIZACION_SUPERFICIES.md` §7.6 | La cadena termina en Claude Code: el análisis automático es de solo lectura, la app no puede escribir en el buzón, y volver a encargar pasa por Juan | **Por construcción.** Cuatro encargos reales el 23-09 sin que ningún aviso generase un encargo |
 | R-16 | Vigilancia: el registro de observabilidad guarda quién preguntó qué | CC | — | — | A | §20 | Registro por inquilino con coste por consulta | **Tensión abierta.** Es a la vez la trazabilidad del artículo 12 del AI Act y un riesgo del catálogo del 4.1; falta política de retención y minimización |
-| R-17 | Derechos RGPD sobre el índice: borrado, oposición, actualización | CC | — | — | A | §10, §14 | La firma del índice hace tratable el borrado: se quita el documento, cambia la firma, se reconstruye | **Hueco medible.** No hay camino de borrado ni tiempo medido de un borrado efectivo |
+| R-17 | Derechos RGPD sobre el índice: borrado, oposición, actualización | CC | — | — | A | §36, `reports/borrado_*` | `scripts/borrar_documento.py`: retira el documento, reconstruye el índice y comprueba contra la colección que no queda ningún fragmento suyo; `--restaurar` mide la rectificación | **Medido.** Borrado efectivo en **1,46 s** (agencia) y **1,23 s** (heredado), cero fragmentos residuales y el resto intacto. Residual: es reconstrucción completa, crece con el corpus; las consultas registradas que citaron el documento no se borran (R-16) |
 | R-18 | Transferencia internacional en cada llamada al proveedor | CC | — | — | A | `provider.py` | Corpus y datos sintéticos: hoy no viaja ningún dato real | **Hueco documental.** En producción exige base jurídica (cláusulas tipo o decisión de adecuación) y un DPA con el proveedor; no está escrito |
 | R-19 | Enrutado inestable o erróneo que salta el control | CC | 6 | — | D | §1, §9, §12, §15, §27 | Temperatura 0 en el enrutador; grupos de solapamiento declarativos; taxonomía por inquilino | **Medido.** 3 casos inestables de 38 pasan a 0; cobertura del riesgo 0,778 a 1,0 con el solapamiento. Residual: 1 de 53 sigue variando; `inj-04` |
 | R-20 | Salida insegura: la respuesta se ejecuta en algún sitio | CC | 2 | — | B | `agent.py` | La salida es texto para una persona; no alimenta ningún intérprete ni acción | **Por construcción.** Volverá a evaluarse si un canal (correo, WhatsApp) reenvía la salida |
@@ -106,10 +106,14 @@ el apartado 4 exigirá entonces.
    migración a `gemini-embedding-2` antes de que la retirada la fuerce. Cambiar
    de modelo de embeddings invalida el índice y mueve las métricas de
    recuperación: es decisión de línea base, no un cambio de configuración.
-4. **R-17, borrado cronometrado**: un script y una medida.
-5. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
+4. ~~**R-17, borrado cronometrado**~~ **Medido** el 23-09: 1,46 s y 1,23 s, con
+   comprobación contra la colección (§36).
+5. **R-16, retención del registro de observabilidad**: política escrita y un
+   camino de borrado de las consultas de una persona. Es lo que el §36 deja
+   fuera.
+6. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
    algo, cuando exista.
-6. **R-13, sesgo en generación**: exige un criterio de equivalencia que no
+7. **R-13, sesgo en generación**: exige un criterio de equivalencia que no
    dependa del juez, y por eso está último.
 
 ## 6. Mantenimiento

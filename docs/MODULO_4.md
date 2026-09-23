@@ -145,10 +145,13 @@ individuos, así que aplican el **derecho a borrado, a oposición y a
 actualización**. Y las trazas requieren **gestión de datos y minimización de
 accesos**.
 
-**Hueco, y con una salida que el proyecto ya tiene a medias.** No hay mecanismo
-de borrado, pero la firma del índice hace el camino tratable: se borra el
-documento, la firma cambia, el índice se reconstruye. Eso es **medible** —
-cuánto tarda un borrado efectivo— y encaja con el alta cronometrada del bloque 4.
+**Medido el 23-09-2026** (`HALLAZGOS.md` §36, `scripts/borrar_documento.py`):
+un borrado efectivo —cero fragmentos del documento en la colección, el resto
+intacto— tarda **1,46 s** en la agencia y **1,23 s** en el inquilino heredado,
+y la restauración (el camino de la rectificación) 1,2 y 1,1 s. Es una
+reconstrucción completa del índice, así que crece con el corpus; lo que queda
+defendido es que el camino existe, se verifica contra la colección y está
+medido. Lo que no cubre: las consultas registradas que citaron el documento.
 
 Y el registro de observabilidad (§20), que guarda **quién preguntó qué**, es a la
 vez la evidencia de trazabilidad que pide el artículo 12 y un riesgo de

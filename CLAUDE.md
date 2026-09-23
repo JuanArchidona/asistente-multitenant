@@ -63,6 +63,8 @@ y control de acceso estructural. **796 tests en verde**, `ruff` limpio.
 | Análisis de sesgos | **Hecho y medido** en la capa de recuperación y en el enrutado: ningún eje alcanza su suelo (§34). La capa de generación sigue sin medir |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
+| Cadena de suministro (AIBOM) y plan de incidentes | **Hecho** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35: embeddings en retirada y sin coste contabilizado) y `docs/INCIDENTES.md`; falta el simulacro cronometrado |
+| Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya

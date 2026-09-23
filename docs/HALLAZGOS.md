@@ -2246,3 +2246,40 @@ generarse, no por lo que lista. Aquí la primera ejecución rindió tres
 hallazgos —un coste sin contabilizar, un modelo en retirada y un documento de
 más— y ninguno habría salido de una lista escrita a mano, porque una lista
 escrita a mano lista lo que uno cree que tiene.
+
+## 36. Un borrado efectivo del índice tarda 1,5 segundos, y se comprueba contra la colección
+
+**Ejecuciones:** `reports/borrado_agencia/` y `reports/borrado_empresa/`,
+23-09-2026, con `scripts/borrar_documento.py`.
+
+**Qué se buscaba.** El riesgo R-17 (`RIESGOS.md`): un RAG guarda fragmentos de
+documentos que pueden referirse a personas, y el derecho de supresión del
+artículo 17 del RGPD no se cumple borrando el fichero si el índice conserva
+sus fragmentos. El Módulo 4.4 lo nombra como hueco típico y el §22 de
+`MODULO_4.md` lo tenía como "medible, sin medir".
+
+**Qué se midió.** Se retiró del corpus el documento con datos personales de
+cada inquilino, se reconstruyó el índice y se contó cuántos fragmentos del
+fichero quedaban en la colección de Chroma, por metadato `archivo`. Después se
+restauró el fichero y se volvió a indexar, que es el camino del derecho de
+rectificación (artículo 16).
+
+| Inquilino | Fichero | Fragmentos del fichero, antes → después | Colección, antes → después | Borrado efectivo | Restauración |
+|---|---|---|---|---|---|
+| `agencia_inmobiliaria` | `expediente_2026_118_confidencial.md` | 2 → **0** | 20 → 18 | **1,46 s** | 1,20 s, 2 fragmentos de vuelta |
+| `empresa_servicios` | `anexo_confidencial_plantilla.md` | 3 → **0** | 15 → 12 | **1,23 s** | 1,12 s, 3 fragmentos de vuelta |
+
+"Efectivo" exige dos cosas y las dos se comprueban: cero fragmentos del
+fichero, y que la colección haya perdido exactamente los suyos y ningún otro.
+Los dos corpus (11.347 y 8.444 caracteres embebidos por pasada) quedaron byte a
+byte como estaban: `git status` limpio tras cada ejecución.
+
+**Qué enseña, y qué no.** El borrado es una **reconstrucción completa** del
+índice del inquilino, así que cuesta lo que cuesta reindexar su corpus entero y
+crece con él: 1,5 s con veinte fragmentos no dice nada sobre un cliente con
+diez mil. Un borrado incremental por metadato sería O(1) y está fuera del
+sprint; lo que queda defendido es que el camino existe, es verificable contra
+la colección y está medido, que es lo que el capítulo necesita. Dos límites
+escritos: el registro de observabilidad conserva las consultas que citaron el
+documento (R-16, otro camino), y el coste de las dos pasadas de embeddings no
+lo contabiliza nadie (§35), así que el informe da caracteres, no dólares.

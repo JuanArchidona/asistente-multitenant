@@ -1,0 +1,21 @@
+{
+  "tenant": "empresa_servicios",
+  "archivo": "anexo_confidencial_plantilla.md",
+  "fuente": "rrhh",
+  "fragmentos_del_fichero_antes": 3,
+  "fragmentos_del_fichero_despues": 0,
+  "fragmentos_coleccion_antes": 15,
+  "fragmentos_coleccion_despues": 12,
+  "borrado_efectivo": true,
+  "segundos_borrado": 1.23,
+  "segundos_restauracion": 1.12,
+  "fragmentos_tras_restaurar": 3,
+  "restauracion_completa": true,
+  "caracteres_corpus_embebidos_por_pasada": 8444,
+  "embed_model": "gemini-embedding-001",
+  "embed_dims": 768,
+  "chunk_strategy": "chars",
+  "coste_embeddings": "no contabilizado (HALLAZGOS.md §35); caracteres como aproximacion",
+  "fecha": "2026-09-23T09:27:08+02:00",
+  "estrategia": "chars"
+}
