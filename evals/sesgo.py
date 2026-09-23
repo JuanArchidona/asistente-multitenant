@@ -26,10 +26,10 @@ Las dos capas donde el sesgo puede aparecer y ser observable:
    temperatura del enrutador pasó a 0 (§27 y `docs/ALCANCE.md` §5.c): antes, un
    cambio de categoría podía ser muestreo y no atribuirse al nombre.
 
-Lo que **no** mide, y conviene decirlo: la capa de generación. Comparar dos
-respuestas que necesariamente contienen nombres distintos exige un criterio de
-equivalencia de contenido que aquí no existe, y montarlo con juez chocaría con
-los §30, §32 y §33. Queda fuera y declarado.
+Lo que **no** mide: la capa de generación. Comparar dos respuestas que
+necesariamente contienen nombres distintos exige un criterio de equivalencia de
+contenido, y montarlo con juez chocaría con los §30, §32 y §33. Ese criterio se
+montó sin juez, con los mismos pares, en `evals/sesgo_generacion.py` (§44).
 
     uv run python -m evals.sesgo
     uv run python -m evals.sesgo --salida sesgo.json

@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1033 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1055 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -61,7 +61,7 @@ servicio público desplegado. **1033 tests en verde**, `ruff` limpio.
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |
-| Análisis de sesgos | **Hecho y medido** en la capa de recuperación y en el enrutado: ningún eje alcanza su suelo (§34). La capa de generación sigue sin medir |
+| Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
 | Cadena de suministro (AIBOM) y plan de incidentes | **Hecho** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35: embeddings en retirada y sin coste contabilizado) y `docs/INCIDENTES.md`; falta el simulacro cronometrado |
@@ -163,7 +163,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1033 tests, sin llamadas a API
+uv run pytest                                      # 1055 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -171,6 +171,8 @@ TENANT_ID=agencia_inmobiliaria uv run python -m src.ingest_cli
 
 uv run python -m evals.runner --etiqueta X --sin-juez   # banco sin coste de juez
 uv run python scripts/generar_crm_agencia.py            # regenera el CRM sintético
+uv run python -m evals.sesgo                            # sesgo: recuperación y enrutado (§34)
+uv run python -m evals.sesgo_generacion --repeticiones 8   # sesgo: generación, ~0,11 USD (§44)
 
 uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
 uv run python -m src.observabilidad_cli                # qué ha pasado en producción
@@ -351,14 +353,17 @@ y §14).
   clasificación por inquilino se presenta como diseño anticipado, no como
   cumplimiento exigible. Contrastado el 23-09 contra la Comisión y el BOE;
   citas literales y fuentes en `docs/MODULO_4.md`, sección del artículo 6.
-- **El resultado de sesgo es nulo en una capa, no una ausencia de sesgo.**
-  Ningún eje —género, edad, origen, discapacidad— alcanza el doble de su suelo
-  de ruido en la recuperación, y el enrutado es estable en las seis variantes de
-  nombre (§34). Pero **la capa de generación no se ha medido**, y presentar esto
-  como "el sistema no discrimina" sería la falsa objetividad que el propio
-  Módulo 4 enumera como riesgo. Medir la generación exige un criterio de
-  equivalencia de contenido entre respuestas con nombres distintos, y montarlo
-  con juez choca con los §30, §32 y §33.
+- **El resultado de sesgo es nulo en las tres capas, y sigue sin ser una
+  ausencia de sesgo.** Ningún eje —género, edad, origen, discapacidad— alcanza
+  el doble de su suelo de ruido en la recuperación, el enrutado es estable en
+  las seis variantes de nombre (§34) y **la generación, medida el 23-09 con
+  cinco medidas deterministas, repeticiones y suelo por control, tampoco**
+  (§44). Presentarlo como "el sistema no discrimina" sería la falsa objetividad
+  que el propio Módulo 4 enumera como riesgo: dos de las cinco medidas de
+  generación están saturadas y solo prueban que no hay negativa selectiva ni
+  omisión de datos. Y una hipótesis que salió de leer las respuestas (matiz por
+  origen, 2,00x con 8 tiradas) cayó a 1,00x con 24: **una hipótesis que sale de
+  los datos no se confirma con los mismos datos**.
 - **El experimento de sesgo se equivocó tres veces antes de acertar**, y las
   tres afirmaciones intermedias eran falsas, concretas y alarmantes (§34). De
   ahí las trece pruebas que comprueban que los pares sigan emparejados: son la

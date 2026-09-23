@@ -66,7 +66,7 @@ afirmación citable:
 | Guardarrail | En el proyecto |
 |---|---|
 | Contiene PII | Redacción al salir de la herramienta, por política declarativa |
-| Sesgos | Medido en recuperación y enrutado (§34) |
+| Sesgos | Medido en recuperación, enrutado (§34) y generación (§44), con resultado nulo en las tres capas |
 | Alucinaciones | El verificador determinista de citas (§23): 588 de 588 citas resolubles, cero inventadas |
 | Intención adversaria (jailbreak) | Casos `inj-*` y prompt endurecido |
 | Off topic | La categoría `otro` y su prompt sin fuente |

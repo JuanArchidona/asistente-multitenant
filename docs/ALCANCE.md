@@ -164,8 +164,9 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
    inquilino, resistencia a inyección, citas verificadas—; lo que falta es el
    encaje normativo. **El análisis de sesgos dejó de ser un hueco el 22-09-2026**
    (§34): medido en la capa de recuperación y en el enrutado, con pares
-   emparejados y control de ruido, y con resultado nulo en esa capa. Lo que
-   queda sin medir es la generación, y está declarado.
+   emparejados y control de ruido, y con resultado nulo en esa capa. **La
+   generación se midió el 23-09-2026** (§44) con un criterio de equivalencia
+   sin juez, y también da nulo; las tres capas observables están medidas.
 9. Servidor MCP del Catastro como fuente externa real.
 10. Observabilidad en producción y coste acumulado por tenant.
 11. Canal de correo, de extremo a extremo.
