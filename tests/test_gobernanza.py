@@ -83,16 +83,32 @@ def test_la_redaccion_recorre_las_listas():
     assert redactados == ["operaciones[0].parte_compradora.dni"]
 
 
-def test_una_salida_no_estructurada_se_marca_en_vez_de_adivinarse():
+def test_una_salida_no_estructurada_se_retiene_si_la_politica_exige_redactar():
     """No se intenta redactar texto libre con expresiones regulares.
 
     Un filtro que acierta a veces es peor que no tenerlo: el banco lo daría por
-    bueno y la fuga aparecería en producción.
+    bueno y la fuga aparecería en producción. Y desde el 23-09-2026 (§41)
+    tampoco se deja pasar con una marca al lado: con campos sensibles
+    declarados, lo que no se puede redactar no llega al modelo.
     """
+    from src.gobernanza import MARCA_RETENIDA, TEXTO_RETENIDO
+
     bruto = "La compradora es Marta, DNI 40.345.146-K"
     salida, redactados = redactar_json(bruto, AGENCIA.politica, COMERCIAL)
+    assert salida == TEXTO_RETENIDO
+    assert "40.345.146-K" not in salida
+    assert redactados == [MARCA_RETENIDA]
+
+
+def test_una_salida_no_estructurada_pasa_con_marca_si_no_hay_nada_que_redactar():
+    """Sin campos sensibles en la política no hay filtro que aplicar: el texto
+    pasa, y se deja constancia de que no era JSON."""
+    from src.gobernanza import MARCA_NO_ESTRUCTURADA, PoliticaAcceso
+
+    bruto = "Texto libre de una herramienta"
+    salida, redactados = redactar_json(bruto, PoliticaAcceso(), COMERCIAL)
     assert salida == bruto
-    assert redactados == ["<salida no estructurada: no se pudo redactar>"]
+    assert redactados == [MARCA_NO_ESTRUCTURADA]
 
 
 def test_redactar_json_devuelve_json_valido():

@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **848 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **854 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -157,7 +157,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 848 tests, sin llamadas a API
+uv run pytest                                      # 854 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

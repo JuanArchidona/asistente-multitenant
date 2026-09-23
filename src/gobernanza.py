@@ -143,18 +143,39 @@ def redactar(
     return _recorrer(datos), redactados
 
 
+MARCA_NO_ESTRUCTURADA = "<salida no estructurada: no se pudo redactar>"
+MARCA_RETENIDA = "<salida no estructurada: RETENIDA, la política exige redactar campos>"
+TEXTO_RETENIDO = (
+    "[resultado de la herramienta retenido: no llegó como JSON y la política de "
+    "acceso de este inquilino exige redactar campos sensibles, así que no se puede "
+    "garantizar la redacción. Dilo al usuario en vez de presentarlo como que no hay "
+    "datos.]"
+)
+
+
 def redactar_json(
     bruto: str, politica: PoliticaAcceso, usuario: Usuario
 ) -> tuple[str, list[str]]:
     """Redacta el resultado de una herramienta, que llega serializado.
 
-    Si no es JSON se devuelve intacto y se deja constancia: no se intenta
-    adivinar con expresiones regulares sobre texto libre, porque un filtro que
-    falla a veces es peor que no tenerlo, y el banco lo daría por bueno.
+    Si no es JSON no se intenta adivinar con expresiones regulares sobre texto
+    libre: un filtro que falla a veces es peor que no tenerlo, y el banco lo
+    daría por bueno. Lo que se hace depende de lo que el inquilino declara:
+
+    - Sin campos sensibles en la política, no hay nada que redactar: el texto
+      pasa intacto y se deja constancia.
+    - Con campos sensibles, **se retiene entero** y se deja constancia. Pasarlo
+      con una marca era un fallback silencioso: se vio el 23-09-2026 en el
+      servicio desplegado, donde un resultado de 6.028 caracteres llegó
+      recortado (y por tanto sin ser JSON) y pasó al modelo sin redactar con
+      la marca al lado (HALLAZGOS.md §41). Que no llevara datos personales fue
+      suerte, no diseño.
     """
     try:
         datos = json.loads(bruto)
     except json.JSONDecodeError:
-        return bruto, ["<salida no estructurada: no se pudo redactar>"]
+        if politica.campos_sensibles:
+            return TEXTO_RETENIDO, [MARCA_RETENIDA]
+        return bruto, [MARCA_NO_ESTRUCTURADA]
     limpio, redactados = redactar(datos, politica, usuario)
     return json.dumps(limpio, ensure_ascii=False), redactados

@@ -161,7 +161,7 @@ class McpFalso:
     def esquemas_anthropic(self):
         return [{"name": n, "description": n, "input_schema": {}} for n in self.respuestas]
 
-    def invocar(self, nombre: str, _argumentos: dict) -> str:
+    def invocar(self, nombre: str, _argumentos: dict, recortar: bool = True) -> str:
         self.invocaciones.append(nombre)
         return self.respuestas[nombre]
 

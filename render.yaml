@@ -6,8 +6,9 @@
 # - Plan gratuito: el servicio se duerme sin trafico y el disco es efimero.
 #   El indice se reconstruye en el primer arranque desde el corpus versionado.
 # - Los usuarios van en APP_USUARIOS_JSON (el contenido de usuarios.local.json)
-#   y app.py los escribe a disco al arrancar si el fichero no existe. Sin esa
-#   variable, arranca con las credenciales de ejemplo y lo dice en pantalla.
+#   y el startCommand de abajo los escribe a disco antes de arrancar si el
+#   fichero no existe. Sin esa variable, la app arranca con las credenciales de
+#   ejemplo y lo dice en pantalla. Activada el 23-09-2026 (E-0007).
 # - TOPE_GASTO_USD es el tope blando de la interfaz. El duro es el prepago.
 services:
   - type: web

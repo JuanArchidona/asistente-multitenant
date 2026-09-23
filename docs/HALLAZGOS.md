@@ -2506,3 +2506,62 @@ el corte de comparabilidad es parcial y se puede decir cuál: enrutado y
 recuperación siguen comparables con las 24 ejecuciones anteriores, generación
 no. Y que el control estructural era el que sostenía la confidencialidad:
 relajar al modelo no movió una sola métrica de fuga.
+
+## 41. Recortar antes de redactar dejaba pasar sin redactar, y que no hubiera datos personales fue suerte
+
+**Ejecución:** encargo E-0007 del puente (activación de credenciales propias
+en Render y verificación del corte del 23-09), registro de la app a las
+10:55; reproducido en local con una invocación directa del CRM.
+
+**Qué se buscaba.** Comprobar en el servicio público que `direccion` obtiene
+ya el salario (sí: 62.400 euros, anexo citado, `denegados_por_permiso` vacío)
+y que la rama estructurada nombra la herramienta (a medias: "Datos en tiempo
+real del CRM", no `crm__buscar_inmuebles`; coherente con el 0,96 del §40, que
+no es 1,0).
+
+**Qué apareció sin buscarlo.** En la consulta de cartera como `gerencia`, la
+traza traía `campos_redactados = ['<salida no estructurada: no se pudo
+redactar>']` y la interfaz se lo enseñaba al usuario. Tirando del hilo, con
+la misma llamada desde local:
+
+| `crm__buscar_inmuebles` | Caracteres | ¿JSON? |
+|---|---|---|
+| `limite: 100` (lo que pidió el modelo) | 6.028 | **No**: recortado a 6.000 por el cliente MCP, con `[...resultado recortado...]` al final |
+| `limite: 10` (por defecto) | 3.878 | Sí |
+
+El orden era: el cliente MCP recorta a 6.000 caracteres, y después el agente
+redacta. Un JSON recortado deja de ser JSON, la redacción no puede aplicarse,
+y el código hacía lo que su docstring decía: devolver el texto intacto con
+una marca. **Intacto significa sin redactar.** En esta consulta el resultado
+no llevaba datos personales (la búsqueda de inmuebles devuelve referencias,
+precios y zonas), así que no hubo fuga. Pero el mismo camino, con
+`buscar_operaciones` o con cualquier herramienta que devuelva partes de una
+operación y más de 6.000 caracteres, habría pasado DNI, teléfonos e ingresos
+sin redactar, con una marca al lado que el banco daba por buena.
+
+El banco no lo veía porque sus casos de la rama estructurada devuelven menos
+de 6.000 caracteres: `conf-cart-01` pasa con la redacción aplicada. Hizo
+falta un usuario real pidiendo "qué inmuebles hay" y un modelo que decidió
+`limite: 100`.
+
+**Qué se hizo.** Dos cosas, y las dos con prueba:
+
+1. **Redactar antes de recortar.** El agente pide el resultado entero
+   (`invocar(..., recortar=False)`), redacta sobre el JSON completo, y recorta
+   lo ya redactado. Un campo sensible situado más allá de los 6.000
+   caracteres se redacta igual.
+2. **Lo que no es JSON no pasa si la política exige redactar.** Con campos
+   sensibles declarados, un resultado no estructurado se sustituye por un
+   texto que le dice al modelo que se retuvo y por qué, y la marca en la traza
+   dice RETENIDA. Sin campos sensibles declarados, pasa con la marca de antes:
+   no hay filtro que aplicar. La regla del proyecto era "nada de fallbacks
+   silenciosos", y pasar datos sin redactar con una marca al lado era uno: la
+   marca no protege, solo avisa a quien mire la traza.
+
+**Lo que enseña.** El §5 midió que la rama estructurada filtraba todo y el §8
+la cerró con la redacción a la salida de la herramienta. Este hallazgo dice
+que la redacción tenía una condición previa que nadie había escrito: que el
+resultado llegara entero. Un control que depende del tamaño de la respuesta
+es un control que falla justo cuando hay más datos que proteger. Y otra vez
+el patrón de los §21, §28 y §35: el error estaba en el instrumento (el
+recorte), no en el sistema que el instrumento medía.

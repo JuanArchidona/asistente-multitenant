@@ -26,7 +26,7 @@ from typing import Self
 
 from .config import Config
 from .gobernanza import USUARIO_ANONIMO, Usuario, redactar_json
-from .mcp_cliente import ClienteMCP
+from .mcp_cliente import ClienteMCP, recortar_resultado
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
 from .router import enrutar
@@ -445,10 +445,14 @@ class Sistema:
         """
 
         def ejecutar(nombre: str, argumentos: dict) -> str:
-            bruto = self.mcp.invocar(nombre, argumentos)
+            # Entero, sin recortar: el recorte va DESPUÉS de redactar. Un JSON
+            # recortado deja de ser JSON y la redacción no puede aplicarse; así
+            # pasaron 6.028 caracteres sin redactar en el servicio desplegado
+            # el 23-09-2026 (HALLAZGOS.md §41).
+            bruto = self.mcp.invocar(nombre, argumentos, recortar=False)
             limpio, nuevos = redactar_json(bruto, self.cfg.tenant.politica, usuario)
             redactados.extend(nuevos)
-            return limpio
+            return recortar_resultado(limpio)
 
         return ejecutar
 

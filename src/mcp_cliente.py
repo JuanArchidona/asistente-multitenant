@@ -43,6 +43,13 @@ RAIZ = Path(__file__).resolve().parents[1]
 # aportar: si hace falta más, el modelo puede acotar la búsqueda y repetir.
 MAX_CARACTERES_RESULTADO = 6000
 
+
+def recortar_resultado(texto: str) -> str:
+    """Acota lo que llega al modelo. Se aplica a lo ya redactado (§41)."""
+    if len(texto) > MAX_CARACTERES_RESULTADO:
+        return texto[:MAX_CARACTERES_RESULTADO] + "\n[...resultado recortado...]"
+    return texto
+
 # Arranque: lanzar un proceso por servidor y negociar el protocolo. Si tarda
 # mas que esto, algo va mal y es mejor saberlo en el arranque del sistema.
 TIMEOUT_ARRANQUE_S = 30
@@ -133,8 +140,18 @@ class ClienteMCP:
 
     # --- Operaciones ---
 
-    def invocar(self, nombre_expuesto: str, argumentos: dict[str, Any]) -> str:
-        """Llama a una herramienta y devuelve su resultado como texto."""
+    def invocar(
+        self, nombre_expuesto: str, argumentos: dict[str, Any], recortar: bool = True
+    ) -> str:
+        """Llama a una herramienta y devuelve su resultado como texto.
+
+        `recortar=False` devuelve el resultado entero. Lo usa el agente para
+        redactar ANTES de recortar: recortar un JSON lo deja sin ser JSON, y
+        un JSON roto no se puede redactar. Se vio el 23-09-2026 en el servicio
+        desplegado (HALLAZGOS.md §41): 6.028 caracteres de un resultado
+        recortado a 6.000 pasaron al modelo sin redactar. El recorte sigue
+        existiendo, pero se aplica a lo ya redactado (`recortar_resultado`).
+        """
         # Primero si el cliente está abierto: si no lo está, la lista de
         # herramientas está vacía y el error sería "esa herramienta no existe",
         # que manda a buscar el fallo al sitio equivocado.
@@ -151,9 +168,7 @@ class ClienteMCP:
                 f"de {self.tenant.id!r}. Disponibles: {disponibles}"
             )
         bruto = self._ejecutar(self._invocar(herramienta, argumentos))
-        if len(bruto) > MAX_CARACTERES_RESULTADO:
-            return bruto[:MAX_CARACTERES_RESULTADO] + "\n[...resultado recortado...]"
-        return bruto
+        return recortar_resultado(bruto) if recortar else bruto
 
     def buscar(self, nombre_expuesto: str) -> HerramientaMCP | None:
         for h in self.herramientas:
