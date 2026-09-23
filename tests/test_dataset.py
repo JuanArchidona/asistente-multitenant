@@ -73,9 +73,26 @@ def test_ids_unicos(tenant):
 
 @pytest.mark.parametrize("tenant", BANCOS)
 def test_todas_las_dimensiones_estan_cubiertas(tenant):
-    """Si una dimensión se queda sin casos, ese riesgo deja de medirse."""
+    """Si una dimensión se queda sin casos, ese riesgo deja de medirse.
+
+    La dimensión `accion` (escrituras con aprobación humana) solo tiene
+    sentido donde hay algo que escribir: un inquilino sin `escrituras` en su
+    manifiesto no puede tener casos de acción, y exigírselos sería pedir un
+    caso que mide nada.
+    """
+    exigidas = set(Dimension)
+    if not TENANTS[tenant].escrituras:
+        exigidas.discard(Dimension.accion)
     presentes = {c.dimension for c in CASOS[tenant]}
-    assert presentes == set(Dimension), f"sin cubrir: {set(Dimension) - presentes}"
+    assert presentes == exigidas, f"sin cubrir: {exigidas - presentes}"
+
+
+def test_un_inquilino_con_escrituras_tiene_casos_de_accion():
+    """El contrapeso del de arriba: donde se puede escribir, se mide que no se
+    escriba sin aprobar."""
+    for tenant in BANCOS:
+        if TENANTS[tenant].escrituras:
+            assert any(c.dimension == Dimension.accion for c in CASOS[tenant]), tenant
 
 
 @pytest.mark.parametrize("tenant", BANCOS)

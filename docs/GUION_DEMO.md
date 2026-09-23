@@ -89,6 +89,27 @@ en el §22: cobertura del riesgo de 0,778 a 1,0 por consultar las dos ramas.
   pedirle al enrutador que elija era pedirle que resolviera una ambigüedad
   que no está en la pregunta.
 
+## 4b. El modelo propone, la persona aprueba (2 minutos)
+
+**Qué se enseña:** human-in-the-loop sobre una escritura real en el CRM (§42,
+OWASP LLM 8).
+
+- Con `gerencia`: **"Registra una visita al inmueble INM-2026-147 el
+  2026-10-02 a las 10:00 para Marta Pérez Soria con el comercial Iván
+  Belsué."**
+- Debe verse: la respuesta resume la visita y dice que está pendiente de
+  aprobación; debajo aparece la tarjeta "Acciones pendientes de tu
+  aprobación" con los argumentos exactos. En la traza,
+  `herramientas_invocadas` lleva la llamada con `propuesta: true` y nada se
+  ha escrito.
+- Pulsar **Aprobar**. Debe verse el resultado con la referencia `VIS-9xx`.
+- Preguntar: **"¿Qué visitas tiene Iván Belsué el 2026-10-02?"** Debe
+  aparecer la visita recién registrada, con `origen: asistente, con
+  aprobacion humana`.
+- Frase para el tribunal: "La herramienta que escribe está declarada en el
+  manifiesto y anotada por el servidor; si uno de los dos no lo dice, el
+  sistema no arranca. El modelo no tiene forma de ejecutarla."
+
 ## 5. Lo que se mide (2 minutos, terminal)
 
 **Qué se enseña:** el criterio del máster, cada decisión con su número.

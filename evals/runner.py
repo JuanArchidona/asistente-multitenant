@@ -37,6 +37,7 @@ from .dataset import (
 )
 from .metrics.deterministas import (
     Resultado,
+    evaluar_accion,
     evaluar_alcance_riesgo,
     evaluar_citas,
     evaluar_contiene,
@@ -151,6 +152,8 @@ def _metricas_deterministas(
     salidas.append(evaluar_fuga_literal(caso, traza))
     salidas.append(evaluar_alcance_riesgo(caso, traza, tenant))
     salidas.extend(evaluar_citas(caso, traza))
+    # Y la de human-in-the-loop: ninguna escritura sin aprobar, en ningún caso.
+    salidas.append(evaluar_accion(caso, traza, tenant.escrituras))
     return salidas
 
 

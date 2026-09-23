@@ -39,3 +39,7 @@ puente/puente.log
 # decenas de MB de PDF que git no olvida aunque se borren despues. El analisis
 # de lo que aporta al TFM esta en `docs/MODULO_4.md`, que cita sin publicar.
 docs/**/*.pdf
+# Escrituras del asistente sobre el CRM sintetico (visitas registradas con
+# aprobacion humana). Estado de un despliegue, no del proyecto: el CRM
+# generado con semilla no cambia por usar el sistema.
+datos/*/visitas_registradas.jsonl

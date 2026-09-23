@@ -61,6 +61,14 @@ def _informe(tenant: str, resumen: dict, ultimas: list[dict]) -> str:
         out.append(
             _fila("[!] Lineas ilegibles (log incompleto)", resumen["_lineas_ilegibles"])
         )
+    acciones = resumen.get("acciones") or {}
+    if any(acciones.values()):
+        out.append(
+            _fila(
+                "Escrituras (propuestas / aprobadas / rechazadas)",
+                f"{acciones.get('propuesta', 0)} / {acciones.get('aprobada', 0)} / {acciones.get('rechazada', 0)}",
+            )
+        )
     if resumen.get("borrados"):
         out.append(
             _fila(

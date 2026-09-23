@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **854 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **884 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -55,7 +55,7 @@ y control de acceso estructural. **854 tests en verde**, `ruff` limpio.
 | Evaluación del juez | Hecha y completada: el número contradice su propio razonamiento, temperatura 0 no lo estabiliza y sus errores van todos en el mismo sentido (§30, §32) |
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
 | Canales (correo, WhatsApp) | Pendiente |
-| Human-in-the-loop | Pendiente |
+| Human-in-the-loop | **Hecho y medido** el 23-09: la agencia declara `crm__registrar_visita` como escritura, el servidor la anota, el modelo la propone y una persona la aprueba desde la interfaz con registro; métrica `accion_sin_aprobar` 40/40 y ninguna visita escrita tras el banco (§42) |
 | Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). El servicio se suspende fuera de las pruebas |
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
 | Alta cronometrada de un inquilino nuevo | Pendiente (bloque 4) |
@@ -101,9 +101,14 @@ repositorio es público.
 - **Python vanilla**, con un capítulo de justificación comparándolo con
   LangGraph. El capstone puntúa la justificación, no la herramienta.
 - **Todo lo que distingue a un inquilino es declarativo**: categorías, fuentes,
-  servidores MCP y política de acceso viven en `tenants/<id>.json`. Si dar de
-  alta un cliente exige editar un `.py`, la costura está mal puesta — y eso se
-  mide cronometrando el alta al final del proyecto.
+  servidores MCP, política de acceso, clasificación por el AI Act y escrituras
+  con aprobación viven en `tenants/<id>.json`. Si dar de alta un cliente exige
+  editar un `.py`, la costura está mal puesta — y eso se mide cronometrando el
+  alta al final del proyecto.
+- **El modelo nunca escribe.** Una herramienta que escribe se declara en el
+  manifiesto (`escrituras`) y el servidor la anota como no de solo lectura; si
+  discrepan, el cliente MCP no arranca. El modelo la propone, una persona la
+  aprueba o la rechaza, y las tres cosas quedan registradas (§42).
 
 ## 5. Reglas de trabajo
 
@@ -157,7 +162,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 854 tests, sin llamadas a API
+uv run pytest                                      # 884 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

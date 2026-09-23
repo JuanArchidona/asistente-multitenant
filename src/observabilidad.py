@@ -123,6 +123,37 @@ class Registro:
                 self.ultimo_error = f"{type(e).__name__}: {e}"
             return None
 
+    def anotar_accion(self, evento: str, accion: dict, usuario: str, extra: dict | None = None) -> dict | None:
+        """Una línea por cada paso de una acción con aprobación humana.
+
+        `evento` es `propuesta`, `aprobada` o `rechazada`. Va al mismo log que
+        las consultas, con la clave `_accion`, para que la auditoría de "quién
+        aprobó qué" esté en el mismo sitio que "quién preguntó qué". El resumen
+        las cuenta aparte: no son consultas.
+        """
+        try:
+            registro = {
+                CLAVE_ACCION: evento,
+                "ts": datetime.now(UTC).isoformat(timespec="seconds"),
+                "tenant": self.tenant_id,
+                "usuario": usuario,
+                "id_accion": accion.get("id"),
+                "herramienta": accion.get("herramienta"),
+                "argumentos": accion.get("argumentos"),
+                "propuesta_por": accion.get("usuario"),
+                **(extra or {}),
+            }
+            with self._lock:
+                self.ruta.parent.mkdir(parents=True, exist_ok=True)
+                with self.ruta.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            return registro
+        except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
+            with self._lock:
+                self.fallos += 1
+                self.ultimo_error = f"{type(e).__name__}: {e}"
+            return None
+
     def componer(self, traza: dict, uso: dict | None) -> dict:
         respuesta = traza.get("respuesta") or ""
         denegados = traza.get("denegados_por_permiso") or []
@@ -269,6 +300,7 @@ def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
 # quien son, y borrarlas seria borrar sin saber que.
 
 CLAVE_LAPIDA = "_borrado"
+CLAVE_ACCION = "_accion"
 
 
 def _reescribir(ruta: Path, conservar, motivo: dict) -> dict:
@@ -347,13 +379,21 @@ def resumir(registros: list[dict]) -> dict:
     """Agrega un log en las cifras que responden a las preguntas de producción."""
     ilegibles = sum(r.get("_ilegible", 0) for r in registros)
     lapidas = [r for r in registros if CLAVE_LAPIDA in r]
-    filas = [r for r in registros if "_ilegible" not in r and CLAVE_LAPIDA not in r]
+    acciones = [r for r in registros if CLAVE_ACCION in r]
+    filas = [
+        r for r in registros
+        if "_ilegible" not in r and CLAVE_LAPIDA not in r and CLAVE_ACCION not in r
+    ]
     n = len(filas)
     if not n:
         return {
             "consultas": 0,
             "borrados": len(lapidas),
             "lineas_borradas": sum(lp.get("lineas_quitadas", 0) for lp in lapidas),
+            "acciones": {
+                e: sum(1 for a in acciones if a.get(CLAVE_ACCION) == e)
+                for e in ("propuesta", "aprobada", "rechazada")
+            },
             "_lineas_ilegibles": ilegibles,
         }
 
@@ -393,5 +433,11 @@ def resumir(registros: list[dict]) -> dict:
         # los escondiera haria pasar un registro podado por uno entero.
         "borrados": len(lapidas),
         "lineas_borradas": sum(lp.get("lineas_quitadas", 0) for lp in lapidas),
+        # Human-in-the-loop: cuántas escrituras se propusieron y qué pasó con
+        # ellas. Una propuesta sin aprobar ni rechazar sigue pendiente.
+        "acciones": {
+            e: sum(1 for a in acciones if a.get(CLAVE_ACCION) == e)
+            for e in ("propuesta", "aprobada", "rechazada")
+        },
         "_lineas_ilegibles": ilegibles,
     }

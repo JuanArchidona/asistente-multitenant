@@ -1,6 +1,7 @@
 """Métricas del banco: deterministas (gratis, sin varianza) y de juez LLM."""
 from .deterministas import (
     Resultado,
+    evaluar_accion,
     evaluar_alcance_riesgo,
     evaluar_citas,
     evaluar_contiene,
@@ -13,6 +14,7 @@ from .deterministas import (
 
 __all__ = [
     "Resultado",
+    "evaluar_accion",
     "evaluar_alcance_riesgo",
     "evaluar_citas",
     "evaluar_contiene",

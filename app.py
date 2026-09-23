@@ -161,6 +161,40 @@ for mensaje in st.session_state.historial:
             with st.expander("Traza"):
                 st.json(mensaje["meta"])
 
+# --- Acciones pendientes de aprobación (human-in-the-loop) -------------------
+#
+# El modelo propone escrituras; solo se ejecutan cuando la persona pulsa
+# Aprobar, y cada decisión queda en el registro de producción con quién y cuándo.
+acciones = st.session_state.get("acciones") or {}
+if acciones:
+    st.subheader("Acciones pendientes de tu aprobación")
+    st.caption(
+        "El asistente ha propuesto escribir en el sistema. No se ejecuta nada hasta que apruebes."
+    )
+    for id_accion, accion in list(acciones.items()):
+        with st.container(border=True):
+            st.markdown(f"**{accion['herramienta']}** (id `{id_accion}`), propuesta por `{accion['usuario']}`")
+            st.json(accion["argumentos"])
+            col_a, col_r = st.columns(2)
+            if col_a.button("Aprobar", key=f"aprobar_{id_accion}", type="primary"):
+                try:
+                    resultado = sistema_de(cfg.tenant.id).aprobar(id_accion, usuario=persona)
+                except (KeyError, PermissionError) as error:
+                    st.error(str(error))
+                else:
+                    del st.session_state["acciones"][id_accion]
+                    st.success(f"Ejecutada por `{persona.id}`. Resultado: {resultado['resultado'][:400]}")
+                    st.rerun()
+            if col_r.button("Rechazar", key=f"rechazar_{id_accion}"):
+                try:
+                    sistema_de(cfg.tenant.id).rechazar(id_accion, usuario=persona, motivo="rechazada en la interfaz")
+                except KeyError as error:
+                    st.error(str(error))
+                else:
+                    del st.session_state["acciones"][id_accion]
+                    st.info("Rechazada y registrada.")
+                    st.rerun()
+
 categorias = ", ".join(c.nombre for c in cfg.tenant.categorias)
 consulta = st.chat_input(f"Pregunta sobre {categorias}...")
 if consulta:
@@ -185,6 +219,8 @@ if consulta:
                 st.stop()
         st.markdown(traza["respuesta"])
         meta = {k: v for k, v in traza.items() if k not in ("respuesta", "contexto_recuperado")}
+        for accion in traza.get("acciones_pendientes") or []:
+            st.session_state.setdefault("acciones", {})[accion["id"]] = accion
         if traza.get("denegados_por_permiso"):
             st.caption(
                 f"Retenido por permiso: {', '.join(traza['denegados_por_permiso'])}. "

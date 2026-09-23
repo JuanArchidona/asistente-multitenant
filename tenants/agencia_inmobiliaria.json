@@ -6,7 +6,7 @@
   "categorias": [
     {
       "nombre": "cartera",
-      "descripcion": "estado actual de un caso concreto: qué inmuebles hay publicados y a qué precio, cuántos días llevan, qué visitas hay en la agenda y en qué situación está una operación por su referencia OP-AAAA-NNN. Datos vivos del CRM, no el expediente escrito de la operación.",
+      "descripcion": "estado actual de un caso concreto: qué inmuebles hay publicados y a qué precio, cuántos días llevan, qué visitas hay en la agenda y en qué situación está una operación por su referencia OP-AAAA-NNN. Datos vivos del CRM, no el expediente escrito de la operación, y registrar o apuntar una visita nueva en la agenda.",
       "destino": "estructurado"
     },
     {
@@ -57,6 +57,10 @@
       "descripcion": "CRM de la agencia: cartera de inmuebles, agenda de visitas y operaciones en curso."
     }
   ],
+  "escrituras": [
+    "crm__registrar_visita"
+  ],
+  "aprobacion_requiere": "",
   "politica": {
     "documentos_restringidos": [
       {

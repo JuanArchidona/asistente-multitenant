@@ -59,11 +59,24 @@ TIMEOUT_CIERRE_S = 10
 class HerramientaMCP:
     """Una herramienta publicada por un servidor, con el servidor del que viene."""
 
-    def __init__(self, servidor: str, nombre: str, descripcion: str, esquema: dict):
+    def __init__(
+        self,
+        servidor: str,
+        nombre: str,
+        descripcion: str,
+        esquema: dict,
+        solo_lectura: bool = False,
+    ):
         self.servidor = servidor
         self.nombre = nombre
         self.descripcion = descripcion
         self.esquema = esquema
+        # Lo que el servidor declara con `readOnlyHint`. Es una pista del
+        # servidor, no una garantia: por eso el manifiesto del inquilino tiene
+        # que declarar ademas cada escritura, y las dos cosas se contrastan al
+        # abrir. Sin anotacion se asume que ESCRIBE: el error barato es exigir
+        # una declaracion de mas; el caro, ejecutar una escritura sin aprobar.
+        self.solo_lectura = solo_lectura
 
     @property
     def nombre_expuesto(self) -> str:
@@ -111,6 +124,14 @@ class ClienteMCP:
             fallo = self._fallo
             self.cerrar()
             raise fallo
+        # Fuera de la tarea del servicio a proposito: un fallo dentro del grupo
+        # de tareas de anyio llega envuelto en un ExceptionGroup, y quien abre
+        # el cliente tiene que recibir un RuntimeError que diga que pasa.
+        try:
+            self._contrastar_escrituras()
+        except RuntimeError:
+            self.cerrar()
+            raise
         return self
 
     def cerrar(self) -> None:
@@ -230,14 +251,51 @@ class ClienteMCP:
             self._sesiones[definicion.nombre] = cliente
             listado = await cliente.list_tools()
             for herramienta in listado.tools:
+                anotaciones = herramienta.annotations
                 self.herramientas.append(
                     HerramientaMCP(
                         servidor=definicion.nombre,
                         nombre=herramienta.name,
                         descripcion=herramienta.description or "",
                         esquema=herramienta.input_schema or {},
+                        solo_lectura=bool(
+                            anotaciones and getattr(anotaciones, "read_only_hint", None) is True
+                        ),
                     )
                 )
+
+    def _contrastar_escrituras(self) -> None:
+        """El servidor y el manifiesto tienen que coincidir sobre que escribe.
+
+        Una herramienta que el servidor no marca como solo lectura y el
+        manifiesto no declara como escritura no se puede ofrecer al modelo:
+        se ejecutaria sin aprobacion humana. Y una escritura declarada que
+        ningun servidor publica es un manifiesto desfasado. Las dos cosas
+        rompen al abrir, no a mitad de una consulta.
+        """
+        publicadas = {h.nombre_expuesto: h for h in self.herramientas}
+        declaradas = set(self.tenant.escrituras)
+        sin_declarar = sorted(
+            n for n, h in publicadas.items() if not h.solo_lectura and n not in declaradas
+        )
+        if sin_declarar:
+            raise RuntimeError(
+                f"El inquilino {self.tenant.id!r} recibe herramientas que escriben y no "
+                f"declara como escritura en su manifiesto: {sin_declarar}. Declaralas en "
+                "'escrituras' (y pasaran por aprobacion humana) o marca la herramienta "
+                "como readOnlyHint en el servidor."
+            )
+        no_publicadas = sorted(declaradas - set(publicadas))
+        if no_publicadas:
+            raise RuntimeError(
+                f"El manifiesto de {self.tenant.id!r} declara escrituras que ningun "
+                f"servidor publica: {no_publicadas}."
+            )
+
+    @property
+    def escrituras(self) -> list[str]:
+        """Herramientas que escriben, por su nombre expuesto."""
+        return [h.nombre_expuesto for h in self.herramientas if not h.solo_lectura]
 
     async def _invocar(self, herramienta: HerramientaMCP, argumentos: dict) -> str:
         cliente = self._sesiones[herramienta.servidor]

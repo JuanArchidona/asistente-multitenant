@@ -32,9 +32,22 @@ from pathlib import Path
 from typing import Any
 
 from mcp.server.mcpserver import MCPServer
+from mcp.types import ToolAnnotations
 
 RAIZ = Path(__file__).resolve().parents[1]
 CRM_POR_DEFECTO = RAIZ / "datos" / "agencia_inmobiliaria" / "crm.json"
+# Las escrituras van a un fichero aparte del CRM generado: el CRM es
+# reproducible con semilla y no debe cambiar por usar el sistema. No se
+# versiona (ver .gitignore): es estado de un despliegue, no del proyecto.
+ESCRITURAS_POR_DEFECTO = RAIZ / "datos" / "agencia_inmobiliaria" / "visitas_registradas.jsonl"
+
+# Cada herramienta declara si escribe. El cliente MCP del asistente lo lee y lo
+# contrasta con lo que el manifiesto del inquilino declara como escritura: una
+# herramienta que escribe y no esta declarada hace que el cliente no arranque.
+# Es la mitad estructural del human-in-the-loop (RIESGOS.md R-14): el modelo
+# nunca ejecuta una escritura; propone, y una persona aprueba.
+SOLO_LECTURA = ToolAnnotations(readOnlyHint=True)
+ESCRITURA = ToolAnnotations(readOnlyHint=False, destructiveHint=False, idempotentHint=False)
 
 servidor = MCPServer(
     name="agencia-crm",
@@ -59,10 +72,29 @@ def _cargar() -> dict[str, Any]:
             f"No se encuentra el CRM en {ruta}. "
             "Genéralo con: uv run python scripts/generar_crm_agencia.py"
         )
-    return json.loads(ruta.read_text(encoding="utf-8"))
+    datos = json.loads(ruta.read_text(encoding="utf-8"))
+    # Las visitas registradas por el asistente (con aprobación humana) se
+    # suman a la agenda: si no, la escritura no tendría efecto observable.
+    datos["visitas"] = list(datos["visitas"]) + _visitas_registradas()
+    return datos
 
 
-@servidor.tool()
+def _ruta_escrituras() -> Path:
+    return Path(os.getenv("CRM_ESCRITURAS_PATH", ESCRITURAS_POR_DEFECTO))
+
+
+def _visitas_registradas() -> list[dict[str, Any]]:
+    ruta = _ruta_escrituras()
+    if not ruta.is_file():
+        return []
+    return [
+        json.loads(linea)
+        for linea in ruta.read_text(encoding="utf-8").splitlines()
+        if linea.strip()
+    ]
+
+
+@servidor.tool(annotations=SOLO_LECTURA)
 def buscar_inmuebles(
     zona: str | None = None,
     operacion: str | None = None,
@@ -102,7 +134,7 @@ def buscar_inmuebles(
     }
 
 
-@servidor.tool()
+@servidor.tool(annotations=SOLO_LECTURA)
 def detalle_inmueble(referencia: str) -> dict[str, Any]:
     """Devuelve la ficha completa de un inmueble por su referencia (INM-2026-XXX)."""
     datos = _cargar()
@@ -112,7 +144,7 @@ def detalle_inmueble(referencia: str) -> dict[str, Any]:
     return {"error": f"No existe el inmueble {referencia!r} en la cartera."}
 
 
-@servidor.tool()
+@servidor.tool(annotations=SOLO_LECTURA)
 def estadisticas_cartera(
     zona: str | None = None, operacion: str = "venta"
 ) -> dict[str, Any]:
@@ -146,7 +178,7 @@ def estadisticas_cartera(
     }
 
 
-@servidor.tool()
+@servidor.tool(annotations=SOLO_LECTURA)
 def agenda_comercial(
     comercial: str | None = None,
     desde: str | None = None,
@@ -168,7 +200,7 @@ def agenda_comercial(
     return {"total": len(visitas), "visitas": visitas}
 
 
-@servidor.tool()
+@servidor.tool(annotations=SOLO_LECTURA)
 def estado_operacion(referencia: str) -> dict[str, Any]:
     """Estado de una operación en curso por su referencia (OP-2026-XXX).
 
@@ -180,6 +212,48 @@ def estado_operacion(referencia: str) -> dict[str, Any]:
         if operacion["referencia"].lower() == referencia.lower().strip():
             return operacion
     return {"error": f"No existe la operación {referencia!r}."}
+
+
+@servidor.tool(annotations=ESCRITURA)
+def registrar_visita(
+    inmueble: str,
+    fecha: str,
+    hora: str,
+    interesado: str,
+    comercial: str,
+) -> dict[str, Any]:
+    """Registra una visita nueva en la agenda del CRM. ESCRIBE en el sistema.
+
+    `inmueble` es la referencia INM-AAAA-NNN, `fecha` va en AAAA-MM-DD y
+    `hora` en HH:MM. Devuelve la visita creada con su referencia VIS-.
+    """
+    datos = _cargar()
+    if not any(i["referencia"] == inmueble for i in datos["inmuebles"]):
+        raise ValueError(f"No existe el inmueble {inmueble!r} en la cartera.")
+    if len(fecha) != 10 or fecha[4] != "-" or fecha[7] != "-":
+        raise ValueError(f"La fecha debe ir en AAAA-MM-DD; llegó {fecha!r}.")
+    if len(hora) != 5 or hora[2] != ":":
+        raise ValueError(f"La hora debe ir en HH:MM; llegó {hora!r}.")
+    if not interesado.strip() or not comercial.strip():
+        raise ValueError("interesado y comercial son obligatorios.")
+
+    registradas = _visitas_registradas()
+    numero = 900 + len(registradas) + 1
+    visita = {
+        "referencia": f"VIS-{numero}",
+        "inmueble": inmueble,
+        "fecha": fecha,
+        "hora": hora,
+        "comercial": comercial.strip(),
+        "interesado": interesado.strip(),
+        "resultado": "pendiente",
+        "origen": "asistente, con aprobacion humana",
+    }
+    ruta = _ruta_escrituras()
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    with ruta.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(visita, ensure_ascii=False) + "\n")
+    return {"registrada": True, "visita": visita}
 
 
 def main() -> None:

@@ -42,7 +42,7 @@
 | R-11 | Índice obsoleto que responde vacío en vez de fallar | DC | — | — | D | §10, §14 | La firma del índice cubre corpus, política y esquema; un índice que no coincide se reconstruye | **Medido.** Costó una ejecución entera descubrir que la firma no cubría el corpus; el segundo eje (§14) apareció donde el arreglo del primero no llegaba |
 | R-12 | Denegación presentada como ausencia ("no he encontrado documentación") | CC | 9 | — | D | §22 | El camino mixto distingue "retenido por permiso" de "no existe" | **Parcial.** El camino documental heredado sigue confundiéndolos; arreglarlo mueve las respuestas del inquilino A y es medición aparte |
 | R-13 | Sesgo por género, edad, origen o discapacidad en recuperación, enrutado o generación | DC | — | — | F | §34 | Banco de pares emparejados con control y suelo de ruido; trece pruebas que comprueban el emparejamiento | **Medido en dos capas.** Ningún eje alcanza el doble de su suelo; enrutado estable en seis variantes de nombre. **La generación no está medida**, y decir "no discrimina" sería la falsa objetividad del 4.1 |
-| R-14 | Agencia excesiva: el sistema actúa sin supervisión humana | CC | 8 | — | C | `ALCANCE.md` | Ninguna herramienta escribe en el sistema del cliente; las cinco del CRM son de lectura | **Parcial.** Human-in-the-loop pendiente; hoy lo cubre que no haya acciones, no un control |
+| R-14 | Agencia excesiva: el sistema actúa sin supervisión humana | CC | 8 | — | C | §42, `reports/agencia_hitl_v3` | Las escrituras se declaran en el manifiesto y el servidor las anota; el cliente MCP no arranca si discrepan. El modelo nunca ejecuta una escritura: la propone, y una persona la aprueba o rechaza desde la interfaz, con registro de quién y cuándo. Métrica `accion_sin_aprobar` en todos los casos del banco | **Medido.** 40 de 40 casos sin escritura ejecutada; los 2 que piden escribir quedan propuestos y no ejecutados; `visitas_registradas.jsonl` no existe tras el banco. Residual: aprobar puede exigir un rol y hoy no lo exige en la agencia |
 | R-15 | Encadenamiento de agentes sin persona en medio (Claude Code y la app) | CD | 8 | — | C | `SINCRONIZACION_SUPERFICIES.md` §7.6 | La cadena termina en Claude Code: el análisis automático es de solo lectura, la app no puede escribir en el buzón, y volver a encargar pasa por Juan | **Por construcción.** Cuatro encargos reales el 23-09 sin que ningún aviso generase un encargo |
 | R-16 | Vigilancia: el registro de observabilidad guarda quién preguntó qué | CC | — | — | A | §20, §37, `RETENCION.md` | Política escrita (90 días, respuesta no guardada); supresión por usuario y purga por antigüedad, las dos con lápida que dice cuánto se quitó sin decir a quién; el resumen cuenta los borrados | **Medido.** Supresión y purga en un log de 10.000 líneas en décimas de segundo (§37). Residual: la purga es manual; la tensión con el artículo 12 se escribe, no se resuelve |
 | R-17 | Derechos RGPD sobre el índice: borrado, oposición, actualización | CC | — | — | A | §36, `reports/borrado_*` | `scripts/borrar_documento.py`: retira el documento, reconstruye el índice y comprueba contra la colección que no queda ningún fragmento suyo; `--restaurar` mide la rectificación | **Medido.** Borrado efectivo en **1,46 s** (agencia) y **1,23 s** (heredado), cero fragmentos residuales y el resto intacto. Residual: es reconstrucción completa, crece con el corpus; las consultas registradas que citaron el documento no se borran (R-16) |
@@ -112,8 +112,9 @@ el apartado 4 exigirá entonces.
    comprobación contra la colección (§36).
 5. ~~**R-16, retención del registro de observabilidad**~~ **Hecho y medido**
    el 23-09: `RETENCION.md`, supresión y purga con lápida (§37).
-6. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
-   algo, cuando exista.
+6. ~~**R-14, human-in-the-loop**~~ **Hecho y medido** el 23-09: escritura
+   declarada, propuesta y aprobada por una persona; 40 de 40 sin escritura sin
+   aprobar (§42).
 7. **R-13, sesgo en generación**: exige un criterio de equivalencia que no
    dependa del juez, y por eso está último.
 

@@ -260,6 +260,27 @@ class Tenant(BaseModel):
     # Obligatorio: un inquilino sin clasificación no arranca. Es la forma de
     # que el alta de un cliente nuevo incluya la evaluación del artículo 6.
     ai_act: ClasificacionAIAct
+    # Herramientas MCP que ESCRIBEN en el sistema del cliente, por su nombre
+    # expuesto (`servidor__herramienta`). El modelo nunca las ejecuta: las
+    # propone, y una persona las aprueba (human-in-the-loop, RIESGOS.md R-14).
+    # El cliente MCP contrasta esta lista con lo que cada servidor anota como
+    # solo lectura y no arranca si discrepan. Declarativo, como todo lo que
+    # distingue a un inquilino.
+    escrituras: list[str] = Field(default_factory=list)
+    # Rol necesario para aprobar una escritura. Vacío: cualquier persona
+    # identificada puede aprobar lo que ella misma pidió.
+    aprobacion_requiere: str = ""
+
+    @model_validator(mode="after")
+    def _escrituras_de_servidores_declarados(self) -> "Tenant":
+        prefijos = {f"{s.nombre}__" for s in self.servidores_mcp}
+        for nombre in self.escrituras:
+            if not any(nombre.startswith(p) for p in prefijos):
+                raise ValueError(
+                    f"la escritura {nombre!r} de {self.id!r} no lleva el prefijo de "
+                    f"ningún servidor MCP declarado ({sorted(prefijos) or 'ninguno'})"
+                )
+        return self
 
     @field_validator("id")
     @classmethod
