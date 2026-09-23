@@ -2334,3 +2334,58 @@ no se resuelve eligiendo una: se resuelve haciendo que la reescritura sea
 visible. Y lo mismo con los embeddings: el problema del §35 no era que
 costaran, era que no se sabía cuánto; ahora se sabe en tokens, y que no se sepa
 en dólares está escrito en vez de escondido.
+
+## 38. El primer despliegue tardó minuto y medio y se paró en el login por una clave que nadie iba a usar
+
+**Ejecución:** encargo E-0005 del puente, atendido por la app de Claude con
+Claude in Chrome y Juan delante, 23-09-2026 a las 09:52. Registro en
+`puente/REGISTRO_APP.md`; el fichero no está versionado, así que las cifras
+se copian aquí.
+
+**Qué se buscaba.** Saber si la interfaz desplegada (`app.py`, `render.yaml`)
+cabe en el plan gratuito de Render y sirve para una demostración en vivo:
+tiempo del primer despliegue, si el índice se construye solo en el primer
+acceso, y una consulta de prueba con su respuesta y su coste.
+
+**Qué salió.**
+
+| Medida | Valor |
+|---|---|
+| Blueprint a "Deploy live" | **1 min 32 s** (columna Duration de Render; eventos 9:52 y 9:53) |
+| Primera carga de la página | unos 30 s (el plan gratuito arranca en frío) |
+| Log de arranque | sin errores: `uv sync --frozen --no-dev --group app`, Streamlit en el puerto 10000 |
+| Pantalla inicial | el formulario, con el aviso literal de credenciales de ejemplo |
+| Login como `empleado` | **error de configuración**: `JUDGE_PROVIDER=gemini pero falta GEMINI_API_KEY_JUEZ` |
+
+La consulta de prueba no llegó a hacerse, así que ni el índice en primer
+acceso ni la barra lateral de gasto se midieron. El registro de la app lo
+dijo así, sin rellenar los tres datos que faltaban, y dejó tres arreglos
+posibles sin elegir ninguno: es exactamente lo que el encargo pedía.
+
+**La causa.** `load_config` exigía las claves del juez a todo el que la
+llamara. Tiene sentido en el banco, donde la clave propia del juez es lo que
+separa en la factura lo que cuesta evaluar de lo que cuesta funcionar (§18), y
+no lo tiene en la interfaz, que nunca llama al juez. En local no se vio porque
+`.env` tiene las claves del juez; Render solo tiene las que `render.yaml`
+declara, y declara bien: la interfaz no debe tenerlas.
+
+**Qué se hizo.** `load_config(con_juez=False)` desde la interfaz: omite las
+comprobaciones de claves del juez y conserva la que no depende de ninguna
+clave, que el juez no sea el mismo modelo que el generador. El banco y la
+línea de órdenes no cambian. Cuatro pruebas fijan las dos caras. Y la
+interfaz muestra ahora el commit desplegado (`RENDER_GIT_COMMIT`), porque la
+app vio un commit en la página del blueprint y otro en la del servicio y no
+pudo decir cuál estaba probando.
+
+**Dos cosas más que dejó el registro.** `consultar_tfm` con una pregunta
+amplia superó los 50 s y se cortó con el error legible del puente, en vez del
+corte mudo de la app: el tope nuevo (§37 del puente, `puente/README.md`) hizo
+lo que tenía que hacer. Y el mensaje de error de configuración dice "ver
+abajo" refiriéndose a un comentario del código que la interfaz no muestra:
+un texto escrito para la terminal leído en una pantalla. Queda anotado, no
+arreglado.
+
+**Lo que enseña.** Una comprobación de arranque protege al proceso que la
+necesita y bloquea al que no. La regla de "nada de fallbacks silenciosos" no
+significa exigirlo todo a todos: significa que quien omite una comprobación
+lo diga, y aquí lo dice el parámetro, su docstring y este hallazgo.

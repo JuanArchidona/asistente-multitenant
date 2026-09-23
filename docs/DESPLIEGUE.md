@@ -85,6 +85,19 @@ interfaz mostrará el error del proveedor: no se disimula.
   de que el permiso va dentro de la búsqueda: entrar como `empleado` y como
   `direccion` con la misma pregunta.
 
+## Lo medido en el primer despliegue (23-09-2026, HALLAZGOS.md §38)
+
+| Medida | Valor |
+|---|---|
+| Primer despliegue desde el blueprint, hasta "Deploy live" | **1 min 32 s** |
+| Primera carga de la página tras el despliegue | unos 30 s |
+| Log de arranque | sin errores; `uv` construye el paquete y Streamlit arranca |
+| Pantalla inicial | el formulario, con el aviso de credenciales de ejemplo |
+| Login como `empleado` | **Fallo**: la configuración exigía `GEMINI_API_KEY_JUEZ` a un proceso que nunca evalúa. Corregido con `load_config(con_juez=False)` en la interfaz |
+
+La URL pública es `https://asistente-multitenant.onrender.com`. El servicio
+se deja suspendido fuera de las pruebas y de la defensa.
+
 ## Riesgos que abre, y dónde están registrados
 
 - R-08 (coste): el tope blando reduce el residual "sin límite de peticiones",

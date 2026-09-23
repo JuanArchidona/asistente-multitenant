@@ -77,8 +77,16 @@ except ValueError as error:
     st.error(str(error))
     st.stop()
 
+import os
+
+# Render expone el commit desplegado en RENDER_GIT_COMMIT. Verlo en pantalla es
+# lo que permite saber qué versión se está probando: el primer despliegue
+# mostró un commit en la página del blueprint y otro en la del servicio.
+VERSION = os.getenv("RENDER_GIT_COMMIT", "local")[:7]
+
 if "credencial" not in st.session_state:
     st.title("Asistente multi-tenant")
+    st.caption(f"Versión {VERSION}")
     if usuarios.es_de_ejemplo:
         st.warning(
             "Este despliegue usa **las credenciales de ejemplo** (`usuarios.example.json`, "
@@ -129,7 +137,8 @@ with st.sidebar:
     st.divider()
     st.markdown(
         f"**Proveedor:** {cfg.provider}  \n**Enrutador:** `{cfg.model_router}`  \n"
-        f"**Generador:** `{cfg.model_generator}`  \n**Embeddings:** `{cfg.embed_model}`"
+        f"**Generador:** `{cfg.model_generator}`  \n**Embeddings:** `{cfg.embed_model}`  \n"
+        f"**Versión:** `{VERSION}`"
     )
     st.caption(
         f"AI Act: {cfg.tenant.ai_act.clasificacion.replace('_', ' ')}"
