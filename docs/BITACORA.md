@@ -70,8 +70,10 @@ no podía ver. Cinco de los nueve hallazgos salieron así.
 
 **Pendiente para la próxima sesión:**
 
-- [ ] **Pegar el JSON nuevo en `APP_USUARIOS_JSON` de Render** (dos usuarios
-      de la gestoría). Juan tiene las contraseñas.
+- [x] ~~Pegar el JSON nuevo en `APP_USUARIOS_JSON` de Render~~ **Hecho por
+      Juan al cerrar la sesión**: los seis usuarios (dos por inquilino) están
+      activos en el servicio y las seis contraseñas guardadas en su gestor.
+      No están en ningún fichero ni en la memoria del proyecto.
 - [ ] Revisar `front-03` de `gestoria_laboral` (literal "cinco dias antes"
       frente a "5 días") con criterio, y `agg-01` (`plazos internos` sigue
       yendo a `procedimientos`).
