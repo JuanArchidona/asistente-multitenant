@@ -4,6 +4,100 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-23 (tarde) — Sesión 7: el registro de riesgos se queda sin filas abiertas, y el bloque 3 llega hasta donde llegan las credenciales
+
+**8 commits, 5 hallazgos (del §44 al §48), 1.102 tests**, gasto del día en
+proveedores en torno a 0,5 USD. Todo con el mismo patrón: antes de tocar
+nada, contar a quién afecta; antes de afirmar nada, medirlo aparte.
+
+**Hecho, por orden:**
+
+- **Sesgo en la capa de generación medido sin juez** (§44, R-13 cerrado).
+  Cinco medidas deterministas por respuesta sobre los pares del §34, ocho
+  repeticiones por variante y suelo por grupo de control: nulo en los cuatro
+  ejes. Dos medidas están saturadas y el hallazgo lo dice. Una hipótesis
+  nacida de leer las respuestas (matiz por origen, 2,00x con N=8) se
+  declaró, se codificó y cayó a 1,00x con N=24: la cuarta afirmación falsa
+  del experimento de sesgo, y la primera que no llegó a escribirse.
+- **Gestoría revisada en frío** (§45): `front-03` (número en letra) y
+  `agg-01` (el enrutador acertaba: "plazos internos" es el título de la
+  tabla del protocolo) eran del banco y se corrigieron por escrito;
+  `ooc-04` es del sistema y se queda. 27/28.
+- **Simulacro del plan de incidentes** (§46, R-23 medido): 14,95 s el botón
+  rojo con `scripts/simulacro_incidente.py`. La primera pulsación destapó
+  que una consulta que revienta no dejaba rastro en el registro de
+  producción; ahora queda con `_fallo` y tipo de error, el resumen las
+  cuenta aparte y `src.main` sale con un mensaje en vez de un traceback.
+- **ATLAS verificado** contra la matriz 5.6.0: los ocho identificadores
+  existen, tres renombrados, T0055 añadido a R-04 y T0070 a R-10.
+- **Denegación como ausencia cerrada en el caso vacío** (§47, R-12 medido).
+  Contado antes de tocar: el heredado no tenía ningún caso vacío por
+  permiso y la gestoría tenía cinco. Mensaje determinista que dice que la
+  documentación existe y a qué rol está restringida. El comparador ignora
+  el énfasis de markdown; reevaluadas siete ejecuciones guardadas con
+  `--desde-trazas`, cero veredictos cambian en las seis anteriores.
+- **Enrutador por embeddings medido contra Haiku** (§48, bloque 3 punto 12).
+  Sin entrenamiento ni dependencia nueva, conmutable con `ROUTER_KIND`,
+  umbral calibrado en el heredado y congelado. En transferencia 0,735
+  frente a 0,882, cuatro veces más rápido, sin coste de chat y 13 de 13 en
+  casos de riesgo (`inj-04` llega al control por primera vez). La cascada
+  iguala a Haiku en muestra pero fuera manda al LLM el 75-88 %. **Haiku se
+  queda.**
+- **Canal de WhatsApp construido** (bloque 3 punto 13): el número es la
+  credencial y fija el inquilino, artículo 50 en la primera conversación,
+  aprobación humana por texto, firma del webhook obligatoria, teléfono
+  nunca en el registro, sin framework. 25 pruebas y tres mensajes simulados
+  contra el sistema real (5,1 s una consulta). `docs/CANAL_WHATSAPP.md`.
+
+**Decisiones:**
+
+- **`inj-04` se queda como residual**: arreglarlo es tocar el prompt del
+  enrutador heredado, y su cobertura es un cero honesto desde la
+  temperatura 0.
+- **El caso parcial de la denegación (contexto más algo retenido) no se
+  toca**: son 14 casos del heredado y otro corte de línea base antes de la
+  defensa.
+- **Haiku sigue como enrutador por defecto**; la línea que valdría la pena
+  es dar ejemplos a las descripciones, no afinar un modelo.
+- **WhatsApp con la API oficial de Meta y su número de pruebas**; la cuenta
+  personal de Juan solo como cliente que escribe, nunca como número del
+  bot.
+- **El servicio `asistente-whatsapp` no arranca sin credenciales, a
+  propósito**, y por eso está en rojo en Render: el blueprint se sincronizó
+  solo con el push. Queda con `autoDeploy: false` hasta que existan.
+- **LangGraph solo en versión de media jornada** que pase el banco heredado,
+  en grupo de dependencias aparte; si no lo pasa, se argumenta sin
+  prototipo. Pendiente de la palabra de Juan.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Prueba en vivo del canal de WhatsApp.** Juan crea la app de Meta
+      (pasos en `docs/CANAL_WHATSAPP.md`) y pasa `WHATSAPP_TOKEN`,
+      `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_VERIFY_TOKEN` y
+      `WHATSAPP_APP_SECRET` por `.env` o Render, nunca por el chat. Después:
+      desplegar a mano el servicio, conectar el webhook y medir lo que lista
+      el documento (hallazgo §49).
+- [ ] Prototipo LangGraph acotado, si Juan lo confirma.
+- [ ] Caso de agregación real en el banco de la gestoría, en sustitución
+      del que `agg-01` dejó de medir.
+- [ ] Mitad manual del simulacro de incidentes: revocar y rotar la clave
+      en las consolas y en Render, con reloj.
+- [ ] Borrador de la memoria (bloque 4). Formato de la defensa: sigue sin
+      conocerse.
+
+**Notas:**
+
+- Regla nueva del §44: una hipótesis que sale de mirar los datos se declara
+  y se mide con una pasada nueva, nunca con los mismos datos.
+- Regla nueva del §47: antes de tocar un comparador, reevaluar las
+  ejecuciones guardadas con `--desde-trazas --sin-juez` y contar los
+  veredictos que cambian.
+- Regla nueva del §48: un umbral se calibra en el heredado y se congela
+  antes de mirar a los otros inquilinos; el acierto del heredado se marca
+  como en muestra.
+- El blueprint de Render se sincroniza solo con cada push: un servicio
+  nuevo en `render.yaml` se crea y despliega sin pasar por el dashboard.
+
 ## 2026-09-23 — Sesión 6: el puente se cierra solo, y el servicio público resulta ser el mejor banco de pruebas
 
 **27 commits, 9 hallazgos (del §35 al §43), 1.033 tests**, ocho encargos
