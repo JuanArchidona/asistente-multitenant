@@ -63,6 +63,14 @@ def test_normalizar_quita_separadores_de_millares():
     assert normalizar("318.100 €") == normalizar("318100 €")
 
 
+def test_normalizar_quita_el_enfasis_de_markdown():
+    """"hasta el día **22**" tiene que casar con "dia 22" (§47). Solo asteriscos:
+    el guion bajo va dentro de nombres de fichero."""
+    assert normalizar("hasta el día **22** del mes") == "hasta el dia 22 del mes"
+    assert normalizar("antes de las *14:00*") == "antes de las 14:00"
+    assert normalizar("protocolo_recepcion_documentacion.md") == "protocolo_recepcion_documentacion.md"
+
+
 def test_normalizar_no_toca_decimales_de_tres_cifras():
     """'3.11' es una versión, no 3110: el separador exige exactamente 3 dígitos."""
     assert "3.11" in normalizar("Python 3.11")

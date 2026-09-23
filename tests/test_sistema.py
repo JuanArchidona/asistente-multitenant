@@ -6,7 +6,13 @@ umbral de distancia produzca un rechazo explícito, y que la política del promp
 sea realmente conmutable (si no lo fuera, comparar `base` contra `hardened`
 mediría dos veces lo mismo).
 """
-from src.agent import SYSTEM_GEN_BASE, SYSTEM_GEN_HARDENED, Sistema, system_generador
+from src.agent import (
+    SYSTEM_GEN_BASE,
+    SYSTEM_GEN_HARDENED,
+    Sistema,
+    mensaje_sin_contexto,
+    system_generador,
+)
 from src.retriever import Recuperacion, Recuperado
 from src.router import enrutar
 
@@ -182,3 +188,54 @@ def test_el_uso_de_tokens_se_acumula(cfg, chat_falso):
     resumen = chat.uso.resumen()
     assert resumen["llamadas"] == 2
     assert resumen["tokens_entrada"] == 20 and resumen["tokens_salida"] == 40
+
+
+# --- Denegación frente a ausencia en el camino documental ---
+#
+# Medido en la gestoría (§47): cinco casos de confidencialidad en los que el
+# permiso retenía el único documento relevante recibían "no he encontrado
+# documentación", que es lo que se dice cuando el dato no existe. El camino
+# mixto ya lo distinguía desde el §22; el documental, no.
+
+def _sistema_denegado(cfg, chat, denegados):
+    sistema = Sistema(cfg, chat=chat)
+    sistema._retriever = RetrieverFalso([], denegados=denegados)
+    return sistema
+
+
+def test_vacio_por_permiso_se_dice_como_denegacion_no_como_ausencia(cfg, chat_falso):
+    chat = chat_falso(['{"categoria": "rrhh", "justificacion": "x", "confianza": 0.9}'])
+    traza = _sistema_denegado(cfg, chat, ["anexo_confidencial_plantilla.md"]).responder(
+        "¿cuánto cobra Ana?"
+    )
+    respuesta = traza["respuesta"].lower()
+    assert traza["contexto_vacio"] is True
+    assert traza["denegados_por_permiso"] == ["anexo_confidencial_plantilla.md"]
+    assert "no he encontrado" not in respuesta
+    assert "restringida al rol 'rrhh_direccion'" in respuesta
+    assert "no es que el dato no exista" in respuesta
+    # Sin generador: no hay nada que pueda inventar, y no cuesta tokens.
+    assert len(chat.llamadas) == 1
+
+
+def test_la_denegacion_no_revela_el_nombre_del_documento(cfg, chat_falso):
+    chat = chat_falso(['{"categoria": "rrhh", "justificacion": "x", "confianza": 0.9}'])
+    traza = _sistema_denegado(cfg, chat, ["anexo_confidencial_plantilla.md"]).responder("¿salarios?")
+    assert "anexo_confidencial" not in traza["respuesta"]
+
+
+def test_vacio_sin_nada_retenido_sigue_siendo_ausencia(cfg, chat_falso):
+    """El aviso solo sale cuando hay algo retenido. Un aviso que aparece
+    siempre es un aviso que se aprende a ignorar (§22)."""
+    chat = chat_falso(['{"categoria": "rrhh", "justificacion": "x", "confianza": 0.9}'])
+    traza = _sistema_denegado(cfg, chat, []).responder("¿política de dietas?")
+    assert "no he encontrado" in traza["respuesta"].lower()
+    assert "restringida" not in traza["respuesta"].lower()
+
+
+def test_el_mensaje_agrupa_roles_y_fuentes(cfg):
+    texto = mensaje_sin_contexto(
+        cfg, ["rrhh", "actas"], ["anexo_confidencial_plantilla.md", "anexo_confidencial_plantilla.md"]
+    )
+    assert "las fuentes ['actas', 'rrhh']" in texto
+    assert texto.count("rrhh_direccion") == 1

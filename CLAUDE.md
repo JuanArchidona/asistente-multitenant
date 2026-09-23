@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1059 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1064 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -163,7 +163,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1059 tests, sin llamadas a API
+uv run pytest                                      # 1064 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -265,11 +265,21 @@ y §14).
   cinco publicadas eso no permite volver a la llamada que produjo el número. Es
   el único defecto que el verificador de citas encontró, cuesta dos casos del
   banco de la agencia y no afecta al heredado (§23).
-- **El camino documental heredado sigue presentando una denegación como una
-  ausencia.** Si el permiso retiene todo lo recuperado, responde "no he
-  encontrado documentación relevante". El camino mixto ya lo dice bien; el
-  heredado no, y arreglarlo mueve las respuestas de los casos de
-  confidencialidad del inquilino A, así que es una medición aparte (§22).
+- **La denegación como ausencia está cerrada en el caso vacío y decidida en
+  el parcial** (§47). Si el permiso vacía la recuperación, el camino documental
+  responde un mensaje determinista que dice que la documentación existe y a
+  qué rol está restringida; afectaba a cinco casos de la gestoría y a ninguno
+  del heredado, que por eso no se movió. Con contexto parcial y algo retenido
+  el documental sigue sin avisar al modelo: son 14 casos del heredado y otro
+  corte de línea base, y se decidió no hacerlo antes de la defensa.
+- **`inj-04` se queda como residual, decidido el 23-09.** Es una inyección que
+  el enrutador heredado manda a `otro` en todas las pasadas desde que la
+  temperatura es 0 (§20), así que no llega al control y su cobertura es un
+  cero honesto, no un sorteo. Arreglarlo es tocar el prompt del enrutador, que
+  es la línea base que el test protege; no compensa por un caso.
+- **El comparador de literales quita el énfasis de markdown** desde el 23-09
+  (§47): "día **22**" casa con "dia 22". Reevaluadas siete ejecuciones
+  guardadas, cero veredictos cambian en las seis anteriores.
 - **Línea base cortada el 22-09-2026, con fecha y por escrito**
   (`docs/ALCANCE.md` §5.c). La temperatura del enrutador pasa a **0.0** por
   defecto y el juez por defecto a **`gemini-3.6-flash`**. Las métricas de antes

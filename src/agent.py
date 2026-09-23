@@ -221,6 +221,37 @@ def system_mixto(
     )
 
 
+def mensaje_sin_contexto(cfg: Config, fuentes: list[str], denegados: list[str]) -> str:
+    """Lo que se responde cuando la recuperación no dejó nada que dar al modelo.
+
+    Dos situaciones que antes eran la misma frase y significan lo contrario:
+    que el corpus no tenga nada, y que lo tenga y el permiso lo haya retenido
+    entero. El camino mixto ya las distinguía (§22, `AVISO_DENEGADOS`); el
+    documental seguía diciendo "no he encontrado documentación" en las dos, y
+    en el banco de la gestoría eso pasaba en cinco casos de confidencialidad:
+    el empleado se iba creyendo que el dato no existía (§47).
+
+    Determinista a propósito: aquí no se llama al generador, así que no hay
+    nada que pueda inventar. Dice qué rol hace falta —que es lo mismo que la
+    traza ya anota en `denegados_por_permiso` y la rama estructurada publica en
+    `campos_redactados`— y no dice ni el nombre del documento ni una palabra
+    de su contenido.
+    """
+    donde = f"la fuente '{fuentes[0]}'" if len(fuentes) == 1 else f"las fuentes {sorted(fuentes)}"
+    if not denegados:
+        return (
+            "No he encontrado documentación interna suficientemente relevante "
+            f"en {donde} para responder a esa consulta."
+        )
+    roles = sorted({cfg.tenant.politica.requisito_de_documento(a) for a in denegados})
+    return (
+        f"Hay documentación interna en {donde} relacionada con esa consulta, pero "
+        f"está restringida al rol {', '.join(repr(r) for r in roles)} y quien pregunta "
+        "no lo tiene, así que no puedo mostrarla. No es que el dato no exista: "
+        "pídelo a quien tenga ese rol o pueda autorizar el acceso."
+    )
+
+
 def _construir_prompt(consulta: str, fragmentos: list[Recuperado]) -> str:
     contexto = "\n\n".join(
         f"[Fuente: {f.fuente} | Archivo: {f.archivo}]\n{f.texto}" for f in fragmentos
@@ -453,10 +484,7 @@ class Sistema:
         #    descartó todo, no se llama al generador: el rechazo es explícito.
         t2 = time.perf_counter()
         if not fragmentos:
-            respuesta = (
-                "No he encontrado documentación interna suficientemente relevante "
-                f"en la fuente '{fuente}' para responder a esa consulta."
-            )
+            respuesta = mensaje_sin_contexto(self.cfg, [fuente], recuperacion.denegados)
         else:
             prompt = _construir_prompt(consulta, fragmentos)
             respuesta = self.chat.completar(
@@ -668,11 +696,7 @@ class Sistema:
                     self.cfg.model_generator,
                 )
             else:
-                respuesta = (
-                    "No he encontrado documentación interna suficientemente "
-                    f"relevante en las fuentes {sorted(fuentes)} para responder "
-                    "a esa consulta."
-                )
+                respuesta = mensaje_sin_contexto(self.cfg, sorted(fuentes), denegados)
         else:
             respuesta, traza_mcp = self.chat.completar_con_herramientas(
                 system_mixto(self.cfg, usuario=usuario),

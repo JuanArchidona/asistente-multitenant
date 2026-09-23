@@ -32,6 +32,11 @@ _RE_DECIMAL = re.compile(r"(?<=\d),(?=\d)")
 # con espacio (norma tipográfica) y los modelos casi siempre sin él; es una
 # diferencia de formato sin contenido, igual que la coma decimal.
 _RE_PORCENTAJE = re.compile(r"(?<=\d)\s+%")
+# Énfasis de markdown: el modelo escribe "hasta el día **22**" y el literal
+# "dia 22" no casaba porque los asteriscos partían la expresión (§47, `agg-01`
+# de la gestoría). Un asterisco no es contenido. Solo el asterisco: el guion
+# bajo forma parte de los nombres de fichero y de identificadores.
+_RE_ENFASIS = re.compile(r"\*+")
 
 
 def normalizar(texto: str) -> str:
@@ -50,6 +55,7 @@ def normalizar(texto: str) -> str:
     """
     t = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
     t = t.lower()
+    t = _RE_ENFASIS.sub("", t)
     t = _RE_MILLARES.sub("", t)
     t = _RE_DECIMAL.sub(".", t)
     t = _RE_PORCENTAJE.sub("%", t)

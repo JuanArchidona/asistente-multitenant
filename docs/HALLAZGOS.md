@@ -996,7 +996,9 @@ interna suficientemente relevante", que también presenta una denegación como u
 ausencia. Arreglarlo cambia las respuestas de los casos de confidencialidad del
 inquilino heredado, así que es una decisión medible aparte y no un arreglo de
 paso. Queda anotado; no se ha hecho hoy para no mover la línea base en la misma
-sesión en la que se mide otra cosa.
+sesión en la que se mide otra cosa. **Cerrado el 23-09-2026 en §47**: contados
+los casos, el heredado no tenía ninguno vacío por permiso y la gestoría tenía
+cinco.
 
 ### La regresión del inquilino heredado
 
@@ -3009,3 +3011,95 @@ una frase sino un comando con manifiesto, y el paso 1 tiene una medida de
 qué aspecto tiene el fallo en el registro. Lo que le sigue faltando al plan
 es lo que ya decía: el canal para que un usuario avise, y la mitad manual
 del botón rojo, que solo se puede medir con la consola delante.
+
+## 47. El camino documental ya no confunde "no es para ti" con "no existe", y el banco heredado no se mueve
+
+**Ejecución:** `reports/gestoria_denegacion`, 23-09-2026, 28 casos sin
+juez, 0,058 USD; reevaluación sin coste de siete ejecuciones guardadas con
+`--desde-trazas` para comprobar que el comparador no movía nada.
+
+El §22 arregló el camino mixto y dejó escrito que el documental heredado
+tenía el mismo defecto: si el permiso retenía todo lo recuperado, respondía
+*"no he encontrado documentación interna suficientemente relevante"*, que es
+lo que se dice cuando el dato no existe. No se tocó entonces para no mover
+la línea base del inquilino heredado en la misma sesión en que se medía
+otra cosa.
+
+### Primero, a quién afecta
+
+Antes de cambiar nada se contó, sobre las trazas guardadas, cuántos casos
+caen en esa situación —camino documental, recuperación vacía y algo
+retenido por permiso—:
+
+| Ejecución | Casos vacíos por permiso | Casos con retenidos y contexto |
+|---|---|---|
+| `empresa_quien` (heredado, 53) | **0** | 14 |
+| `agencia_hitl_v3` (40) | 0 | 0 |
+| `gestoria_alta_v3` (28) | **5** | 0 |
+
+El resultado cambia la decisión del §22. **El banco heredado no tiene ni un
+caso** en el que el permiso vacíe la recuperación: el anexo confidencial
+convive con otros documentos de `rrhh` y siempre sale algo. Donde el
+defecto se ve es en la gestoría, cuyo único documento restringido es la
+ficha bancaria de un cliente: los cuatro casos de confidencialidad y la
+inyección que la piden recibían la frase de ausencia. El empleado se iba
+creyendo que el despacho no tenía la ficha.
+
+Así que arreglar el caso vacío **no mueve la línea base heredada**, y por
+eso se hace. Lo que sí la movería es la otra mitad —avisar al modelo cuando
+hay contexto *y además* algo retenido, que es lo que el mixto hace con
+`AVISO_DENEGADOS`—: eso toca 14 casos del heredado y es un corte de línea
+base de generación como el §5.d. **Se deja sin hacer y decidido**: la
+situación parcial ya la resuelve el generador con lo que ve, y el coste de
+otro corte hoy es mayor que el defecto.
+
+### El arreglo
+
+Cuando la recuperación no deja nada y hay documentos retenidos, el sistema
+responde un mensaje **determinista** —no se llama al generador, así que no
+hay nada que pueda inventar— que dice que la documentación existe, a qué
+rol está restringida y que se pida a quien lo tenga. No dice el nombre del
+documento ni una palabra de su contenido: el rol es lo mismo que la traza
+ya anota en `denegados_por_permiso`. Sin retenidos, la frase de ausencia
+sigue igual: un aviso que aparece siempre es un aviso que se ignora (§22).
+Cuatro pruebas.
+
+Los cinco casos de la gestoría pasan de *"no he encontrado documentación"*
+a *"hay documentación interna en la fuente 'clientes' relacionada con esa
+consulta, pero está restringida al rol 'socio'..."*, que es además lo que
+sus respuestas de referencia decían. Ninguno filtra nada: `fuga_literal`
+sigue en 28 de 28.
+
+### El fallo que apareció por el camino, y era del comparador
+
+La pasada dio **26 de 28** en vez de 27: `agg-01`, que acababa de
+corregirse (§45), fallaba `contiene` por el literal `"dia 22"`. El modelo
+había escrito *"hasta el día **22**"*: la negrita de markdown partía la
+expresión y el comparador no la encontraba. Un asterisco no es contenido,
+como no lo eran el espacio del porcentaje ni la coma decimal (§3), y
+`normalizar` ahora los quita —solo asteriscos: el guion bajo va dentro de
+los nombres de fichero—.
+
+Tocar el comparador obliga a demostrar que no mueve lo ya medido. Se
+reevaluaron **siete ejecuciones guardadas** sin llamar a nada:
+
+| Ejecución | `contiene` antes | `contiene` después | Veredictos deterministas que cambian |
+|---|---|---|---|
+| `empresa_quien`, `baseline`, `empresa_regresion` | 1,0 | 1,0 | ninguno |
+| `agencia_hitl_v3` | 0,875 | 0,875 | ninguno |
+| `agencia_quien` | 0,917 | 0,917 | ninguno |
+| `gestoria_alta_v3` | 1,0 | 1,0 | ninguno |
+| `gestoria_denegacion` | 0,969 | **1,0** | `agg-01` pasa |
+
+Cero cambios en las seis ejecuciones anteriores y uno en la que lo
+destapó. Con eso `gestoria_denegacion` queda en **27 de 28**, reevaluada
+sobre sus propias trazas, y el único rojo sigue siendo `ooc-04`.
+
+### Lo que enseña
+
+Que "arreglarlo mueve la línea base" era una suposición, y contarlo costó
+un minuto y cero dólares: el defecto no tocaba ni un caso del banco que se
+quería proteger y sí cinco del que no se miraba. Y que un banco que lee
+respuestas en markdown tiene que normalizar markdown; el §3 lo hizo con el
+porcentaje y este hallazgo con la negrita, y las dos veces el modelo tenía
+razón y el instrumento no.
