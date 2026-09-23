@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1055 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1059 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -47,7 +47,7 @@ servicio público desplegado. **1055 tests en verde**, `ruff` limpio.
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
-| Observabilidad y coste en producción | Hecha: registro por inquilino, coste por consulta (§20) |
+| Observabilidad y coste en producción | Hecha: registro por inquilino, coste por consulta (§20); desde el 23-09 las consultas que revientan también quedan, con su tipo de error (§46) |
 | Consulta de las dos ramas ante una categoría ambigua | Hecha y medida: cobertura del riesgo 0,778 → 1,0 (§22) |
 | Verificación determinista de citas | Hecha y medida sobre las 22 ejecuciones guardadas: 0 citas inventadas (§23) |
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
@@ -59,16 +59,16 @@ servicio público desplegado. **1055 tests en verde**, `ruff` limpio.
 | Human-in-the-loop | **Hecho y medido** el 23-09: la agencia declara `crm__registrar_visita` como escritura, el servidor la anota, el modelo la propone y una persona la aprueba desde la interfaz con registro; métrica `accion_sin_aprobar` 40/40 y ninguna visita escrita tras el banco (§42) |
 | Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). **Vivo a propósito** desde el 23-09 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan) para seguir probando ahí |
 | Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
-| Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43) |
+| Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43). Revisado en frío: dos de los tres rojos eran del banco, **27/28** (§45) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
-| Cadena de suministro (AIBOM) y plan de incidentes | **Hecho** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35: embeddings en retirada y sin coste contabilizado) y `docs/INCIDENTES.md`; falta el simulacro cronometrado |
+| Cadena de suministro (AIBOM) y plan de incidentes | **Hecho y simulado** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35) y `docs/INCIDENTES.md` pulsado en frío con `scripts/simulacro_incidente.py`: **14,95 s** el botón rojo, y destapó que las consultas fallidas no dejaban rastro en el registro (§46, corregido) |
 | Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
-| Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
+| Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS **verificado contra la matriz 5.6.0**, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
 decididas**, está en `docs/ALCANCE.md` §4. La regla: se sacrifica alcance antes
@@ -82,7 +82,7 @@ que profundidad de la documentación.
 | Para qué está | Sostener el banco heredado como **suite de regresión** | Demostrar agnosticidad y la rama estructurada | Medir el alta de un cliente nuevo (§43): 5 min 42 s, sin código |
 | Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), expedientes, procesos, normativa, comercial, actas | laboral, fiscal, clientes, procedimientos, actas |
 | Corpus | 7 documentos | 10 documentos | 6 documentos |
-| Banco | 53 casos | 40 casos | 28 casos |
+| Banco | 53 casos | 40 casos | 28 casos (27/28, §45) |
 | MCP | No | `mcp_servers/agencia_crm.py`, con una escritura aprobada por persona | No |
 
 Los tres son **sintéticos**. Ningún dato real de ninguna empresa entra aquí: el
@@ -163,7 +163,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1055 tests, sin llamadas a API
+uv run pytest                                      # 1059 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -179,6 +179,7 @@ uv run python -m src.observabilidad_cli                # qué ha pasado en produ
 uv run python -m src.observabilidad_cli --tenant X --borrar-usuario U   # supresión RGPD
 uv run streamlit run app.py                            # interfaz (uv sync --group app)
 uv run python scripts/generar_aibom.py                 # regenera el AIBOM (el test lo vigila)
+uv run python scripts/simulacro_incidente.py           # botón rojo en frío: ~15 s y una consulta real (§46)
 TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E
 node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app, con la orden en la caja
 node puente/avisos.mjs --listar                        # avisos de la app; el hook los inyecta solo

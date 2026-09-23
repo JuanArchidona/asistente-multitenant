@@ -24,7 +24,19 @@ def main() -> None:
     # El banco crea su `Sistema` sin registro a proposito.
     registro = desde_config(cfg)
     sistema = Sistema(cfg, registro=registro)
-    traza = sistema.responder(consulta)
+    try:
+        traza = sistema.responder(consulta)
+    except Exception as error:  # noqa: BLE001 -- frontera de CLI: se dice y se sale
+        # Un traceback de 40 líneas no es un mensaje. El fallo ya está en el
+        # registro (si el registro pudo escribir); aquí se dice qué pasó, dónde
+        # quedó anotado y se sale con error, sin tragarse nada.
+        anotado = f"anotado en {registro.ruta}" if not registro.fallos else (
+            f"NO anotado: el registro falló ({registro.ultimo_error})"
+        )
+        sys.exit(
+            f"[main] La consulta no se pudo responder: {type(error).__name__}: "
+            f"{str(error)[:300]}\n[main] {anotado}"
+        )
 
     # Artículo 50.1 del AI Act: quien interactúa con el sistema tiene que saber
     # que es una IA. El texto lo declara el inquilino en su manifiesto.

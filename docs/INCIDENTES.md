@@ -15,9 +15,9 @@ Cualquiera de estas cinco cosas, y cualquier otra que se le parezca:
 | # | Incidente | Cómo se detecta hoy | Riesgo de `RIESGOS.md` |
 |---|---|---|---|
 | I-1 | Un usuario recibe datos que su permiso no cubre, del mismo o de otro inquilino | Un caso `conf-*` o `inj-*` del banco que pasa a fallar; una consulta de producción con `denegados` vacío donde no debería; un aviso de una persona | R-02, R-03 |
-| I-2 | Una clave de API queda expuesta (commit, log, respuesta de un agente, pantalla) | `git log -p` sobre `.env`; el consumo de la clave en la consola del proveedor sube sin ejecuciones conocidas; el puente devuelve contenido de `.env` | R-04 |
+| I-2 | Una clave de API queda expuesta (commit, log, respuesta de un agente, pantalla) | `git log -p` sobre `.env`; el consumo de la clave en la consola del proveedor sube sin ejecuciones conocidas; el puente devuelve contenido de `.env`; **desde el 23-09**, una clave revocada aparece como `consultas_fallidas` con tipo `AuthenticationError` en `observabilidad_cli` (§46) | R-04 |
 | I-3 | Gasto anómalo | La consola del proveedor marca más de lo que suma `reports/` y el registro de producción; el crédito baja sin pasadas conocidas | R-08 |
-| I-4 | El proveedor cambia de comportamiento o retira un modelo | Un test de precios o de conmutación falla; un 404 de modelo; una métrica del banco se mueve sin cambio en el repositorio | R-07 |
+| I-4 | El proveedor cambia de comportamiento o retira un modelo | Un test de precios o de conmutación falla; un 404 de modelo; una métrica del banco se mueve sin cambio en el repositorio; **desde el 23-09**, las consultas que revientan quedan en el registro con su tipo de error (`_fallo`), en vez de no dejar rastro (§46) | R-07 |
 | I-5 | El sistema responde algo inaceptable (sesgado, inventado, fuera de ámbito) y alguien lo ve | Un aviso de una persona; el verificador de citas con una cita no resoluble; un caso de sesgo por encima del suelo | R-05, R-13, R-21 |
 
 Lo que no está en esta tabla se trata como I-5 hasta que se sepa más.
@@ -35,10 +35,11 @@ intención:
 2. **Parar el sistema.** Hoy no hay despliegue: basta con no lanzar
    `src.main` ni `evals.runner`. Cuando lo haya, el servicio se detiene antes
    de mirar nada.
-3. **Congelar la evidencia.** No borrar ni reindexar. Copiar tal cual
-   `reports/`, el registro de producción (`uv run python -m
-   src.observabilidad_cli` lo lee) y `puente/REGISTRO_APP.md` si el puente
-   estaba en juego.
+3. **Congelar la evidencia.** No borrar ni reindexar. `uv run python
+   scripts/simulacro_incidente.py` hace la copia de `reports/` y del
+   registro de producción con manifiesto SHA-256 en `data/incidentes/`
+   (1,65 s, §46); si el puente estaba en juego, copiar además
+   `puente/REGISTRO_APP.md` a mano.
 4. **Rotar las claves** y actualizar `.env`. Si la clave estuvo en un commit,
    además reescribir el historial no basta: la clave está comprometida desde
    el momento del push y se revoca igualmente.
@@ -76,11 +77,12 @@ prueba de que el formato funciona:
 
 ## 5. Lo que este plan no cubre, y lo dice
 
-- **No hay simulacro.** El botón rojo no se ha pulsado en frío. Un simulacro
-  cronometrado (revocar una clave, medir cuánto tarda el sistema en fallar de
-  forma legible, rotar, volver) es la medida que le falta y cuesta media hora.
+- ~~**No hay simulacro.**~~ **Hecho el 23-09-2026** (§46, `reports/simulacro_incidente`):
+  clave revocada simulada, evidencia congelada y vuelta en **14,95 s** en total.
+  La primera pulsación destapó que una consulta fallida no dejaba rastro en el
+  registro; corregido. **Sigue sin simularse la mitad manual**: revocar y rotar
+  la clave en las consolas y en Render, que exige navegador y la cuenta de Juan.
 - **No hay canal para que un usuario avise.** Con dos inquilinos sintéticos no
   hay usuarios; con un despliegue, hace falta un correo o un formulario, y ese
   correo es un requisito del artículo 50 tanto como el aviso de IA.
-- **No hay retención definida** para el registro de producción, que guarda
-  quién preguntó qué (R-16). Es el siguiente hueco del registro de riesgos.
+- ~~**No hay retención definida**~~ Definida el 23-09 en `RETENCION.md` (R-16, §37).

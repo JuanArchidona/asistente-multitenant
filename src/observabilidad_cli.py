@@ -53,6 +53,11 @@ def _informe(tenant: str, resumen: dict, ultimas: list[dict]) -> str:
             f"{resumen['consultas_degradadas']} ({resumen['tasa_degradadas']:.1%})",
         ),
         _fila("Fallback del enrutador", resumen["fallback_enrutador"]),
+        _fila(
+            "Consultas FALLIDAS (sin respuesta)",
+            f"{resumen.get('consultas_fallidas', 0)} "
+            f"{json.dumps(resumen.get('fallos_por_tipo') or {}, ensure_ascii=False)}",
+        ),
         "",
         _fila("Por rama", json.dumps(resumen["por_rama"], ensure_ascii=False)),
         _fila("Por categoria", json.dumps(resumen["por_categoria"], ensure_ascii=False)),

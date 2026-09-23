@@ -362,8 +362,16 @@ class Sistema:
         # El coste se atribuye a ESTA consulta, no al acumulado de la sesion:
         # restar dos instantaneas del total atribuiria a una lo que gasto otra
         # cuando hay varias en vuelo.
-        with self.chat.uso.por_consulta() as uso:
-            traza = self._responder(consulta, usuario)
+        # Si la consulta revienta —clave revocada, modelo retirado, servidor
+        # caído— se anota el fallo ANTES de propagarlo. Sin esto el registro
+        # queda igual que si nadie hubiera preguntado, y eso hace invisible
+        # justo lo que el plan de incidentes quiere detectar (§46).
+        try:
+            with self.chat.uso.por_consulta() as uso:
+                traza = self._responder(consulta, usuario)
+        except Exception as error:
+            self.registro.anotar_fallo(consulta, usuario.id, error)
+            raise
         self.registro.anotar(traza, uso.resumen())
         return traza
 

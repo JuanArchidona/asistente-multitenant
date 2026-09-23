@@ -2870,3 +2870,142 @@ este hallazgo es que las tres afirmaciones falsas de allí se escribieron y
 luego se corrigieron; la de aquí se declaró como hipótesis, se midió aparte
 y no llegó a escribirse. Cuesta una pasada más. Es el precio de no tener
 que retirar una frase de la memoria.
+
+## 45. Los dos casos de la gestoría eran del banco, no del sistema: 27 de 28 con criterio y no con prisa
+
+**Ejecución:** `reports/gestoria_alta_v3`, 23-09-2026, 28 casos sin juez,
+0,058 USD. Compara con `gestoria_alta_v2` (25/28, §43).
+
+El §43 dejó tres casos en rojo y una regla: no corregirlos el mismo día en
+que se veían fallar. Revisados en frío, dos eran expectativas incorrectas y
+uno es del sistema. La regla del proyecto es que un caso se corrige cuando
+la expectativa estaba mal, nunca cuando el resultado incomoda, y cada
+corrección se justifica por escrito. Aquí van las dos.
+
+**`front-03`, número en letra.** El caso exigía el literal `"cinco dias
+antes"` y el modelo escribió *"cinco días de antelación"* la primera vez y
+*"5 días"* otra: respuesta correcta las dos veces. El comparador **no
+equipara palabras y cifras a propósito**, y lo dice en su docstring:
+hacerlo obliga a meter criterio en una métrica cuyo valor está en no
+tenerlo. Ya pasó en la agencia (§3, *"cinco visitas diarias"*) y la
+solución fue la misma que entonces: se cambia el literal del caso por un
+dato **estable de formato**, la fecha concreta que da el calendario fiscal
+(*"el 15"* en los trimestrales), y la comprobación de la cifra en letra se
+deja a la capa de juez. La respuesta de referencia se amplió para que diga
+la fecha. Quedan en los tres bancos **ocho literales más con números en
+letra** (*"tres meses"*, *"quince días"*, *"dos dias laborables"*...) que
+hoy pasan porque el modelo copia la redacción del corpus; son frágiles por
+la misma razón y no se tocan mientras no fallen, pero conviene saberlo al
+leer un rojo nuevo.
+
+**`agg-01`, el enrutador tenía razón.** La consulta pregunta por *"los
+plazos internos"* para un alta y unas variaciones de nómina, y el banco
+esperaba `laboral` con dos documentos. Pero el protocolo de recepción de
+documentación tiene una tabla titulada literalmente **"Plazos internos"**
+con exactamente esas dos filas (*antes de las 14:00*, *hasta el día 22*).
+El enrutador mandó la consulta a `procedimientos`, el sistema respondió con
+la tabla, la métrica `contiene` dio los dos datos por presentes, y solo
+fallaron el enrutado y la recuperación **contra una expectativa que
+describía otro corpus**. Se corrige la categoría y el archivo esperados. Lo
+que se pierde hay que decirlo: el caso quería medir la agregación de dos
+documentos de la misma fuente, y ya no la mide; el banco de la gestoría se
+queda sin caso de agregación real, y añadir uno nuevo es trabajo de banco
+que se hará sin mirar el resultado.
+
+**`ooc-04`, el que se queda en rojo.** La comida de Navidad va a `otro` en
+vez de a `actas`. Es un fallo de enrutado del sistema, del mismo tipo que
+el §1 y el §43 describen para un cliente nuevo, y se queda como está.
+
+Resultado: **27 de 28**, con la matriz de confusión limpia salvo esa
+celda. La cifra citable del alta de un cliente nuevo (§43) no cambia: el
+alta se midió con el banco que había, y este hallazgo es lo que cuesta
+**revisar** ese banco después, media hora y 0,06 USD.
+
+## 46. El botón rojo tarda quince segundos, y la primera vez que se pulsó el registro no vio nada
+
+**Ejecuciones:** un simulacro manual el 23-09-2026 (antes del arreglo) y
+`reports/simulacro_incidente` (después), con
+`scripts/simulacro_incidente.py`. Coste: una consulta real, 0,0022 USD.
+
+El plan de respuesta a incidentes (`docs/INCIDENTES.md`) tenía cuatro pasos
+y una carencia declarada en su propio §5: nunca se había pulsado en frío.
+El registro de riesgos lo llevaba como residual de R-23. Media hora de
+trabajo, decía; fue algo más porque el simulacro encontró un agujero.
+
+### Lo que se simula y lo que no
+
+Se pulsa sobre el sistema real y el punto de entrada de producción
+(`src.main`, el que registra), con tres pasos cronometrados: **la clave
+revocada** (una clave inválida en el entorno del subproceso, sin tocar
+`.env`), **congelar la evidencia** (copia de `reports/` y del registro de
+producción con manifiesto SHA-256) y **volver** (la misma consulta con la
+clave buena). Lo que no se simula se dice: revocar y rotar la clave en la
+consola del proveedor exige navegador y la cuenta de Juan, y hacerlo de
+verdad deja el servicio de Render sin clave hasta que se rota. Es el paso
+manual del plan y su tiempo es una estimación (dos consolas, un `.env` y
+una variable en Render: del orden de cinco minutos), no una medida.
+
+### La primera pulsación: un traceback y un registro que no se enteró
+
+Con la clave revocada, el sistema falló en el acto con un `401` del
+proveedor. Dos cosas estaban mal, y ninguna era el fallo en sí:
+
+1. **Fallaba con un traceback** de cuarenta líneas del SDK, no con un
+   mensaje. Legible para quien escribió el código; para quien opera un
+   incidente, ruido.
+2. **El registro de producción quedó exactamente igual**: dos líneas antes,
+   dos líneas después. Una consulta que revienta no llegaba a `anotar`,
+   porque la excepción salía de `_responder` antes. Eso significa que los
+   incidentes I-2 (clave expuesta) e I-4 (proveedor que cambia), cuya
+   detección el plan confiaba en parte a la observabilidad, **eran
+   invisibles para la observabilidad**: una clave revocada, un modelo
+   retirado o un servidor MCP caído dejaban el mismo rastro que un día sin
+   consultas.
+
+Es la misma familia que "el CRM está caído" leído como "no tengo esa
+información" (§22): un fallo que se confunde con la ausencia de actividad.
+Y no lo habría encontrado ningún test del banco, porque el banco crea su
+`Sistema` sin registro a propósito.
+
+### El arreglo
+
+`Sistema.responder` anota el fallo **antes** de propagarlo, con la clave
+`_fallo`, el tipo del error, el mensaje recortado a 200 caracteres y la
+consulta; va al mismo log que las consultas y las acciones, y el resumen lo
+cuenta aparte como `consultas_fallidas` por tipo, sin mezclarlo con las
+respondidas —sumarlo bajaría el coste medio y la latencia media con ceros
+que no son de ninguna respuesta—. La CLI de observabilidad lo muestra. Y
+`src.main` sale con dos líneas en vez de un traceback: qué pasó y dónde
+quedó anotado, o que el registro no pudo escribir. Cuatro pruebas nuevas,
+una de ellas con un proveedor que lanza en la primera llamada.
+
+### La segunda pulsación, con reloj
+
+| Paso | Tiempo | Qué se comprobó |
+|---|---|---|
+| Clave revocada | **4,8 s** | Falla con código de salida 1, dos líneas de mensaje y **una línea `_fallo: AuthenticationError`** en el registro |
+| Congelar evidencia | **1,65 s** | 182 ficheros, 15,3 MB, manifiesto SHA-256 |
+| Volver | **8,47 s** | Responde, queda anotada, 0,0022 USD |
+| **Total** | **14,95 s** | |
+
+Los 4,8 s del primer paso son casi todos arranque del intérprete, carga de
+Chroma y del cliente; la llamada rechazada es instantánea. Lo que importa
+no es la cifra sino que ahora el fallo **se ve** desde
+`observabilidad_cli`: el resumen del inquilino heredado dice cuatro
+consultas y una fallida.
+
+### Lo que enseña
+
+Que un simulacro que no encuentra nada probablemente no se ha hecho. El
+plan decía que I-2 e I-4 se detectan "por el consumo en la consola" y "por
+un test que falla", y las dos cosas siguen siendo verdad; lo que no decía
+es que la tercera vía, el registro, estaba ciega para justo esos casos. Se
+descubrió pulsando, no leyendo, que es el patrón de cinco de los nueve
+hallazgos de la sesión anterior: lo que se prueba fuera del banco enseña
+lo que el banco no puede ver.
+
+Y una consecuencia para el plan: el paso 3, congelar la evidencia, ya no es
+una frase sino un comando con manifiesto, y el paso 1 tiene una medida de
+qué aspecto tiene el fallo en el registro. Lo que le sigue faltando al plan
+es lo que ya decía: el canal para que un usuario avise, y la mitad manual
+del botón rojo, que solo se puede medir con la consola delante.

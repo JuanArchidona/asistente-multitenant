@@ -11,7 +11,7 @@ from dataclasses import replace
 import pytest
 
 from src.agent import Sistema
-from src.observabilidad import Registro, inquilinos, leer, resumir
+from src.observabilidad import CLAVE_FALLO, Registro, inquilinos, leer, resumir
 from src.retriever import Recuperacion, Recuperado
 
 
@@ -284,3 +284,63 @@ def test_replace_de_config_sigue_funcionando(cfg):
     """Guardia barata: `cfg_factory` usa `replace`, y añadir un campo sin valor
     por defecto a `Config` lo rompería lejos de aquí."""
     assert replace(cfg, top_k=9).top_k == 9
+
+
+# --- Consultas que no llegaron a responder ---
+
+class _ChatQueRevienta:
+    """Un proveedor con la clave revocada: la primera llamada lanza."""
+
+    def __init__(self):
+        from src.provider import Uso
+        self.uso = Uso()
+
+    def completar(self, *_a, **_k):
+        raise PermissionError("Error code: 401 - API key is invalid.")
+
+
+def test_una_consulta_que_revienta_queda_anotada_como_fallo_y_se_propaga(cfg, tmp_path):
+    """Medido en el simulacro del plan de incidentes (§46): con una clave
+    revocada, el registro quedaba exactamente igual que si nadie hubiera
+    preguntado. Un incidente que la observabilidad no ve no se detecta por la
+    observabilidad."""
+    registro = Registro(cfg.tenant.id, raiz=tmp_path)
+    sistema = Sistema(cfg, chat=_ChatQueRevienta(), registro=registro)
+
+    with pytest.raises(PermissionError):
+        sistema.responder("¿vacaciones?")
+
+    filas = leer(cfg.tenant.id, tmp_path)
+    assert len(filas) == 1
+    assert filas[0][CLAVE_FALLO] == "PermissionError"
+    assert filas[0]["consulta"] == "¿vacaciones?"
+    assert "401" in filas[0]["mensaje"]
+
+
+def test_los_fallos_se_cuentan_aparte_y_no_bajan_las_medias(tmp_path):
+    registro = Registro("empresa_servicios", raiz=tmp_path)
+    registro.anotar(_traza(latencia_generacion_s=1.1), {"llamadas": 2, "coste_usd_estimado": 0.01})
+    registro.anotar_fallo("¿vacaciones?", "ana", PermissionError("401"))
+    registro.anotar_fallo("¿nómina?", "ana", TimeoutError("sin respuesta"))
+
+    resumen = resumir(leer("empresa_servicios", tmp_path))
+    assert resumen["consultas"] == 1
+    assert resumen["consultas_fallidas"] == 2
+    assert resumen["fallos_por_tipo"] == {"PermissionError": 1, "TimeoutError": 1}
+    # Las medias son de la consulta respondida, no diluidas por los fallos.
+    assert resumen["coste_usd_por_consulta"] == pytest.approx(0.01)
+    assert resumen["latencia_media_s"] == pytest.approx(1.8)
+
+
+def test_solo_fallos_no_es_un_registro_vacio(tmp_path):
+    registro = Registro("empresa_servicios", raiz=tmp_path)
+    registro.anotar_fallo("¿vacaciones?", "ana", PermissionError("401"))
+    resumen = resumir(leer("empresa_servicios", tmp_path))
+    assert resumen["consultas"] == 0
+    assert resumen["consultas_fallidas"] == 1
+
+
+def test_el_mensaje_del_fallo_se_recorta(tmp_path):
+    registro = Registro("empresa_servicios", raiz=tmp_path)
+    registro.anotar_fallo("q", "ana", RuntimeError("x" * 1000))
+    assert len(leer("empresa_servicios", tmp_path)[0]["mensaje"]) == 200

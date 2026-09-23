@@ -154,6 +154,41 @@ class Registro:
                 self.ultimo_error = f"{type(e).__name__}: {e}"
             return None
 
+    def anotar_fallo(self, consulta: str, usuario: str, error: BaseException) -> dict | None:
+        """Una línea por consulta que no llegó a responder.
+
+        Sin esto, una clave revocada, un modelo retirado o un servidor MCP
+        caído dejan el registro **exactamente igual** que si nadie hubiera
+        preguntado: el simulacro del plan de incidentes lo midió (§46), dos
+        líneas antes y dos después de un 401. Un incidente que la
+        observabilidad no ve no se detecta por la observabilidad, y los
+        incidentes I-2 e I-4 de `INCIDENTES.md` contaban con ella.
+
+        Va al mismo log con la clave `_fallo`, como las acciones con `_accion`,
+        y el resumen las cuenta aparte: no son consultas respondidas. Se guarda
+        el tipo del error y el mensaje recortado; el mensaje de un proveedor
+        no lleva la clave, pero se recorta igual por si algún día la llevara.
+        """
+        try:
+            registro = {
+                CLAVE_FALLO: type(error).__name__,
+                "ts": datetime.now(UTC).isoformat(timespec="seconds"),
+                "tenant": self.tenant_id,
+                "usuario": usuario,
+                "consulta": consulta,
+                "mensaje": str(error)[:200],
+            }
+            with self._lock:
+                self.ruta.parent.mkdir(parents=True, exist_ok=True)
+                with self.ruta.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            return registro
+        except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
+            with self._lock:
+                self.fallos += 1
+                self.ultimo_error = f"{type(e).__name__}: {e}"
+            return None
+
     def componer(self, traza: dict, uso: dict | None) -> dict:
         respuesta = traza.get("respuesta") or ""
         denegados = traza.get("denegados_por_permiso") or []
@@ -301,6 +336,7 @@ def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
 
 CLAVE_LAPIDA = "_borrado"
 CLAVE_ACCION = "_accion"
+CLAVE_FALLO = "_fallo"
 
 
 def _reescribir(ruta: Path, conservar, motivo: dict) -> dict:
@@ -380,14 +416,24 @@ def resumir(registros: list[dict]) -> dict:
     ilegibles = sum(r.get("_ilegible", 0) for r in registros)
     lapidas = [r for r in registros if CLAVE_LAPIDA in r]
     acciones = [r for r in registros if CLAVE_ACCION in r]
+    fallos = [r for r in registros if CLAVE_FALLO in r]
     filas = [
         r for r in registros
         if "_ilegible" not in r and CLAVE_LAPIDA not in r and CLAVE_ACCION not in r
+        and CLAVE_FALLO not in r
     ]
+    # Consultas que no llegaron a responder, por tipo de error. Aparte de las
+    # respondidas: sumarlas a `consultas` bajaría el coste medio y la latencia
+    # media con ceros que no son de ninguna respuesta.
+    fallos_por_tipo: dict[str, int] = {}
+    for f in fallos:
+        fallos_por_tipo[f[CLAVE_FALLO]] = fallos_por_tipo.get(f[CLAVE_FALLO], 0) + 1
     n = len(filas)
     if not n:
         return {
             "consultas": 0,
+            "consultas_fallidas": len(fallos),
+            "fallos_por_tipo": fallos_por_tipo,
             "borrados": len(lapidas),
             "lineas_borradas": sum(lp.get("lineas_quitadas", 0) for lp in lapidas),
             "acciones": {
@@ -425,6 +471,8 @@ def resumir(registros: list[dict]) -> dict:
         "redaccion_aplicada": sum(1 for r in filas if r.get("redaccion_aplicada")),
         "consultas_degradadas": len(degradadas),
         "tasa_degradadas": round(len(degradadas) / n, 4),
+        "consultas_fallidas": len(fallos),
+        "fallos_por_tipo": fallos_por_tipo,
         "fallback_enrutador": sum(1 for r in filas if r.get("fallback_enrutador")),
         "por_categoria": dict(sorted(por_categoria.items(), key=lambda kv: -kv[1])),
         "por_rama": dict(sorted(por_rama.items(), key=lambda kv: -kv[1])),

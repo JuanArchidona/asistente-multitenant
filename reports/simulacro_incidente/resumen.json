@@ -1,0 +1,35 @@
+{
+  "fecha": "2026-09-23T10:31:15+00:00",
+  "tenant": "empresa_servicios",
+  "consulta": "¿Cuántos días de vacaciones tengo?",
+  "duracion_total_s": 14.95,
+  "pasos": {
+    "clave_revocada": {
+      "duracion_s": 4.8,
+      "codigo_salida": 1,
+      "fallo": true,
+      "legible": true,
+      "ultima_linea": "[main] anotado en data\\observabilidad\\empresa_servicios\\trazas.jsonl",
+      "lineas_registro_antes": 3,
+      "lineas_registro_despues": 4,
+      "fallos_registrados": 1
+    },
+    "congelar_evidencia": {
+      "duracion_s": 1.65,
+      "ficheros": 182,
+      "bytes": 15262149,
+      "destino": "C:\\Users\\JuanArchidonaAhijado\\Desktop\\Master\\TFM\\asistente-multitenant\\data\\incidentes\\20260923T103115Z"
+    },
+    "volver": {
+      "duracion_s": 8.47,
+      "codigo_salida": 0,
+      "respondio": true,
+      "anotada": true,
+      "coste_usd": 0.002185
+    }
+  },
+  "no_simulado": [
+    "revocar la clave en la consola del proveedor",
+    "rotar la clave y actualizar .env y el servicio desplegado"
+  ]
+}
