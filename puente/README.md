@@ -275,10 +275,26 @@ lectura deja una linea con su duracion en `puente/puente.log`, porque sin eso
 la proxima desviacion solo se puede suponer. El encargo se cerro desde Claude
 Code con un registro que dice exactamente eso.
 
+**23-09-2026, primer encargo real registrado por la app (E-0003):** la app lo
+atendio desde un chat de Cowork abierto por el enlace, busco en la web y
+registro por si misma. El proceso del puente que usaba era anterior a los
+avisos (ver Mantenimiento), asi que el aviso A-0003 se reconstruyo a mano; su
+analisis automatico tardo **46,3 s** y objeto, con razon, que dos de las
+cuatro respuestas mezclaban productos. Contrastadas las cuatro fuentes desde
+Claude Code:
+
+| Limite de las tareas programadas de Cowork | Documentacion oficial |
+|---|---|
+| Duracion maxima de una ejecucion | **No documentada.** Los 60 s son medida propia, no dato oficial |
+| Navegador sin nadie delante | No documentado para tareas programadas. En general, "Claude driving a browser as part of a task still needs the desktop app open" |
+| MCP locales | "Local connectors and plugins that include local MCP servers work through the desktop app only". Las tareas "run remotely", salvo que "a scheduled task requires local files or apps", y entonces "it will only run locally". El puente es local, asi que una tarea que lo use corre en local |
+| Frecuencia | Hourly, daily, weekly, weekdays o manual; sin minimo explicito. **El "1 minuto" es de las tareas locales de Claude Code Desktop y la "1 hora" de las rutinas en la nube**: otros dos productos |
+
 Lo que **no** esta medido a 23-09-2026: que una tarea programada registre un
-encargo desatendido. Y no es necesario para el ciclo: solo lo seria si se
-quisiera que la app trabajase sin Juan, y los encargos que mas valen (campus,
-formularios) necesitan a Juan de todos modos.
+encargo desatendido (E-0003 era desatendido y lo atendio un chat). Y no es
+necesario para el ciclo: solo lo seria si se quisiera que la app trabajase sin
+Juan, y los encargos que mas valen (campus, formularios) necesitan a Juan de
+todos modos.
 
 ## Cuando NO usarlo
 
