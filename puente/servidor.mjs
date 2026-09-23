@@ -111,6 +111,11 @@ const LOG = join(AQUI, "puente.log");
 
 const LIMITE_PREGUNTA = 4000;
 const LIMITE_CAMPO = 1000;
+// `hecho` es donde va el resultado cuando la app no puede escribir ficheros
+// (fuera del proyecto no tiene carpeta), y 1000 caracteres se quedaron cortos
+// en el primer encargo de investigacion real (E-0003, 23-09-2026): el primer
+// registro fallo por el limite y el segundo llego resumido.
+const LIMITE_HECHO = 4000;
 
 // El marco va delante de cada consulta y quien llama no lo puede sobreescribir.
 // Recoge las reglas del §5 del CLAUDE.md porque son justo las que un agente
@@ -305,7 +310,13 @@ const HERRAMIENTAS = [
         titular: { type: "string", description: "Una linea que resuma el encargo." },
         quien: { type: "string", description: "Quien lo hizo (chat, tarea programada, persona)." },
         pedido: { type: "string", description: "Que se pidio exactamente." },
-        hecho: { type: "string", description: "Que se hizo realmente, incluido lo que fallo." },
+        hecho: {
+          type: "string",
+          description:
+            "Que se hizo realmente, incluido lo que fallo. Es donde va el " +
+            "resultado si no hay otro sitio donde dejarlo; admite hasta 4000 " +
+            "caracteres.",
+        },
         donde: { type: "string", description: "Donde quedo el resultado: fichero, URL, conversacion." },
         abierto: { type: "string", description: "Que queda abierto. 'Nada' si no queda nada." },
         encargo: {
@@ -595,12 +606,44 @@ const CABECERA_REGISTRO = `# Registro de trabajo de la app
 
 `;
 
+const RE_REGISTRO = /^## ([^\n]+?) — ([^\n]*)$/gm;
+
+/**
+ * Trocea el registro en entradas, con los campos que necesita un aviso. Sirve
+ * para reconstruir avisos que no se crearon: paso el 23-09-2026, cuando el
+ * proceso del puente que usaba la app habia arrancado antes de que existieran
+ * los avisos y registro E-0003 sin avisar a nadie.
+ */
+function parsearRegistro(contenido) {
+  const cabeceras = [...contenido.matchAll(RE_REGISTRO)];
+  return cabeceras.map((m, i) => {
+    const desde = m.index;
+    const hasta = i + 1 < cabeceras.length ? cabeceras[i + 1].index : contenido.length;
+    const cuerpo = contenido.slice(desde, hasta).trimEnd();
+    const campo = (nombre) => new RegExp(`^- \\*\\*${nombre}:\\*\\* (.*)$`, "m").exec(cuerpo)?.[1] ?? "";
+    const encargoBruto = campo("Encargo");
+    const encargo = /^E-\d{4}/.exec(encargoBruto)?.[0] ?? null;
+    return {
+      sello: m[1],
+      titular: m[2],
+      encargo,
+      donde: campo("Donde quedo"),
+      abierto: campo("Que queda abierto"),
+      texto: cuerpo,
+    };
+  });
+}
+
+function leerRegistro() {
+  return existsSync(REGISTRO) ? readFileSync(REGISTRO, "utf8") : "";
+}
+
 function registrarTfm(args) {
   const campos = {
     titular: unaLinea(texto(args.titular, LIMITE_CAMPO, "titular")),
     quien: unaLinea(texto(args.quien, LIMITE_CAMPO, "quien")),
     pedido: unaLinea(texto(args.pedido, LIMITE_CAMPO, "pedido")),
-    hecho: unaLinea(texto(args.hecho, LIMITE_CAMPO, "hecho")),
+    hecho: unaLinea(texto(args.hecho, LIMITE_HECHO, "hecho")),
     donde: unaLinea(texto(args.donde, LIMITE_CAMPO, "donde")),
     abierto: unaLinea(texto(args.abierto, LIMITE_CAMPO, "abierto")),
   };
@@ -894,14 +937,18 @@ export {
   REPO,
   actualizarAviso,
   ahora,
+  anadirAviso,
   anadirEncargo,
   encargosTfm,
   estadoGit,
+  lanzarAnalisis,
   leerAvisos,
   leerBuzon,
+  leerRegistro,
   notificarEscritorio,
   parsearAvisos,
   parsearEncargos,
+  parsearRegistro,
   sesionLectura,
 };
 

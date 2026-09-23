@@ -27,10 +27,14 @@ import {
   AVISOS,
   actualizarAviso,
   ahora,
+  anadirAviso,
+  lanzarAnalisis,
   leerAvisos,
   leerBuzon,
+  leerRegistro,
   parsearAvisos,
   parsearEncargos,
+  parsearRegistro,
 } from "./servidor.mjs";
 
 const AYUDA = `Uso:
@@ -38,6 +42,12 @@ const AYUDA = `Uso:
   node puente/avisos.mjs --hook
   node puente/avisos.mjs --atendido A-0001 --nota "que se hizo"
   node puente/avisos.mjs --esperar E-0003 [--segundos 900]
+  node puente/avisos.mjs --reconstruir
+
+--reconstruir crea el aviso (y lanza su analisis) de cada entrada del registro
+que no tenga aviso. Hace falta cuando el proceso del puente que usa la app es
+anterior a un cambio del codigo: la app lo arranca al abrirse y no lo
+reinicia al editar servidor.mjs. Paso el 23-09-2026 con E-0003.
 `;
 
 function parsear(argv) {
@@ -46,7 +56,7 @@ function parsear(argv) {
     const a = argv[i];
     if (!a.startsWith("--")) throw new Error(`Argumento inesperado: ${a}`);
     const clave = a.slice(2);
-    if (["listar", "hook", "help"].includes(clave)) {
+    if (["listar", "hook", "help", "reconstruir"].includes(clave)) {
       args[clave] = true;
       continue;
     }
@@ -156,6 +166,29 @@ try {
 
   if (args.listar) {
     process.stdout.write(`${listar(parsearAvisos(leerAvisos()))}\n`);
+    process.exit(0);
+  }
+
+  if (args.reconstruir) {
+    const conAviso = new Set(parsearAvisos(leerAvisos()).map((a) => a.selloRegistro));
+    const huerfanas = parsearRegistro(leerRegistro()).filter((e) => !conAviso.has(e.sello));
+    if (!huerfanas.length) {
+      process.stdout.write("Todas las entradas del registro tienen su aviso. Nada que reconstruir.\n");
+      process.exit(0);
+    }
+    for (const e of huerfanas) {
+      const aviso = anadirAviso({
+        titular: e.titular,
+        encargo: e.encargo,
+        selloRegistro: e.sello,
+        donde: e.donde,
+        abierto: e.abierto,
+      });
+      const lanzado = lanzarAnalisis(aviso.id);
+      process.stdout.write(
+        `${aviso.id} creado para el registro de ${e.sello} (${e.titular}); analisis ${lanzado.ok ? "lanzado" : `NO lanzado: ${lanzado.motivo}`}.\n`
+      );
+    }
     process.exit(0);
   }
 

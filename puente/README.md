@@ -168,7 +168,13 @@ Claude Code corta a 10.000 sin avisar.
 node puente/avisos.mjs --listar
 node puente/avisos.mjs --atendido A-0001 --nota "que se hizo con el"
 node puente/avisos.mjs --esperar E-0003 --segundos 900   # sale con 0 cuando vuelve
+node puente/avisos.mjs --reconstruir   # avisos para registros que no lo tengan
 ```
+
+El campo `hecho` de `registrar_tfm` admite 4.000 caracteres (los demas, 1.000):
+fuera del proyecto la app no puede escribir ficheros, asi que el resultado de
+un encargo de investigacion va ahi. Con 1.000 el primer registro de E-0003
+fallo y el segundo llego resumido.
 
 `--esperar` es para una sesion viva que acaba de encargar y quiere enterarse
 en cuanto vuelva: lanzarlo con `Bash` en segundo plano da **una** notificacion
@@ -287,3 +293,12 @@ revisar el gasto.
 El puente **decide que puede hacer un agente sobre este repositorio**. No
 deberia cambiar sin que una persona lo lea entero. Lo mismo vale para el hook
 de `.claude/settings.json`: lo que inyecta lo lee cada sesion.
+
+**Despues de cambiar `servidor.mjs` hay que reiniciar la app de Claude.** La
+app arranca el proceso del puente al abrirse y no lo reinicia al editar el
+fichero: sigue ejecutando el codigo con el que arranco. Medido el 23-09-2026:
+la app registro E-0003 con un proceso arrancado a las 07:34, anterior a los
+avisos, asi que marco el encargo y no aviso a nadie; Claude Code se entero
+porque Juan lo dijo. Para ese caso existe `avisos.mjs --reconstruir`, que
+crea el aviso de cada entrada del registro que no lo tenga y lanza su
+analisis. No sustituye al reinicio: lo repara una vez.
