@@ -639,6 +639,10 @@ function registrarTfm(args) {
     abierto: campos.abierto,
   });
   const lanzado = lanzarAnalisis(aviso.id);
+  notificarEscritorio(
+    `Puente TFM: la app ha registrado ${referencia === "ninguno (trabajo sin encargo previo)" ? "trabajo" : referencia}`,
+    `${campos.titular}. Aviso ${aviso.id}; analisis en curso. Claude Code lo vera en su proximo prompt.`
+  );
 
   return {
     ok: true,
@@ -738,6 +742,37 @@ function actualizarAviso(id, nuevoEstado, bloque) {
   if (bloque) nuevoTexto += `\n\n${bloque.trimEnd()}`;
   writeFileSync(AVISOS, contenido.replace(aviso.texto, nuevoTexto), "utf8");
   return { id, estado: nuevoEstado };
+}
+
+/**
+ * Un aviso en el escritorio de Windows, para la persona. Los avisos a Claude
+ * Code van por el hook; este es para que Juan vea pasar el registro sin tener
+ * una sesion delante. Desprendido y sin esperar: si falla, no afecta a nada,
+ * y por eso no se reporta como error (es el unico sitio del puente donde un
+ * fallo se traga, y es porque no cambia ningun estado).
+ */
+function notificarEscritorio(titulo, cuerpo) {
+  if (process.platform !== "win32") return;
+  const ps = [
+    "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null",
+    "$AppId = '{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\\WindowsPowerShell\\v1.0\\powershell.exe'",
+    "$t = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)",
+    "$n = $t.GetElementsByTagName('text')",
+    `$n.Item(0).AppendChild($t.CreateTextNode(${JSON.stringify(titulo).replace(/'/g, "''").replace(/^"|"$/g, "'")})) | Out-Null`,
+    `$n.Item(1).AppendChild($t.CreateTextNode(${JSON.stringify(cuerpo).replace(/'/g, "''").replace(/^"|"$/g, "'")})) | Out-Null`,
+    "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($AppId).Show([Windows.UI.Notifications.ToastNotification]::new($t))",
+  ].join("; ");
+  try {
+    const hijo = spawn("powershell", ["-NoProfile", "-NonInteractive", "-Command", ps], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+      shell: false,
+    });
+    hijo.unref();
+  } catch {
+    // Ver el comentario de arriba.
+  }
 }
 
 /**
@@ -841,6 +876,7 @@ export {
   estadoGit,
   leerAvisos,
   leerBuzon,
+  notificarEscritorio,
   parsearAvisos,
   parsearEncargos,
   sesionLectura,

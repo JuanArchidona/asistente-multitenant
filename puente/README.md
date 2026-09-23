@@ -45,14 +45,13 @@ No expone nada mas. Quien llama controla **el texto de una pregunta, un
 booleano y siete campos de texto**; binario, directorio, banderas, lista de
 herramientas y rutas de los cuatro ficheros son constantes de `servidor.mjs`.
 
-## Los cuatro ficheros, y quien escribe cada uno
+## Los tres ficheros, y quien escribe cada uno
 
 | Fichero | Lo escribe | Lo lee | Versionado |
 |---|---|---|---|
 | `ENCARGOS_APP.md` | Claude Code (`encargar.mjs`); el puente lo marca al registrar | la app (`encargos_tfm`) | No |
 | `REGISTRO_APP.md` | el puente (`registrar_tfm`) | Claude Code, `analizar.mjs` | No |
 | `AVISOS_CODE.md` | el puente al registrar; `analizar.mjs`; Claude Code al atender | el hook de Claude Code | No |
-| `proyecto.local.json` | a mano: el uuid del proyecto de la app | `encargar.mjs` para el enlace | No |
 
 ## Encargar: el buzon, el modo y el enlace
 
@@ -74,11 +73,23 @@ navegador o sesion:
 | `desatendido` | Busqueda web, conector de GitHub, `consultar_tfm`, redaccion | La **tarea programada** del proyecto, sola; o un chat |
 | `supervisado` (por defecto) | Navegador con sesion (campus, formularios), una decision de Juan | Un **chat con Juan delante** |
 
-`--abrir` abre la app de Claude en el proyecto con la orden de atender el
-encargo ya escrita en la caja, por el enlace profundo
-`claude://claude.ai/project/<uuid>?q=...`. **La app no auto-envia**: esta
-documentado como decision deliberada y no como carencia, asi que queda una
-pulsacion humana. No es friccion: es el punto donde alguien mira.
+`--abrir` abre la app de Claude con la orden de atender el encargo ya escrita
+en la caja, por el enlace profundo `claude://cowork/new?q=...`. **La app no
+auto-envia**: esta documentado como decision deliberada y no como carencia,
+asi que queda una pulsacion humana. No es friccion: es el punto donde alguien
+mira.
+
+**El enlace no abre el proyecto, y esta medido dos veces** (21-09 en un puente
+equivalente de este equipo, 23-09 aqui): `claude://claude.ai/project/<uuid>?q=`
+abre el proyecto e ignora `q`, la caja llega vacia. `q` solo funciona con las
+rutas `/new`, y `folder` no convive con `q`. Por eso la conversacion se abre
+**fuera del proyecto** y el texto lleva un preambulo que suple sus
+instrucciones en lo esencial. El puente esta igualmente, porque se declara a
+nivel de aplicacion y no de proyecto.
+
+Ademas, cada vez que la app registra algo, el puente lanza **un aviso en el
+escritorio de Windows** para Juan (una notificacion normal del sistema). Es
+solo para la persona; Claude Code se entera por el hook.
 
 **No hay herramienta MCP para escribir en el buzon, y es deliberado.** A la app
 la puede dirigir un modelo al que se le cuele una instruccion en un documento o
@@ -198,13 +209,6 @@ que lanza la app puede heredar un `PATH` distinto al de una terminal, y el
 sintoma seria un puente que arranca bien y falla en la primera consulta. Se
 aceptan `CLAUDE_BIN` (la convencion de los otros puentes de este equipo) y
 `PUENTE_CLAUDE_BIN`. El analisis en segundo plano hereda el mismo binario.
-
-Y `puente/proyecto.local.json` con el uuid del proyecto, que se lee de la URL
-`claude.ai/cowork/project/<uuid>`:
-
-```json
-{ "nombre": "MASTER IA TFM", "uuid": "..." }
-```
 
 ## Como comprobar que funciona
 

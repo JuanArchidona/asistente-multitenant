@@ -293,10 +293,15 @@ pagarlos:
    - **Modo del encargo**, `desatendido` o `supervisado`, que decide quien
      encarga. `encargos_tfm` admite `solo_desatendidos` para que una tarea
      programada no intente lo que no puede hacer, y dice cuantos deja fuera.
-   - **Enlace profundo** `claude://claude.ai/project/<uuid>?q=...` desde
-     `encargar.mjs --abrir`: abre la app en el proyecto con la orden en la
-     caja. **No auto-envia**, y esta documentado como decision deliberada: la
-     ida totalmente desatendida solo existe por la tarea programada.
+   - **Enlace profundo** `claude://cowork/new?q=...` desde
+     `encargar.mjs --abrir`: abre la app con la orden en la caja. **No
+     auto-envia**, y esta documentado como decision deliberada: la ida
+     totalmente desatendida solo existe por la tarea programada. Y **no abre
+     el proyecto**: la ruta del proyecto ignora `q` (medido el 21-09 en el
+     puente equivalente y otra vez aqui el 23-09, con la caja vacia en
+     pantalla), asi que la conversacion se abre fuera y el texto lleva un
+     preambulo que suple las instrucciones del proyecto. Al registrar, el
+     puente lanza ademas una notificacion de escritorio para Juan.
    - **Aviso y analisis al registrar.** `registrar_tfm` crea un aviso en
      `AVISOS_CODE.md` y lanza `analizar.mjs` desprendido: una sesion de solo
      lectura (las mismas banderas que `consultar_tfm`) que anota en 10-30 s si
