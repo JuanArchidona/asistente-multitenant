@@ -1,0 +1,47 @@
+# Blueprint de Render para la interfaz desplegada (app.py).
+# En el dashboard: New > Blueprint > este repositorio. Render lee este fichero,
+# crea el servicio y pide los valores marcados con `sync: false`.
+#
+# Decisiones, con su porque en docs/DESPLIEGUE.md:
+# - Plan gratuito: el servicio se duerme sin trafico y el disco es efimero.
+#   El indice se reconstruye en el primer arranque desde el corpus versionado.
+# - Los usuarios van en APP_USUARIOS_JSON (el contenido de usuarios.local.json)
+#   y app.py los escribe a disco al arrancar si el fichero no existe. Sin esa
+#   variable, arranca con las credenciales de ejemplo y lo dice en pantalla.
+# - TOPE_GASTO_USD es el tope blando de la interfaz. El duro es el prepago.
+services:
+  - type: web
+    name: asistente-multitenant
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: uv sync --frozen --no-dev --group app
+    startCommand: >-
+      sh -c 'if [ -n "$APP_USUARIOS_JSON" ] && [ ! -f usuarios.local.json ]; then printf "%s" "$APP_USUARIOS_JSON" > usuarios.local.json; fi;
+      uv run streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true'
+    healthCheckPath: /
+    envVars:
+      - key: LLM_PROVIDER
+        value: anthropic
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: APP_USUARIOS_JSON
+        sync: false
+      - key: TOPE_GASTO_USD
+        value: "2.0"
+      - key: ANTHROPIC_MODEL_ROUTER
+        value: claude-haiku-4-5-20251001
+      - key: ANTHROPIC_MODEL_GENERATOR
+        value: claude-haiku-4-5-20251001
+      - key: GEMINI_EMBED_MODEL
+        value: gemini-embedding-001
+      - key: ROUTER_TEMPERATURE
+        value: "0"
+      - key: CHROMA_PATH
+        value: data/chroma
+      - key: CORPUS_PATH
+        value: corpus
+      - key: TOP_K
+        value: "4"

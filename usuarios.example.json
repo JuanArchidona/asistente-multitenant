@@ -1,0 +1,33 @@
+{
+  "sal": "ejemplo",
+  "usuarios": [
+    {
+      "usuario": "empleado",
+      "nombre": "Empleado sin privilegios",
+      "tenant": "empresa_servicios",
+      "roles": [],
+      "password_sha256": "1be1243110d79729d45b8e6f111a6667ac0b1da163fcf4418f1ab0e389af55b0"
+    },
+    {
+      "usuario": "direccion",
+      "nombre": "Direccion de RRHH",
+      "tenant": "empresa_servicios",
+      "roles": ["rrhh_direccion"],
+      "password_sha256": "1be1243110d79729d45b8e6f111a6667ac0b1da163fcf4418f1ab0e389af55b0"
+    },
+    {
+      "usuario": "comercial",
+      "nombre": "Agente comercial",
+      "tenant": "agencia_inmobiliaria",
+      "roles": [],
+      "password_sha256": "1be1243110d79729d45b8e6f111a6667ac0b1da163fcf4418f1ab0e389af55b0"
+    },
+    {
+      "usuario": "gerencia",
+      "nombre": "Gerencia de la agencia",
+      "tenant": "agencia_inmobiliaria",
+      "roles": ["direccion"],
+      "password_sha256": "1be1243110d79729d45b8e6f111a6667ac0b1da163fcf4418f1ab0e389af55b0"
+    }
+  ]
+}

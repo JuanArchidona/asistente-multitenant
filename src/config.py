@@ -85,7 +85,14 @@ class Config:
     judge_gemini_api_key: str = ""
 
 
-def load_config() -> Config:
+def load_config(tenant_id: str | None = None) -> Config:
+    """Configuración del sistema para un inquilino.
+
+    `tenant_id` manda sobre `TENANT_ID`. Existe para la interfaz desplegada,
+    que sirve a varios inquilinos desde un mismo proceso y no puede cambiar
+    el entorno por usuario; la línea de órdenes y el banco siguen usando la
+    variable.
+    """
     provider = os.getenv("LLM_PROVIDER", "anthropic").lower()
     if provider not in ("anthropic", "gemini"):
         sys.exit(f"[config] LLM_PROVIDER inválido: {provider!r}. Usa 'anthropic' o 'gemini'.")
@@ -103,7 +110,7 @@ def load_config() -> Config:
 
     umbral = os.getenv("DISTANCE_THRESHOLD", "").strip()
 
-    tenant_id = os.getenv("TENANT_ID", TENANT_POR_DEFECTO).strip()
+    tenant_id = (tenant_id or os.getenv("TENANT_ID", TENANT_POR_DEFECTO)).strip()
     try:
         tenant = cargar_tenant(tenant_id)
     except ValueError as error:

@@ -23,6 +23,11 @@ dev = [
 judge = [
     "deepeval>=3.0.0",
 ]
+# Interfaz desplegada (app.py). Aparte por el mismo motivo: ni el banco ni
+# la CI la necesitan. Render instala con `uv sync --frozen --no-dev --group app`.
+app = [
+    "streamlit>=1.60.0",
+]
 
 [tool.ruff]
 line-length = 100

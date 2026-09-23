@@ -86,6 +86,13 @@
     },
     {
       "type": "library",
+      "name": "streamlit",
+      "version": "1.64.0",
+      "source": "https://pypi.org/simple",
+      "group": "app"
+    },
+    {
+      "type": "library",
       "transitive": true,
       "name": "aiohappyeyeballs",
       "version": "2.7.1",
@@ -103,6 +110,13 @@
       "transitive": true,
       "name": "aiosignal",
       "version": "1.4.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "altair",
+      "version": "6.3.0",
       "source": "https://pypi.org/simple"
     },
     {
@@ -360,6 +374,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "itsdangerous",
+      "version": "2.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "jinja2",
       "version": "3.1.6",
       "source": "https://pypi.org/simple"
@@ -432,6 +453,13 @@
       "transitive": true,
       "name": "multidict",
       "version": "6.7.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "narwhals",
+      "version": "2.26.0",
       "source": "https://pypi.org/simple"
     },
     {
@@ -542,6 +570,20 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "pandas",
+      "version": "3.0.6",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pillow",
+      "version": "12.3.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "pluggy",
       "version": "1.6.0",
       "source": "https://pypi.org/simple"
@@ -584,6 +626,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "pyarrow",
+      "version": "25.0.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "pyasn1",
       "version": "0.6.4",
       "source": "https://pypi.org/simple"
@@ -621,6 +670,13 @@
       "transitive": true,
       "name": "pydantic-settings",
       "version": "2.15.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "pydeck",
+      "version": "0.9.3",
       "source": "https://pypi.org/simple"
     },
     {
@@ -822,6 +878,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "toml",
+      "version": "0.10.2",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "tqdm",
       "version": "4.70.0",
       "source": "https://pypi.org/simple"
@@ -857,6 +920,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "tzdata",
+      "version": "2026.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "urllib3",
       "version": "2.7.0",
       "source": "https://pypi.org/simple"
@@ -873,6 +943,13 @@
       "transitive": true,
       "name": "uvloop",
       "version": "0.22.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "watchdog",
+      "version": "6.0.0",
       "source": "https://pypi.org/simple"
     },
     {

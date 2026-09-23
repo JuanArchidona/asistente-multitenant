@@ -13,7 +13,7 @@
 ## Entorno de ejecucion
 
 - Python `3.11` (`.python-version`); el lock exige `>=3.11`.
-- `uv.lock` revision 3: 10 paquetes directos y 119 transitivos, todos con version y origen fijados.
+- `uv.lock` revision 3: 11 paquetes directos y 129 transitivos, todos con version y origen fijados.
 - Node para el puente MCP: **sin fijar en el repositorio**. Lo pone el equipo
   que ejecuta la app. Es el unico componente ejecutable cuya version no
   esta escrita, y por eso se dice aqui.
@@ -32,8 +32,9 @@
 | `pytest` | 9.1.1 | dev | https://pypi.org/simple |
 | `python-dotenv` | 1.2.2 | runtime | https://pypi.org/simple |
 | `ruff` | 0.16.2 | dev | https://pypi.org/simple |
+| `streamlit` | 1.64.0 | app | https://pypi.org/simple |
 
-Los 119 transitivos estan en `docs/aibom.json`, con version y origen.
+Los 129 transitivos estan en `docs/aibom.json`, con version y origen.
 
 ## Modelos
 
