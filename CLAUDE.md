@@ -33,7 +33,7 @@ Una afirmación sin número no vale.**
 ## 2. Estado (2026-09-23)
 
 Funciona de extremo a extremo con dos inquilinos, las dos ramas de recuperación
-y control de acceso estructural. **796 tests en verde**, `ruff` limpio.
+y control de acceso estructural. **832 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -64,6 +64,8 @@ y control de acceso estructural. **796 tests en verde**, `ruff` limpio.
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
 | Cadena de suministro (AIBOM) y plan de incidentes | **Hecho** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35: embeddings en retirada y sin coste contabilizado) y `docs/INCIDENTES.md`; falta el simulacro cronometrado |
+| Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
+| Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
@@ -148,7 +150,7 @@ docs/
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 796 tests, sin llamadas a API
+uv run pytest                                      # 832 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -298,14 +300,16 @@ y §14).
   única vía a un juez repetible es el juez de Gemini, que es además el de otra
   familia.
 
-- **El modelo de embeddings está en retirada y su coste no lo contabiliza
-  nadie** (§35, destapado por el AIBOM el 23-09). `gemini-embedding-001`
-  cierra el 14-05-2028 con sucesor `gemini-embedding-2`, ya no aparece en la
-  página de precios, y `src/embeddings.py` no cuenta tokens. Migrar de modelo
-  de embeddings **invalida el índice y mueve las métricas de recuperación**:
-  es decisión de línea base con corte fechado, como la del 22-09, no un
-  cambio de configuración. Hasta entonces, toda cifra de coste del proyecto
-  excluye los embeddings y hay que decirlo al citarla.
+- **El modelo de embeddings está en retirada, y desde el 23-09 su consumo se
+  contabiliza pero no se convierte a dólares** (§35, §37). `gemini-embedding-001`
+  cierra el 14-05-2028 con sucesor `gemini-embedding-2` y ya no aparece en la
+  página de precios. `src/embeddings.py` cuenta tokens (exactos en la ingesta,
+  estimados en la consulta a 4,20 caracteres por token, medido sobre las 91
+  consultas del golden set) y los registra aparte de los totales del chat, así
+  que ninguna cifra de coste guardada cambia. **Decidido el 23-09: no se
+  migra antes de la defensa**, porque invalidaría el índice y movería las
+  métricas de recuperación; queda como decisión de línea base pendiente con
+  fecha límite. Al citar un coste, decir que excluye los embeddings.
 - **El calendario del AI Act cambió el 27-07-2026 y el capítulo tiene que
   citar el texto vigente.** El Reglamento (UE) 2026/1744 (Ómnibus digital
   sobre IA) retrasa las obligaciones de alto riesgo del anexo III al **2 de

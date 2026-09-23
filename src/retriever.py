@@ -44,9 +44,11 @@ class Recuperacion:
 
 
 class Retriever:
-    def __init__(self, cfg: Config):
+    def __init__(self, cfg: Config, uso=None):
         self.cfg = cfg
-        self.embedder = GeminiEmbedder(cfg)
+        # `uso` es el acumulador del sistema: con el, cada consulta embebida
+        # se contabiliza (estimada por caracteres, ver GeminiEmbedder).
+        self.embedder = GeminiEmbedder(cfg, uso=uso)
         client = chromadb.PersistentClient(path=cfg.chroma_path)
         self.col = client.get_collection(cfg.collection)
 

@@ -26,11 +26,50 @@ ESPERA_POR_DEFECTO_S = 20.0
 _RE_RETRY_DELAY = re.compile(r"retryDelay['\"]?[:\s]+['\"]?(\d+(?:\.\d+)?)")
 
 
+# Caracteres por token del modelo de embeddings, para estimar cuando no se
+# cuenta exacto. Medido el 23-09-2026 con `count_tokens` sobre las 91 consultas
+# del golden set de los dos inquilinos: 5.396 caracteres, 1.285 tokens, 14,1
+# tokens por consulta. Es la razon de CONSULTAS, que es donde se estima; los
+# documentos del corpus dan menos (3,39 y 4,08 en los dos corpus, por el
+# markdown), y la ingesta cuenta exacto y escribe la razon real de cada uno
+# para poder contrastar esta constante cuando cambie el modelo.
+CARACTERES_POR_TOKEN = 4.20
+
+
 class GeminiEmbedder:
-    def __init__(self, cfg: Config):
+    """Embeddings, con su consumo contabilizado.
+
+    Hasta el 23-09-2026 esta clase no contaba nada y toda cifra de coste del
+    proyecto excluia los embeddings sin decirlo (HALLAZGOS.md §35). La API no
+    devuelve uso en la respuesta (`metadata` llega vacio para este modelo),
+    asi que hay dos caminos y se declara cual se usa:
+
+    - `contar_exacto=True`: una llamada a `count_tokens` por lote antes de
+      embeber. Para la ingesta, donde la latencia no importa y el volumen si.
+    - `contar_exacto=False`: estimacion por caracteres. Para la consulta,
+      donde una llamada mas por pregunta moveria `latencia_retrieve_s`, que
+      es una metrica comparada entre ejecuciones.
+
+    Sin `uso` no se contabiliza, y eso es lo que hacen el barrido y las
+    pruebas que no lo pasan.
+    """
+
+    def __init__(self, cfg: Config, uso=None, contar_exacto: bool = False):
         self.client = genai.Client(api_key=cfg.gemini_api_key)
         self.model = cfg.embed_model
         self.dims = cfg.embed_dims
+        self.uso = uso
+        self.contar_exacto = contar_exacto
+
+    def _contabilizar(self, textos: list[str]) -> None:
+        if self.uso is None:
+            return
+        if self.contar_exacto:
+            resp = self.client.models.count_tokens(model=self.model, contents=textos)
+            self.uso.registrar_embeddings(self.model, int(resp.total_tokens or 0), exactos=True)
+        else:
+            estimados = round(sum(len(t) for t in textos) / CARACTERES_POR_TOKEN)
+            self.uso.registrar_embeddings(self.model, estimados, exactos=False)
 
     def _embed(self, textos: list[str], task_type: str) -> list[list[float]]:
         ultimo = None
@@ -44,6 +83,9 @@ class GeminiEmbedder:
                         output_dimensionality=self.dims,
                     ),
                 )
+                # Despues de la llamada buena: un reintento por cuota no se
+                # cuenta dos veces, y una llamada que falla no se cuenta.
+                self._contabilizar(textos)
                 return [e.values for e in resp.embeddings]
             except Exception as e:
                 mensaje = str(e)

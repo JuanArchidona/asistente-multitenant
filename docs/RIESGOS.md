@@ -44,7 +44,7 @@
 | R-13 | Sesgo por género, edad, origen o discapacidad en recuperación, enrutado o generación | DC | — | — | F | §34 | Banco de pares emparejados con control y suelo de ruido; trece pruebas que comprueban el emparejamiento | **Medido en dos capas.** Ningún eje alcanza el doble de su suelo; enrutado estable en seis variantes de nombre. **La generación no está medida**, y decir "no discrimina" sería la falsa objetividad del 4.1 |
 | R-14 | Agencia excesiva: el sistema actúa sin supervisión humana | CC | 8 | — | C | `ALCANCE.md` | Ninguna herramienta escribe en el sistema del cliente; las cinco del CRM son de lectura | **Parcial.** Human-in-the-loop pendiente; hoy lo cubre que no haya acciones, no un control |
 | R-15 | Encadenamiento de agentes sin persona en medio (Claude Code y la app) | CD | 8 | — | C | `SINCRONIZACION_SUPERFICIES.md` §7.6 | La cadena termina en Claude Code: el análisis automático es de solo lectura, la app no puede escribir en el buzón, y volver a encargar pasa por Juan | **Por construcción.** Cuatro encargos reales el 23-09 sin que ningún aviso generase un encargo |
-| R-16 | Vigilancia: el registro de observabilidad guarda quién preguntó qué | CC | — | — | A | §20 | Registro por inquilino con coste por consulta | **Tensión abierta.** Es a la vez la trazabilidad del artículo 12 del AI Act y un riesgo del catálogo del 4.1; falta política de retención y minimización |
+| R-16 | Vigilancia: el registro de observabilidad guarda quién preguntó qué | CC | — | — | A | §20, §37, `RETENCION.md` | Política escrita (90 días, respuesta no guardada); supresión por usuario y purga por antigüedad, las dos con lápida que dice cuánto se quitó sin decir a quién; el resumen cuenta los borrados | **Medido.** Supresión y purga en un log de 10.000 líneas en décimas de segundo (§37). Residual: la purga es manual; la tensión con el artículo 12 se escribe, no se resuelve |
 | R-17 | Derechos RGPD sobre el índice: borrado, oposición, actualización | CC | — | — | A | §36, `reports/borrado_*` | `scripts/borrar_documento.py`: retira el documento, reconstruye el índice y comprueba contra la colección que no queda ningún fragmento suyo; `--restaurar` mide la rectificación | **Medido.** Borrado efectivo en **1,46 s** (agencia) y **1,23 s** (heredado), cero fragmentos residuales y el resto intacto. Residual: es reconstrucción completa, crece con el corpus; las consultas registradas que citaron el documento no se borran (R-16) |
 | R-18 | Transferencia internacional en cada llamada al proveedor | CC | — | — | A | `provider.py` | Corpus y datos sintéticos: hoy no viaja ningún dato real | **Hueco documental.** En producción exige base jurídica (cláusulas tipo o decisión de adecuación) y un DPA con el proveedor; no está escrito |
 | R-19 | Enrutado inestable o erróneo que salta el control | CC | 6 | — | D | §1, §9, §12, §15, §27 | Temperatura 0 en el enrutador; grupos de solapamiento declarativos; taxonomía por inquilino | **Medido.** 3 casos inestables de 38 pasan a 0; cobertura del riesgo 0,778 a 1,0 con el solapamiento. Residual: 1 de 53 sigue variando; `inj-04` |
@@ -102,15 +102,16 @@ el apartado 4 exigirá entonces.
    test. Destapó el §35 al generarse.
 2. ~~**R-23, plan de incidentes**~~ **Escrito** el 23-09: `INCIDENTES.md`. Le
    falta el simulacro cronometrado.
-3. **R-07 y §35, el modelo de embeddings**: contabilizar su coste y decidir la
-   migración a `gemini-embedding-2` antes de que la retirada la fuerce. Cambiar
-   de modelo de embeddings invalida el índice y mueve las métricas de
-   recuperación: es decisión de línea base, no un cambio de configuración.
+3. **R-07 y §35, el modelo de embeddings**: el coste **ya se contabiliza**
+   (§37: exacto en la ingesta, estimado en la consulta) y sigue sin precio
+   publicado. La migración a `gemini-embedding-2` queda **decidida en contra
+   antes de la defensa** (23-09): invalidaría el índice y movería las
+   métricas de recuperación; se documenta como pendiente con fecha límite
+   14-05-2028.
 4. ~~**R-17, borrado cronometrado**~~ **Medido** el 23-09: 1,46 s y 1,23 s, con
    comprobación contra la colección (§36).
-5. **R-16, retención del registro de observabilidad**: política escrita y un
-   camino de borrado de las consultas de una persona. Es lo que el §36 deja
-   fuera.
+5. ~~**R-16, retención del registro de observabilidad**~~ **Hecho y medido**
+   el 23-09: `RETENCION.md`, supresión y purga con lápida (§37).
 6. **R-14, human-in-the-loop**: un punto de aprobación en el camino que escriba
    algo, cuando exista.
 7. **R-13, sesgo en generación**: exige un criterio de equivalencia que no

@@ -69,7 +69,7 @@ import hashlib
 import json
 import os
 import threading
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 RAIZ_POR_DEFECTO = Path("data/observabilidad")
@@ -236,6 +236,88 @@ def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
     return registros
 
 
+# --- Retencion y supresion ------------------------------------------------
+#
+# El registro guarda quien pregunto que. Es la trazabilidad que pide el
+# articulo 12 del AI Act y, a la vez, un dato personal del usuario que pregunta
+# (RGPD): la consulta puede decir cosas de quien la hace. Dos caminos, y los
+# dos dejan rastro de si mismos:
+#
+#   - `borrar_usuario`: derecho de supresion. Quita todas las lineas de un
+#     usuario y deja UNA lapida que dice cuantas se quitaron y cuando, con el
+#     usuario en hash: la auditoria sigue sabiendo que hubo un borrado sin
+#     conservar a quien.
+#   - `purgar`: retencion. Quita las lineas mas viejas que N dias y deja la
+#     misma lapida. La politica esta en docs/RETENCION.md.
+#
+# Los dos reescriben el fichero, y el encabezado del modulo dice que un
+# registro que se puede reescribir no es evidencia. La contradiccion es real y
+# se resuelve asi: la reescritura solo QUITA lineas, nunca cambia ninguna, y
+# siempre anade una lapida. Un registro del que se ha borrado algo lo dice; uno
+# manipulado no. Las lineas ilegibles se conservan tal cual: no se sabe de
+# quien son, y borrarlas seria borrar sin saber que.
+
+CLAVE_LAPIDA = "_borrado"
+
+
+def _reescribir(ruta: Path, conservar, motivo: dict) -> dict:
+    """Reescribe el log conservando las lineas para las que `conservar` es
+    True y anadiendo una lapida con `motivo`. Devuelve la lapida."""
+    lineas = ruta.read_text(encoding="utf-8").splitlines() if ruta.is_file() else []
+    quedan, quitadas, ilegibles = [], 0, 0
+    for linea in lineas:
+        if not linea.strip():
+            continue
+        try:
+            registro = json.loads(linea)
+        except json.JSONDecodeError:
+            ilegibles += 1
+            quedan.append(linea)  # no se sabe de quien es: se conserva
+            continue
+        if CLAVE_LAPIDA in registro or conservar(registro):
+            quedan.append(linea)
+        else:
+            quitadas += 1
+    lapida = {
+        CLAVE_LAPIDA: True,
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
+        "lineas_quitadas": quitadas,
+        "lineas_ilegibles_conservadas": ilegibles,
+        **motivo,
+    }
+    if quitadas:
+        quedan.append(json.dumps(lapida, ensure_ascii=False))
+        tmp = ruta.with_suffix(".jsonl.tmp")
+        tmp.write_text("\n".join(quedan) + "\n", encoding="utf-8")
+        tmp.replace(ruta)  # atomico en el mismo sistema de ficheros
+    return lapida
+
+
+def borrar_usuario(tenant_id: str, usuario: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> dict:
+    """Supresion (RGPD art. 17): quita todas las consultas de un usuario y deja
+    una lapida con su hash. Devuelve la lapida, con `lineas_quitadas`."""
+    ruta = Path(raiz) / tenant_id / "trazas.jsonl"
+    return _reescribir(
+        ruta,
+        conservar=lambda r: r.get("usuario") != usuario,
+        motivo={"motivo": "supresion_usuario", "usuario_hash": _hash(usuario)},
+    )
+
+
+def purgar(tenant_id: str, dias: int, raiz: Path | str = RAIZ_POR_DEFECTO, ahora=None) -> dict:
+    """Retencion: quita las consultas con mas de `dias` dias. Devuelve la lapida."""
+    if dias < 1:
+        raise ValueError("la retencion se expresa en dias enteros positivos")
+    ahora = ahora or datetime.now(UTC)
+    limite = (ahora - timedelta(days=dias)).isoformat(timespec="seconds")
+    ruta = Path(raiz) / tenant_id / "trazas.jsonl"
+    return _reescribir(
+        ruta,
+        conservar=lambda r: (r.get("ts") or "") >= limite,
+        motivo={"motivo": "retencion", "dias": dias, "anteriores_a": limite},
+    )
+
+
 def inquilinos(raiz: Path | str = RAIZ_POR_DEFECTO) -> list[str]:
     raiz = Path(raiz)
     if not raiz.is_dir():
@@ -253,10 +335,16 @@ def _percentil(valores: list[float], p: float) -> float:
 def resumir(registros: list[dict]) -> dict:
     """Agrega un log en las cifras que responden a las preguntas de producción."""
     ilegibles = sum(r.get("_ilegible", 0) for r in registros)
-    filas = [r for r in registros if "_ilegible" not in r]
+    lapidas = [r for r in registros if CLAVE_LAPIDA in r]
+    filas = [r for r in registros if "_ilegible" not in r and CLAVE_LAPIDA not in r]
     n = len(filas)
     if not n:
-        return {"consultas": 0, "_lineas_ilegibles": ilegibles}
+        return {
+            "consultas": 0,
+            "borrados": len(lapidas),
+            "lineas_borradas": sum(lp.get("lineas_quitadas", 0) for lp in lapidas),
+            "_lineas_ilegibles": ilegibles,
+        }
 
     lat = [r.get("latencia_total_s") or 0.0 for r in filas]
     coste = sum(r.get("coste_usd") or 0.0 for r in filas)
@@ -290,5 +378,9 @@ def resumir(registros: list[dict]) -> dict:
         "por_categoria": dict(sorted(por_categoria.items(), key=lambda kv: -kv[1])),
         "por_rama": dict(sorted(por_rama.items(), key=lambda kv: -kv[1])),
         "usuarios_distintos": len(por_usuario),
+        # Que hubo borrados se dice; cuantas lineas, tambien. Un resumen que
+        # los escondiera haria pasar un registro podado por uno entero.
+        "borrados": len(lapidas),
+        "lineas_borradas": sum(lp.get("lineas_quitadas", 0) for lp in lapidas),
         "_lineas_ilegibles": ilegibles,
     }

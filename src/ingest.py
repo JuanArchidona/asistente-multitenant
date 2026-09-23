@@ -86,8 +86,13 @@ def trocear(texto: str, cfg: Config) -> list[str]:
     return _chunk_chars(texto, cfg.chunk_size, cfg.chunk_overlap)
 
 
-def construir_indice(cfg: Config) -> dict:
-    embedder = GeminiEmbedder(cfg)
+def construir_indice(cfg: Config, uso=None) -> dict:
+    # Contado exacto: en la ingesta la latencia no importa y el volumen si.
+    # Sin `uso` se crea uno local para que el resultado traiga la cifra igual.
+    from .provider import Uso
+
+    uso = uso if uso is not None else Uso()
+    embedder = GeminiEmbedder(cfg, uso=uso, contar_exacto=True)
     client = chromadb.PersistentClient(path=cfg.chroma_path)
 
     corpus = Path(cfg.corpus_path)
@@ -131,6 +136,9 @@ def construir_indice(cfg: Config) -> dict:
         client.delete_collection(cfg.collection)
     col = client.create_collection(cfg.collection, metadata={"hnsw:space": "cosine"})
     col.add(ids=ids, documents=docs, embeddings=vectores, metadatas=metadatos)
+    consumo = uso.por_modelo.get(cfg.embed_model, {})
+    caracteres = sum(len(d) for d in docs)
+    tokens = consumo.get("tokens_embebidos", 0)
     return {
         "documentos": len(docs),
         "fuentes": sorted({m["fuente"] for m in metadatos}),
@@ -139,4 +147,12 @@ def construir_indice(cfg: Config) -> dict:
             {m["archivo"] for m in metadatos if m["requiere"] != SIN_RESTRICCION}
         ),
         "estrategia": cfg.chunk_strategy,
+        # Lo que costo embeber, en tokens contados por la API. Sin precio
+        # publicado para el modelo (§35) no se convierte a USD: se da la
+        # cifra que si es un hecho y la razon caracteres/token medida, para
+        # contrastar la constante de estimacion de `embeddings.py`.
+        "tokens_embebidos": tokens,
+        "tokens_exactos": consumo.get("exactos", False),
+        "caracteres_embebidos": caracteres,
+        "caracteres_por_token": round(caracteres / tokens, 2) if tokens else None,
     }

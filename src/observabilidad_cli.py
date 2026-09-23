@@ -11,8 +11,9 @@ acceso y cuántas consultas salieron degradadas.
 """
 import argparse
 import json
+import time
 
-from .observabilidad import RAIZ_POR_DEFECTO, inquilinos, leer, resumir
+from .observabilidad import RAIZ_POR_DEFECTO, borrar_usuario, inquilinos, leer, purgar, resumir
 
 
 def _fila(etiqueta: str, valor) -> str:
@@ -60,6 +61,13 @@ def _informe(tenant: str, resumen: dict, ultimas: list[dict]) -> str:
         out.append(
             _fila("[!] Lineas ilegibles (log incompleto)", resumen["_lineas_ilegibles"])
         )
+    if resumen.get("borrados"):
+        out.append(
+            _fila(
+                "Borrados (supresion o retencion)",
+                f"{resumen['borrados']} lapida(s), {resumen['lineas_borradas']} consultas quitadas",
+            )
+        )
 
     if ultimas:
         out += ["", f"  Ultimas {len(ultimas)} consultas:"]
@@ -88,7 +96,32 @@ def main() -> None:
     p.add_argument("--raiz", default=str(RAIZ_POR_DEFECTO))
     p.add_argument("--ultimas", type=int, default=5, help="Cuantas consultas recientes listar")
     p.add_argument("--json", action="store_true", help="Volcar el resumen en JSON")
+    p.add_argument(
+        "--borrar-usuario",
+        metavar="USUARIO",
+        help="Supresion (RGPD art. 17): quita todas las consultas de ese usuario. Exige --tenant.",
+    )
+    p.add_argument(
+        "--purgar-dias",
+        type=int,
+        metavar="N",
+        help="Retencion: quita las consultas con mas de N dias. Exige --tenant.",
+    )
     args = p.parse_args()
+
+    if args.borrar_usuario or args.purgar_dias:
+        if not args.tenant:
+            p.error("--borrar-usuario y --purgar-dias exigen --tenant: se borra en un inquilino, no en todos.")
+        t0 = time.perf_counter()
+        if args.borrar_usuario:
+            lapida = borrar_usuario(args.tenant, args.borrar_usuario, args.raiz)
+        else:
+            lapida = purgar(args.tenant, args.purgar_dias, args.raiz)
+        segundos = time.perf_counter() - t0
+        print(json.dumps({**lapida, "segundos": round(segundos, 3)}, ensure_ascii=False, indent=2))
+        if not lapida["lineas_quitadas"]:
+            print("Nada que quitar: el registro queda como estaba y no se escribe lapida.")
+        return
 
     tenants = [args.tenant] if args.tenant else inquilinos(args.raiz)
     if not tenants:

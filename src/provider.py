@@ -128,6 +128,31 @@ class Uso:
             m["tokens_entrada"] += entrada
             m["tokens_salida"] += salida
 
+    def registrar_embeddings(self, modelo: str, tokens: int, exactos: bool) -> None:
+        """Consumo del modelo de embeddings, aparte de los totales de tokens.
+
+        Aparte a proposito: `tokens_entrada` y `tokens_salida` alimentan las
+        cifras de coste por caso de 24 ejecuciones, y meter aqui los
+        embeddings las moveria sin que ninguna comparacion lo supiera. El
+        modelo entra en `por_modelo` (y por tanto en `modelos_sin_precio`
+        mientras no tenga precio), pero con sus propias claves. Ver §35.
+
+        `exactos` distingue lo contado por la API (`count_tokens`, en la
+        ingesta) de lo estimado por caracteres (en la consulta, donde una
+        llamada mas por pregunta moveria la latencia medida).
+        """
+        hijo = getattr(self._local, "hijo", None)
+        if hijo is not None:
+            hijo.registrar_embeddings(modelo, tokens, exactos)
+        with self._lock:
+            m = self.por_modelo.setdefault(
+                modelo, {"llamadas": 0, "tokens_embebidos": 0, "exactos": True}
+            )
+            m["llamadas"] += 1
+            m["tokens_embebidos"] = m.get("tokens_embebidos", 0) + tokens
+            # Basta una estimacion para que el total deje de ser exacto.
+            m["exactos"] = bool(m.get("exactos", True) and exactos)
+
     def coste_usd(self) -> float:
         total = 0.0
         for modelo, m in self.por_modelo.items():
@@ -141,8 +166,10 @@ class Uso:
             if modelo not in PRECIOS:
                 continue
             precio_in, precio_out = PRECIOS[modelo]
-            total += m["tokens_entrada"] / 1e6 * precio_in
-            total += m["tokens_salida"] / 1e6 * precio_out
+            total += m.get("tokens_entrada", 0) / 1e6 * precio_in
+            total += m.get("tokens_salida", 0) / 1e6 * precio_out
+            # Un modelo de embeddings con precio cobraria por token embebido.
+            total += m.get("tokens_embebidos", 0) / 1e6 * precio_in
         return total
 
     @property

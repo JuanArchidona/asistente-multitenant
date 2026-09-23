@@ -156,7 +156,10 @@ medido. Lo que no cubre: las consultas registradas que citaron el documento.
 Y el registro de observabilidad (§20), que guarda **quién preguntó qué**, es a la
 vez la evidencia de trazabilidad que pide el artículo 12 y un riesgo de
 vigilancia del catálogo del 4.1. Esa tensión conviene escribirla, no resolverla
-a favor de lo cómodo.
+a favor de lo cómodo. **Escrita el 23-09-2026** en `RETENCION.md`: 90 días de
+retención, la respuesta no se guarda, supresión por usuario y purga por
+antigüedad con lápida (se sabe que se borró y cuánto, no a quién), medidas en
+décimas de segundo sobre un log de 10.000 líneas (`HALLAZGOS.md` §37).
 
 ### Transferencias internacionales, RGPD capítulo 5 (4.4)
 

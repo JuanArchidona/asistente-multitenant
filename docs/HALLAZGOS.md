@@ -2283,3 +2283,54 @@ la colección y está medido, que es lo que el capítulo necesita. Dos límites
 escritos: el registro de observabilidad conserva las consultas que citaron el
 documento (R-16, otro camino), y el coste de las dos pasadas de embeddings no
 lo contabiliza nadie (§35), así que el informe da caracteres, no dólares.
+
+## 37. Los embeddings ya cuentan, el registro ya se puede podar, y las dos cosas dejan rastro
+
+**Ejecuciones:** ingesta de los dos inquilinos con contador exacto
+(`src.ingest_cli`, 23-09-2026), 91 consultas del golden set pasadas por
+`count_tokens`, y un log sintético de 10.000 líneas para cronometrar la
+supresión y la purga.
+
+**Embeddings (cierra la mitad del §35).** La API no devuelve consumo en la
+respuesta de `embed_content` (`metadata` llega vacío para este modelo), pero
+`count_tokens` sí acepta el modelo de embeddings. Dos caminos, declarados:
+
+| Dónde | Cómo se cuenta | Medido |
+|---|---|---|
+| Ingesta | Exacto, una llamada a `count_tokens` por lote | `empresa_servicios`: **2.724 tokens**, 9.237 caracteres (3,39 car/token). `agencia_inmobiliaria`: **3.027 tokens**, 12.337 caracteres (4,08 car/token) |
+| Consulta | Estimado por caracteres, sin llamada extra | 91 consultas del golden set: 5.396 caracteres, 1.285 tokens, **4,20 caracteres por token, 14,1 tokens por consulta** |
+
+La consulta se estima y no se cuenta porque una llamada más por pregunta
+movería `latencia_retrieve_s`, que es una métrica comparada entre ejecuciones.
+El acumulador lo registra **aparte de los totales del chat**: `tokens_entrada`
+y `tokens_salida` no cambian, así que ninguna cifra de coste de las 24
+ejecuciones guardadas se mueve; el modelo aparece en `modelos_sin_precio`, que
+es la señal de que el coste en dólares es un suelo. Lo que dice el número: una
+consulta cuesta unos 14 tokens de embedding frente a los cientos del chat, y un
+corpus entero unos 3.000; con el último precio publicado para un modelo de
+embeddings de Google (0,20 USD por millón), reindexar los dos inquilinos
+costaría algo más de una milésima de dólar. No se convierte porque ese precio
+no es el de este modelo.
+
+**Supresión y retención del registro (R-16).** `observabilidad_cli` gana
+`--borrar-usuario` (RGPD, artículo 17) y `--purgar-dias` (retención, 90 por
+defecto según `RETENCION.md`). Las dos reescriben el log **quitando líneas,
+nunca cambiándolas**, y dejan una lápida con cuántas se quitaron y, en la
+supresión, el hash del usuario y no el usuario. Las líneas ilegibles se
+conservan: no se sabe de quién son. El resumen de explotación cuenta las
+lápidas, para que un registro podado no pase por uno entero.
+
+| Operación sobre 10.000 líneas | Líneas quitadas | Tiempo |
+|---|---|---|
+| Suprimir un usuario de cinco | 1.974 | **0,048 s** |
+| Purgar a 90 días | 4.025 | **0,040 s** |
+
+El resumen posterior dice 4.001 consultas, 4 usuarios, 2 lápidas y 5.999
+consultas quitadas: las cuentas cuadran y el borrado se ve.
+
+**Lo que enseña.** La contradicción entre "un registro que se puede
+reescribir no es evidencia" y "una persona puede pedir que se borre lo suyo"
+no se resuelve eligiendo una: se resuelve haciendo que la reescritura sea
+visible. Y lo mismo con los embeddings: el problema del §35 no era que
+costaran, era que no se sabía cuánto; ahora se sabe en tokens, y que no se sepa
+en dólares está escrito en vez de escondido.

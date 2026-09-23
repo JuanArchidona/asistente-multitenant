@@ -231,7 +231,9 @@ class Sistema:
         # Perezoso: las consultas que enrutan a 'otro' no tocan el índice, y así
         # el sistema arranca aunque el índice todavía no esté construido.
         if self._retriever is None:
-            self._retriever = Retriever(self.cfg)
+            # Con el acumulador del chat, para que los embeddings de cada
+            # consulta se atribuyan a esa consulta (via `por_consulta`).
+            self._retriever = Retriever(self.cfg, uso=self.chat.uso)
         return self._retriever
 
     @property

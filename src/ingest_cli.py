@@ -13,6 +13,12 @@ def main():
     info = construir_indice(cfg)
     print(f"[OK] {info['documentos']} chunks indexados en la colección '{info['coleccion']}'.")
     print(f"[OK] Fuentes: {', '.join(info['fuentes'])}")
+    print(
+        f"[OK] Embeddings: {info['tokens_embebidos']} tokens "
+        f"({'exactos' if info['tokens_exactos'] else 'estimados'}), "
+        f"{info['caracteres_embebidos']} caracteres, "
+        f"{info['caracteres_por_token']} caracteres/token. Sin precio publicado: no se convierte a USD."
+    )
 
 
 if __name__ == "__main__":
