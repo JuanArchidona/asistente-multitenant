@@ -4,6 +4,102 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-23 — Sesión 6: el puente se cierra solo, y el servicio público resulta ser el mejor banco de pruebas
+
+**27 commits, 9 hallazgos (del §35 al §43), 1.033 tests**, ocho encargos
+reales por el puente con la app y un servicio desplegado. Gasto del día en
+proveedores: en torno a 1,3 USD entre bancos, reindexaciones y pruebas.
+
+El hilo del día: cada vez que algo se probó **fuera del banco** (la app, el
+servicio público, un inventario generado) apareció un defecto que el banco
+no podía ver. Cinco de los nueve hallazgos salieron así.
+
+**Hecho, por orden:**
+
+- **Puente Claude Code / app cerrado en las dos direcciones.** Modo del
+  encargo (`desatendido` / `supervisado`), enlace profundo `cowork/new` con la
+  orden en la caja (la ruta del proyecto ignora `q`, medido), aviso a Claude
+  Code al registrar con análisis automático de solo lectura, hook de
+  `UserPromptSubmit` que lo inyecta en cada prompt, notificación de escritorio
+  para Juan. Cinco defectos del propio puente corregidos sobre la marcha: el
+  hook con `$CLAUDE_PROJECT_DIR` (PowerShell), el tope de `consultar_tfm` por
+  encima del corte de 60 s de la app, el servidor muriendo al cerrarse la
+  entrada, el proceso viejo del puente tras editar el código (regla: reiniciar
+  la app; `avisos.mjs --reconstruir` repara), y el límite de 1.000 caracteres
+  en `hecho`. Ocho encargos atendidos, ocho avisos que llegaron solos.
+- **Esqueleto del capítulo del Módulo 4.** `docs/RIESGOS.md` (23 riesgos con
+  Rumsfeld, OWASP, ATLAS, AIUC-1 y evidencia, vigilado por test),
+  clasificación por el AI Act en cada manifiesto con la regla del 6.3
+  codificada y el aviso del artículo 50 en la interfaz, `AIBOM.md` generado,
+  `INCIDENTES.md`, `RETENCION.md` con supresión y purga con lápida, borrado
+  cronometrado de documentos (1,46 s y 1,23 s), embeddings contabilizados.
+- **El AI Act cambió el 27-07-2026** (Reglamento 2026/1744): lo trajo la app
+  por el encargo E-0004 leyendo EUR-Lex y se contrastó contra la Comisión y el
+  BOE. Alto riesgo del anexo III al 2-12-2027; artículo 50 ya en vigor en la
+  defensa. El capítulo cita el texto vigente.
+- **Interfaz desplegada** (`app.py`, Render): inquilino fijado por la
+  credencial, roles al control de acceso, tope blando de gasto, versión
+  visible. Primer despliegue 1 min 32 s. Se paró en el login por exigir la
+  clave del juez (§38); arreglado con `con_juez=False`.
+- **Segundo corte de línea base (§5.d):** el generador sabe quién pregunta y
+  que su contexto está autorizado. Antes negaba un salario a `direccion` 3 de
+  5 veces por la cabecera CONFIDENCIAL del anexo (§39); después 5 de 5, y
+  ninguna métrica de confidencialidad se movió (§40).
+- **Agujero por tamaño en la redacción** (§41): el recorte a 6.000 caracteres
+  iba antes de redactar y dejaba pasar JSON roto sin redactar. Encontrado en
+  el servicio público, cerrado con seis pruebas.
+- **Human-in-the-loop** (§42): escritura real en el CRM declarada en el
+  manifiesto y anotada por el servidor, propuesta por el modelo y aprobada por
+  una persona desde la interfaz; métrica `accion_sin_aprobar` 40/40; probado
+  en Render (VIS-901). Tres defectos de interfaz corregidos.
+- **Alta cronometrada del tercer inquilino** (§43): `gestoria_laboral` en
+  **5 min 42 s**, dos iteraciones, cero ficheros de código; 20/28 y 25/28.
+- Guion de la demo (`docs/GUION_DEMO.md`), credenciales propias en el servicio.
+
+**Decisiones:**
+
+- **No migrar el modelo de embeddings antes de la defensa**; contabilizar
+  tokens y dejar la migración con fecha límite 14-05-2028 (§35, §37).
+- **Decirle al generador quién pregunta y su rol**, con corte fechado, porque
+  el principio es control antes del modelo y el modelo no lo sabía (§5.d).
+- **Render sigue vivo**, con credenciales propias, para seguir probando ahí.
+- **Las tareas programadas de la app no son necesarias**: el ciclo funciona
+  con una pulsación y los encargos que valen necesitan navegador.
+- **Una expectativa demasiado literal (`front-03` de la gestoría) no se
+  corrige tras ver el resultado**; se anota para revisarla con criterio.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Pegar el JSON nuevo en `APP_USUARIOS_JSON` de Render** (dos usuarios
+      de la gestoría). Juan tiene las contraseñas.
+- [ ] Revisar `front-03` de `gestoria_laboral` (literal "cinco dias antes"
+      frente a "5 días") con criterio, y `agg-01` (`plazos internos` sigue
+      yendo a `procedimientos`).
+- [ ] **Sesgo en la capa de generación** (R-13), lo único del registro de
+      riesgos sin cerrar; exige un criterio de equivalencia sin juez.
+- [ ] Simulacro cronometrado del plan de incidentes (R-23).
+- [ ] Verificar los identificadores de MITRE ATLAS contra la matriz viva antes
+      de la memoria.
+- [ ] Bloque 3 del alcance: clasificador pequeño; canales (correo, WhatsApp).
+- [ ] `inj-04` del heredado y la denegación presentada como ausencia en el
+      camino documental heredado, los dos desde la sesión 5.
+- [ ] Formato de la defensa: sigue sin conocerse.
+
+**Notas:**
+
+- **El proceso del puente que usa la app arranca con la app.** Tras editar
+  `puente/servidor.mjs` hay que reiniciar la app de Claude; si no, registra
+  con el código viejo y no avisa. `avisos.mjs --reconstruir` repara el caso.
+- **EUR-Lex no se deja leer sin navegador** (202 vacío); la app con Chrome sí
+  puede, y es un buen encargo desatendido.
+- **Las cifras de coste guardadas excluyen embeddings** y hay que decirlo al
+  citarlas; el registro marca `modelos_sin_precio` cuando aplica.
+- Precios y calendarios que cambian solos: `gemini-embedding-001` en retirada
+  (cierre 14-05-2028), `gemini-3.6-flash` dobla precio el 01-01-2027, AI Act
+  reescrito en julio. El AIBOM y la tabla de precios son lo que los vigila.
+- Un commit salió hoy con cuatro pruebas en rojo porque la cadena no frenaba
+  con el código de salida de `pytest`; desde entonces el commit está gateado.
+
 ## 2026-09-22 — Sesión 5: la tutoría, y catorce hallazgos de mirar con desconfianza
 
 La sesión más larga del proyecto: **18 commits, 34 hallazgos (del 21 al 34),

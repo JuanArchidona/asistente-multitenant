@@ -174,7 +174,17 @@ uv run python scripts/generar_crm_agencia.py            # regenera el CRM sinté
 
 uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
 uv run python -m src.observabilidad_cli                # qué ha pasado en producción
+uv run python -m src.observabilidad_cli --tenant X --borrar-usuario U   # supresión RGPD
+uv run streamlit run app.py                            # interfaz (uv sync --group app)
+uv run python scripts/generar_aibom.py                 # regenera el AIBOM (el test lo vigila)
+TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E
+node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app, con la orden en la caja
+node puente/avisos.mjs --listar                        # avisos de la app; el hook los inyecta solo
 ```
+
+**Tras editar `puente/servidor.mjs`, reiniciar la app de Claude**: su proceso
+del puente arranca con la app y no se recarga; `avisos.mjs --reconstruir`
+repara los avisos que un proceso viejo no creó.
 
 `TENANT_ID` selecciona el inquilino; por defecto, `empresa_servicios`.
 
