@@ -174,6 +174,11 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
 ### Bloque 3 — Lo que se cae primero si falta tiempo
 
 12. Clasificador con modelo pequeño local o afinado, con comparativa medida.
+    **Hecho y medido el 23-09-2026 (§48):** enrutador por embeddings, sin
+    entrenamiento ni dependencia nueva, conmutable con `ROUTER_KIND`; en
+    transferencia acierta 0,735 frente a 0,882 de Haiku, es cuatro veces más
+    rápido, no cuesta chat y acierta 13 de 13 casos de riesgo. **Haiku se
+    queda por defecto**; la cascada no ahorra lo suficiente fuera de muestra.
     **Acotado el 22-09-2026 (§25):** la prerruta determinista por identificador
     queda descartada con una cuenta de dos minutos —los identificadores viven
     donde el problema ya está resuelto y la deriva del 13,2 % es semántica—. Lo

@@ -94,6 +94,17 @@ class Config:
     # `GEN_QUIEN_PREGUNTA=0`.
     gen_quien_pregunta: bool = True
 
+    # Qué enruta: `llm` (Haiku, la línea base heredada) o una de las variantes
+    # de `src/router_embeddings.py` (`embeddings_descripciones`,
+    # `embeddings_indice`), medidas contra la base en HALLAZGOS.md §48. El
+    # umbral bajo el que una consulta va a `otro` se calibró sobre el inquilino
+    # heredado y se aplica tal cual a los demás.
+    router_kind: str = "llm"
+    router_umbral_otro: float = 0.55
+
+
+ROUTER_KINDS = ("llm", "embeddings_descripciones", "embeddings_indice")
+
 
 def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
     """Configuración del sistema para un inquilino.
@@ -216,7 +227,11 @@ def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
         judge_gemini_api_key=os.getenv("GEMINI_API_KEY_JUEZ", ""),
         builder_model=os.getenv("BUILDER_MODEL", "claude-sonnet-5"),
         gen_quien_pregunta=os.getenv("GEN_QUIEN_PREGUNTA", "1").strip() != "0",
+        router_kind=os.getenv("ROUTER_KIND", "llm").strip().lower(),
+        router_umbral_otro=float(os.getenv("ROUTER_UMBRAL_OTRO", "0.55")),
     )
+    if cfg.router_kind not in ROUTER_KINDS:
+        sys.exit(f"[config] ROUTER_KIND inválido: {cfg.router_kind!r}. Usa uno de {ROUTER_KINDS}.")
 
     # El chat (router/generador) usa Anthropic por defecto; los embeddings SIEMPRE Gemini.
     if provider == "anthropic" and not cfg.anthropic_api_key:

@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1064 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1077 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -58,7 +58,7 @@ servicio público desplegado. **1064 tests en verde**, `ruff` limpio.
 | Canales (correo, WhatsApp) | Pendiente |
 | Human-in-the-loop | **Hecho y medido** el 23-09: la agencia declara `crm__registrar_visita` como escritura, el servidor la anota, el modelo la propone y una persona la aprueba desde la interfaz con registro; métrica `accion_sin_aprobar` 40/40 y ninguna visita escrita tras el banco (§42) |
 | Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). **Vivo a propósito** desde el 23-09 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan) para seguir probando ahí |
-| Clasificador con modelo pequeño o afinado | Pendiente (bloque 3) |
+| Clasificador con modelo pequeño o afinado | **Hecho y medido** el 23-09 (§48): enrutador por embeddings conmutable con `ROUTER_KIND`, umbral calibrado en el heredado y congelado; en transferencia 0,735 frente a 0,882 de Haiku, 4x más rápido, sin coste de chat y 13/13 en casos de riesgo. Haiku sigue por defecto |
 | Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43). Revisado en frío: dos de los tres rojos eran del banco, **27/28** (§45) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
@@ -163,7 +163,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1064 tests, sin llamadas a API
+uv run pytest                                      # 1077 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -173,6 +173,8 @@ uv run python -m evals.runner --etiqueta X --sin-juez   # banco sin coste de jue
 uv run python scripts/generar_crm_agencia.py            # regenera el CRM sintético
 uv run python -m evals.sesgo                            # sesgo: recuperación y enrutado (§34)
 uv run python -m evals.sesgo_generacion --repeticiones 8   # sesgo: generación, ~0,11 USD (§44)
+uv run python -m evals.comparar_enrutadores                # LLM frente a embeddings, coste cero en chat (§48)
+ROUTER_KIND=embeddings_descripciones uv run python -m src.main "..."   # enrutar sin modelo de chat
 
 uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
 uv run python -m src.observabilidad_cli                # qué ha pasado en producción
@@ -280,6 +282,14 @@ y §14).
 - **El comparador de literales quita el énfasis de markdown** desde el 23-09
   (§47): "día **22**" casa con "dia 22". Reevaluadas siete ejecuciones
   guardadas, cero veredictos cambian en las seis anteriores.
+- **El enrutador por embeddings existe y no es el de producción** (§48).
+  Pierde doce puntos de acierto en transferencia, sobre todo en categorías
+  definidas por tipo de documento (`actas`) y entre categorías vecinas, y su
+  umbral de `otro` es un filo (0,83 a 0,55, 0,58 a 0,58). Pero es la única
+  configuración medida en la que `inj-04` y los `conf-*` que Haiku manda a
+  `otro` llegan al control: 13 de 13 casos de riesgo en transferencia. Si el
+  enrutado vuelve a discutirse, la línea es dar ejemplos a las descripciones,
+  no afinar un modelo.
 - **Línea base cortada el 22-09-2026, con fecha y por escrito**
   (`docs/ALCANCE.md` §5.c). La temperatura del enrutador pasa a **0.0** por
   defecto y el juez por defecto a **`gemini-3.6-flash`**. Las métricas de antes

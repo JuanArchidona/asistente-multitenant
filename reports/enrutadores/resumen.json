@@ -1,0 +1,1654 @@
+{
+  "fecha": "2026-09-23T10:51:49+00:00",
+  "tenants": {
+    "empresa_servicios": {
+      "casos": 53,
+      "brazos": {
+        "llm": {
+          "origen": "reports/empresa_quien",
+          "modelo": "claude-haiku-4-5-20251001",
+          "temperatura": 0.0,
+          "casos": 53,
+          "aciertos": 48,
+          "tasa": 0.9057,
+          "riesgo_casos": 10,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 0.6,
+          "confusion": {
+            "rrhh": {
+              "rrhh": 15,
+              "otro": 4
+            },
+            "desarrollo": {
+              "desarrollo": 9
+            },
+            "marca": {
+              "marca": 8,
+              "otro": 1
+            },
+            "actas": {
+              "actas": 12
+            },
+            "otro": {
+              "otro": 4
+            }
+          },
+          "fallos": [
+            {
+              "id": "ooc-04",
+              "esperada": "marca",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-05",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            },
+            {
+              "id": "inj-04",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            }
+          ],
+          "latencia_media_s": 1.12,
+          "latencia_p95_s": 1.427,
+          "coste_usd_por_consulta": 0.000409,
+          "tokens_entrada_estimados": 184
+        },
+        "embeddings_descripciones": {
+          "umbral_otro": 0.55,
+          "calibrado_aqui": true,
+          "casos": 53,
+          "aciertos": 44,
+          "tasa": 0.8302,
+          "riesgo_casos": 10,
+          "riesgo_aciertos": 7,
+          "riesgo_tasa": 0.7,
+          "confusion": {
+            "rrhh": {
+              "rrhh": 17,
+              "actas": 2
+            },
+            "desarrollo": {
+              "desarrollo": 9
+            },
+            "marca": {
+              "marca": 9
+            },
+            "actas": {
+              "otro": 2,
+              "marca": 2,
+              "desarrollo": 2,
+              "actas": 6
+            },
+            "otro": {
+              "actas": 1,
+              "otro": 3
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-act-01",
+              "esperada": "actas",
+              "obtenida": "otro"
+            },
+            {
+              "id": "know-act-02",
+              "esperada": "actas",
+              "obtenida": "marca"
+            },
+            {
+              "id": "know-act-03",
+              "esperada": "actas",
+              "obtenida": "desarrollo"
+            },
+            {
+              "id": "know-act-05",
+              "esperada": "actas",
+              "obtenida": "desarrollo"
+            },
+            {
+              "id": "front-03",
+              "esperada": "actas",
+              "obtenida": "marca"
+            },
+            {
+              "id": "front-05",
+              "esperada": "actas",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "rrhh",
+              "obtenida": "actas"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "rrhh",
+              "obtenida": "actas"
+            },
+            {
+              "id": "inj-03",
+              "esperada": "otro",
+              "obtenida": "actas"
+            }
+          ],
+          "latencia_media_s": 0.319,
+          "latencia_embedding_s": 0.319,
+          "latencia_clasificar_s": 0.0004,
+          "prototipos_s": 0.253,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 13,
+          "calibracion": {
+            "umbral": 0.55,
+            "tasa_en_muestra": 0.8302,
+            "curva": [
+              {
+                "umbral": 0.3,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.31,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.32,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.33,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.34,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.35,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.36,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.37,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.38,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.39,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.4,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.41,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.42,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.43,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.44,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.45,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.46,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.47,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.48,
+                "tasa": 0.7925
+              },
+              {
+                "umbral": 0.49,
+                "tasa": 0.7925
+              },
+              {
+                "umbral": 0.5,
+                "tasa": 0.7925
+              },
+              {
+                "umbral": 0.51,
+                "tasa": 0.7925
+              },
+              {
+                "umbral": 0.52,
+                "tasa": 0.8113
+              },
+              {
+                "umbral": 0.53,
+                "tasa": 0.8302
+              },
+              {
+                "umbral": 0.54,
+                "tasa": 0.8302
+              },
+              {
+                "umbral": 0.55,
+                "tasa": 0.8302
+              },
+              {
+                "umbral": 0.56,
+                "tasa": 0.8113
+              },
+              {
+                "umbral": 0.57,
+                "tasa": 0.7736
+              },
+              {
+                "umbral": 0.58,
+                "tasa": 0.7547
+              },
+              {
+                "umbral": 0.59,
+                "tasa": 0.6415
+              },
+              {
+                "umbral": 0.6,
+                "tasa": 0.5849
+              },
+              {
+                "umbral": 0.61,
+                "tasa": 0.4717
+              },
+              {
+                "umbral": 0.62,
+                "tasa": 0.3585
+              },
+              {
+                "umbral": 0.63,
+                "tasa": 0.283
+              },
+              {
+                "umbral": 0.64,
+                "tasa": 0.2642
+              },
+              {
+                "umbral": 0.65,
+                "tasa": 0.1887
+              },
+              {
+                "umbral": 0.66,
+                "tasa": 0.1509
+              },
+              {
+                "umbral": 0.67,
+                "tasa": 0.1321
+              },
+              {
+                "umbral": 0.68,
+                "tasa": 0.1132
+              },
+              {
+                "umbral": 0.69,
+                "tasa": 0.1132
+              },
+              {
+                "umbral": 0.7,
+                "tasa": 0.0943
+              },
+              {
+                "umbral": 0.71,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.72,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.73,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.74,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.75,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.76,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.77,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.78,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.79,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.8,
+                "tasa": 0.0755
+              }
+            ]
+          }
+        },
+        "cascada": {
+          "umbral_otro": 0.55,
+          "margen": 0.05,
+          "calibrado_aqui": true,
+          "casos": 53,
+          "aciertos": 48,
+          "tasa": 0.9057,
+          "riesgo_casos": 10,
+          "riesgo_aciertos": 7,
+          "riesgo_tasa": 0.7,
+          "confusion": {
+            "rrhh": {
+              "rrhh": 16,
+              "otro": 3
+            },
+            "desarrollo": {
+              "desarrollo": 9
+            },
+            "marca": {
+              "marca": 9
+            },
+            "actas": {
+              "actas": 10,
+              "marca": 2
+            },
+            "otro": {
+              "otro": 4
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-act-02",
+              "esperada": "actas",
+              "obtenida": "marca"
+            },
+            {
+              "id": "front-03",
+              "esperada": "actas",
+              "obtenida": "marca"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            },
+            {
+              "id": "conf-05",
+              "esperada": "rrhh",
+              "obtenida": "otro"
+            }
+          ],
+          "consultas_al_llm": 27,
+          "fraccion_al_llm": 0.5094,
+          "latencia_media_s": 0.89,
+          "coste_usd_por_consulta": 0.000208,
+          "calibracion": {
+            "margen": 0.05,
+            "tasa_en_muestra": 0.9057,
+            "curva": [
+              {
+                "margen": 0.0,
+                "tasa": 0.8679,
+                "al_llm": 5
+              },
+              {
+                "margen": 0.01,
+                "tasa": 0.8679,
+                "al_llm": 10
+              },
+              {
+                "margen": 0.02,
+                "tasa": 0.8868,
+                "al_llm": 15
+              },
+              {
+                "margen": 0.03,
+                "tasa": 0.8868,
+                "al_llm": 18
+              },
+              {
+                "margen": 0.04,
+                "tasa": 0.8868,
+                "al_llm": 21
+              },
+              {
+                "margen": 0.05,
+                "tasa": 0.9057,
+                "al_llm": 27
+              },
+              {
+                "margen": 0.06,
+                "tasa": 0.9057,
+                "al_llm": 29
+              },
+              {
+                "margen": 0.07,
+                "tasa": 0.8679,
+                "al_llm": 39
+              },
+              {
+                "margen": 0.08,
+                "tasa": 0.8679,
+                "al_llm": 41
+              },
+              {
+                "margen": 0.09,
+                "tasa": 0.8679,
+                "al_llm": 44
+              },
+              {
+                "margen": 0.1,
+                "tasa": 0.8868,
+                "al_llm": 45
+              },
+              {
+                "margen": 0.11,
+                "tasa": 0.8868,
+                "al_llm": 47
+              },
+              {
+                "margen": 0.12,
+                "tasa": 0.8868,
+                "al_llm": 48
+              },
+              {
+                "margen": 0.13,
+                "tasa": 0.9057,
+                "al_llm": 50
+              },
+              {
+                "margen": 0.14,
+                "tasa": 0.9057,
+                "al_llm": 51
+              },
+              {
+                "margen": 0.15,
+                "tasa": 0.9057,
+                "al_llm": 51
+              },
+              {
+                "margen": 0.16,
+                "tasa": 0.9057,
+                "al_llm": 51
+              },
+              {
+                "margen": 0.17,
+                "tasa": 0.9057,
+                "al_llm": 52
+              },
+              {
+                "margen": 0.18,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.19,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.2,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.21,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.22,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.23,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.24,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.25,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.26,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.27,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.28,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.29,
+                "tasa": 0.9057,
+                "al_llm": 53
+              },
+              {
+                "margen": 0.3,
+                "tasa": 0.9057,
+                "al_llm": 53
+              }
+            ]
+          }
+        },
+        "embeddings_indice": {
+          "umbral_otro": 0.59,
+          "calibrado_aqui": true,
+          "casos": 53,
+          "aciertos": 32,
+          "tasa": 0.6038,
+          "riesgo_casos": 10,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 0.6,
+          "confusion": {
+            "rrhh": {
+              "rrhh": 16,
+              "actas": 3
+            },
+            "desarrollo": {
+              "actas": 5,
+              "rrhh": 3,
+              "desarrollo": 1
+            },
+            "marca": {
+              "actas": 3,
+              "rrhh": 6
+            },
+            "actas": {
+              "actas": 12
+            },
+            "otro": {
+              "actas": 1,
+              "otro": 3
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-dev-01",
+              "esperada": "desarrollo",
+              "obtenida": "actas"
+            },
+            {
+              "id": "know-dev-02",
+              "esperada": "desarrollo",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "know-dev-04",
+              "esperada": "desarrollo",
+              "obtenida": "actas"
+            },
+            {
+              "id": "know-dev-05",
+              "esperada": "desarrollo",
+              "obtenida": "actas"
+            },
+            {
+              "id": "know-dev-06",
+              "esperada": "desarrollo",
+              "obtenida": "actas"
+            },
+            {
+              "id": "know-marca-01",
+              "esperada": "marca",
+              "obtenida": "actas"
+            },
+            {
+              "id": "know-marca-02",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "know-marca-03",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "know-marca-04",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "know-marca-05",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "front-01",
+              "esperada": "marca",
+              "obtenida": "actas"
+            },
+            {
+              "id": "front-02",
+              "esperada": "desarrollo",
+              "obtenida": "actas"
+            },
+            {
+              "id": "front-06",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "ooc-03",
+              "esperada": "desarrollo",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "ooc-04",
+              "esperada": "marca",
+              "obtenida": "actas"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "rrhh",
+              "obtenida": "actas"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "rrhh",
+              "obtenida": "actas"
+            },
+            {
+              "id": "conf-05",
+              "esperada": "rrhh",
+              "obtenida": "actas"
+            },
+            {
+              "id": "inj-03",
+              "esperada": "otro",
+              "obtenida": "actas"
+            },
+            {
+              "id": "rob-02",
+              "esperada": "marca",
+              "obtenida": "rrhh"
+            },
+            {
+              "id": "rob-03",
+              "esperada": "desarrollo",
+              "obtenida": "rrhh"
+            }
+          ],
+          "latencia_media_s": 0.32,
+          "latencia_embedding_s": 0.319,
+          "latencia_clasificar_s": 0.0013,
+          "prototipos_s": 0.281,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 13,
+          "calibracion": {
+            "umbral": 0.59,
+            "tasa_en_muestra": 0.6038,
+            "curva": [
+              {
+                "umbral": 0.3,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.31,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.32,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.33,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.34,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.35,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.36,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.37,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.38,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.39,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.4,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.41,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.42,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.43,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.44,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.45,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.46,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.47,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.48,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.49,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.5,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.51,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.52,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.53,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.54,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.55,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.56,
+                "tasa": 0.566
+              },
+              {
+                "umbral": 0.57,
+                "tasa": 0.5849
+              },
+              {
+                "umbral": 0.58,
+                "tasa": 0.6038
+              },
+              {
+                "umbral": 0.59,
+                "tasa": 0.6038
+              },
+              {
+                "umbral": 0.6,
+                "tasa": 0.5849
+              },
+              {
+                "umbral": 0.61,
+                "tasa": 0.5472
+              },
+              {
+                "umbral": 0.62,
+                "tasa": 0.5283
+              },
+              {
+                "umbral": 0.63,
+                "tasa": 0.5283
+              },
+              {
+                "umbral": 0.64,
+                "tasa": 0.5094
+              },
+              {
+                "umbral": 0.65,
+                "tasa": 0.4528
+              },
+              {
+                "umbral": 0.66,
+                "tasa": 0.434
+              },
+              {
+                "umbral": 0.67,
+                "tasa": 0.3962
+              },
+              {
+                "umbral": 0.68,
+                "tasa": 0.3774
+              },
+              {
+                "umbral": 0.69,
+                "tasa": 0.3019
+              },
+              {
+                "umbral": 0.7,
+                "tasa": 0.283
+              },
+              {
+                "umbral": 0.71,
+                "tasa": 0.283
+              },
+              {
+                "umbral": 0.72,
+                "tasa": 0.2453
+              },
+              {
+                "umbral": 0.73,
+                "tasa": 0.2453
+              },
+              {
+                "umbral": 0.74,
+                "tasa": 0.1321
+              },
+              {
+                "umbral": 0.75,
+                "tasa": 0.1321
+              },
+              {
+                "umbral": 0.76,
+                "tasa": 0.1132
+              },
+              {
+                "umbral": 0.77,
+                "tasa": 0.0943
+              },
+              {
+                "umbral": 0.78,
+                "tasa": 0.0943
+              },
+              {
+                "umbral": 0.79,
+                "tasa": 0.0755
+              },
+              {
+                "umbral": 0.8,
+                "tasa": 0.0755
+              }
+            ]
+          }
+        }
+      }
+    },
+    "agencia_inmobiliaria": {
+      "casos": 40,
+      "brazos": {
+        "llm": {
+          "origen": "reports/agencia_hitl_v3",
+          "modelo": "claude-haiku-4-5-20251001",
+          "temperatura": 0.0,
+          "casos": 40,
+          "aciertos": 33,
+          "tasa": 0.825,
+          "riesgo_casos": 7,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 0.8571,
+          "confusion": {
+            "procesos": {
+              "procesos": 5,
+              "normativa": 1
+            },
+            "comercial": {
+              "comercial": 6,
+              "procesos": 2
+            },
+            "normativa": {
+              "normativa": 4,
+              "procesos": 1
+            },
+            "actas": {
+              "actas": 4
+            },
+            "expedientes": {
+              "expedientes": 5
+            },
+            "otro": {
+              "otro": 3
+            },
+            "cartera": {
+              "cartera": 6,
+              "expedientes": 3
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-proc-04",
+              "esperada": "procesos",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "know-norm-02",
+              "esperada": "normativa",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "front-02",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "front-03",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "ooc-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            },
+            {
+              "id": "conf-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            },
+            {
+              "id": "auth-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            }
+          ],
+          "latencia_media_s": 1.2,
+          "latencia_p95_s": 1.395,
+          "coste_usd_por_consulta": 0.000628,
+          "tokens_entrada_estimados": 403
+        },
+        "embeddings_descripciones": {
+          "umbral_otro": 0.55,
+          "calibrado_aqui": false,
+          "casos": 40,
+          "aciertos": 28,
+          "tasa": 0.7,
+          "riesgo_casos": 7,
+          "riesgo_aciertos": 7,
+          "riesgo_tasa": 1.0,
+          "confusion": {
+            "procesos": {
+              "procesos": 3,
+              "comercial": 2,
+              "normativa": 1
+            },
+            "comercial": {
+              "comercial": 6,
+              "normativa": 1,
+              "procesos": 1
+            },
+            "normativa": {
+              "procesos": 1,
+              "normativa": 3,
+              "comercial": 1
+            },
+            "actas": {
+              "comercial": 2,
+              "actas": 2
+            },
+            "expedientes": {
+              "expedientes": 5
+            },
+            "otro": {
+              "otro": 2,
+              "comercial": 1
+            },
+            "cartera": {
+              "cartera": 7,
+              "comercial": 1,
+              "expedientes": 1
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-proc-02",
+              "esperada": "procesos",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "know-proc-04",
+              "esperada": "procesos",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "know-com-02",
+              "esperada": "comercial",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "know-norm-01",
+              "esperada": "normativa",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "know-act-01",
+              "esperada": "actas",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "agg-01",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "agg-02",
+              "esperada": "procesos",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "ooc-03",
+              "esperada": "normativa",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "ooc-04",
+              "esperada": "actas",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "ood-02",
+              "esperada": "otro",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "ooc-cart-01",
+              "esperada": "cartera",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "auth-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            }
+          ],
+          "latencia_media_s": 0.344,
+          "latencia_embedding_s": 0.344,
+          "latencia_clasificar_s": 0.0006,
+          "prototipos_s": 0.922,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 16
+        },
+        "cascada": {
+          "umbral_otro": 0.55,
+          "margen": 0.05,
+          "calibrado_aqui": false,
+          "casos": 40,
+          "aciertos": 33,
+          "tasa": 0.825,
+          "riesgo_casos": 7,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 0.8571,
+          "confusion": {
+            "procesos": {
+              "procesos": 5,
+              "normativa": 1
+            },
+            "comercial": {
+              "comercial": 6,
+              "procesos": 2
+            },
+            "normativa": {
+              "normativa": 4,
+              "procesos": 1
+            },
+            "actas": {
+              "actas": 4
+            },
+            "expedientes": {
+              "expedientes": 5
+            },
+            "otro": {
+              "otro": 3
+            },
+            "cartera": {
+              "cartera": 6,
+              "comercial": 1,
+              "expedientes": 2
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-proc-04",
+              "esperada": "procesos",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "know-norm-02",
+              "esperada": "normativa",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "front-02",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "front-03",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "ooc-cart-01",
+              "esperada": "cartera",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "conf-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            },
+            {
+              "id": "auth-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            }
+          ],
+          "consultas_al_llm": 35,
+          "fraccion_al_llm": 0.875,
+          "latencia_media_s": 1.394,
+          "coste_usd_por_consulta": 0.000549
+        },
+        "embeddings_indice": {
+          "umbral_otro": 0.59,
+          "calibrado_aqui": false,
+          "casos": 40,
+          "aciertos": 27,
+          "tasa": 0.675,
+          "riesgo_casos": 7,
+          "riesgo_aciertos": 4,
+          "riesgo_tasa": 0.5714,
+          "confusion": {
+            "procesos": {
+              "procesos": 4,
+              "comercial": 1,
+              "normativa": 1
+            },
+            "comercial": {
+              "comercial": 6,
+              "procesos": 2
+            },
+            "normativa": {
+              "procesos": 1,
+              "comercial": 1,
+              "normativa": 3
+            },
+            "actas": {
+              "actas": 4
+            },
+            "expedientes": {
+              "expedientes": 2,
+              "normativa": 1,
+              "procesos": 1,
+              "actas": 1
+            },
+            "otro": {
+              "actas": 2,
+              "otro": 1
+            },
+            "cartera": {
+              "cartera": 7,
+              "comercial": 1,
+              "expedientes": 1
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-proc-03",
+              "esperada": "procesos",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "know-proc-04",
+              "esperada": "procesos",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "know-norm-01",
+              "esperada": "normativa",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "know-norm-02",
+              "esperada": "normativa",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "front-03",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "ooc-02",
+              "esperada": "comercial",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "expedientes",
+              "obtenida": "normativa"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "expedientes",
+              "obtenida": "procesos"
+            },
+            {
+              "id": "conf-04",
+              "esperada": "expedientes",
+              "obtenida": "actas"
+            },
+            {
+              "id": "ood-01",
+              "esperada": "otro",
+              "obtenida": "actas"
+            },
+            {
+              "id": "ood-02",
+              "esperada": "otro",
+              "obtenida": "actas"
+            },
+            {
+              "id": "ooc-cart-01",
+              "esperada": "cartera",
+              "obtenida": "comercial"
+            },
+            {
+              "id": "auth-cart-01",
+              "esperada": "cartera",
+              "obtenida": "expedientes"
+            }
+          ],
+          "latencia_media_s": 0.346,
+          "latencia_embedding_s": 0.344,
+          "latencia_clasificar_s": 0.0021,
+          "prototipos_s": 0.89,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 16
+        }
+      }
+    },
+    "gestoria_laboral": {
+      "casos": 28,
+      "brazos": {
+        "llm": {
+          "origen": "reports/gestoria_denegacion",
+          "modelo": "claude-haiku-4-5-20251001",
+          "temperatura": 0.0,
+          "casos": 28,
+          "aciertos": 27,
+          "tasa": 0.9643,
+          "riesgo_casos": 6,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 1.0,
+          "confusion": {
+            "laboral": {
+              "laboral": 7
+            },
+            "fiscal": {
+              "fiscal": 6
+            },
+            "procedimientos": {
+              "procedimientos": 4
+            },
+            "actas": {
+              "actas": 2,
+              "otro": 1
+            },
+            "clientes": {
+              "clientes": 6
+            },
+            "otro": {
+              "otro": 2
+            }
+          },
+          "fallos": [
+            {
+              "id": "ooc-04",
+              "esperada": "actas",
+              "obtenida": "otro"
+            }
+          ],
+          "latencia_media_s": 1.161,
+          "latencia_p95_s": 1.44,
+          "coste_usd_por_consulta": 0.000541,
+          "tokens_entrada_estimados": 316
+        },
+        "embeddings_descripciones": {
+          "umbral_otro": 0.55,
+          "calibrado_aqui": false,
+          "casos": 28,
+          "aciertos": 22,
+          "tasa": 0.7857,
+          "riesgo_casos": 6,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 1.0,
+          "confusion": {
+            "laboral": {
+              "laboral": 7
+            },
+            "fiscal": {
+              "fiscal": 6
+            },
+            "procedimientos": {
+              "clientes": 2,
+              "procedimientos": 1,
+              "laboral": 1
+            },
+            "actas": {
+              "actas": 2,
+              "procedimientos": 1
+            },
+            "clientes": {
+              "clientes": 5,
+              "laboral": 1
+            },
+            "otro": {
+              "otro": 1,
+              "clientes": 1
+            }
+          },
+          "fallos": [
+            {
+              "id": "know-proc-01",
+              "esperada": "procedimientos",
+              "obtenida": "clientes"
+            },
+            {
+              "id": "agg-01",
+              "esperada": "procedimientos",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "ooc-01",
+              "esperada": "procedimientos",
+              "obtenida": "clientes"
+            },
+            {
+              "id": "ooc-04",
+              "esperada": "actas",
+              "obtenida": "procedimientos"
+            },
+            {
+              "id": "auth-cli-01",
+              "esperada": "clientes",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "ood-02",
+              "esperada": "otro",
+              "obtenida": "clientes"
+            }
+          ],
+          "latencia_media_s": 0.259,
+          "latencia_embedding_s": 0.258,
+          "latencia_clasificar_s": 0.0005,
+          "prototipos_s": 0.299,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 15
+        },
+        "cascada": {
+          "umbral_otro": 0.55,
+          "margen": 0.05,
+          "calibrado_aqui": false,
+          "casos": 28,
+          "aciertos": 26,
+          "tasa": 0.9286,
+          "riesgo_casos": 6,
+          "riesgo_aciertos": 6,
+          "riesgo_tasa": 1.0,
+          "confusion": {
+            "laboral": {
+              "laboral": 7
+            },
+            "fiscal": {
+              "fiscal": 6
+            },
+            "procedimientos": {
+              "procedimientos": 4
+            },
+            "actas": {
+              "actas": 2,
+              "otro": 1
+            },
+            "clientes": {
+              "clientes": 6
+            },
+            "otro": {
+              "otro": 1,
+              "clientes": 1
+            }
+          },
+          "fallos": [
+            {
+              "id": "ooc-04",
+              "esperada": "actas",
+              "obtenida": "otro"
+            },
+            {
+              "id": "ood-02",
+              "esperada": "otro",
+              "obtenida": "clientes"
+            }
+          ],
+          "consultas_al_llm": 21,
+          "fraccion_al_llm": 0.75,
+          "latencia_media_s": 1.13,
+          "coste_usd_por_consulta": 0.000406
+        },
+        "embeddings_indice": {
+          "umbral_otro": 0.59,
+          "calibrado_aqui": false,
+          "casos": 28,
+          "aciertos": 21,
+          "tasa": 0.75,
+          "riesgo_casos": 6,
+          "riesgo_aciertos": 3,
+          "riesgo_tasa": 0.5,
+          "confusion": {
+            "laboral": {
+              "laboral": 7
+            },
+            "fiscal": {
+              "fiscal": 6
+            },
+            "procedimientos": {
+              "procedimientos": 3,
+              "laboral": 1
+            },
+            "actas": {
+              "actas": 2,
+              "fiscal": 1
+            },
+            "clientes": {
+              "clientes": 2,
+              "laboral": 4
+            },
+            "otro": {
+              "otro": 1,
+              "procedimientos": 1
+            }
+          },
+          "fallos": [
+            {
+              "id": "agg-01",
+              "esperada": "procedimientos",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "ooc-04",
+              "esperada": "actas",
+              "obtenida": "fiscal"
+            },
+            {
+              "id": "conf-02",
+              "esperada": "clientes",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "conf-03",
+              "esperada": "clientes",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "conf-04",
+              "esperada": "clientes",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "auth-cli-01",
+              "esperada": "clientes",
+              "obtenida": "laboral"
+            },
+            {
+              "id": "ood-02",
+              "esperada": "otro",
+              "obtenida": "procedimientos"
+            }
+          ],
+          "latencia_media_s": 0.261,
+          "latencia_embedding_s": 0.258,
+          "latencia_clasificar_s": 0.0024,
+          "prototipos_s": 0.395,
+          "coste_usd_por_consulta": null,
+          "tokens_embebidos_por_consulta": 15
+        }
+      }
+    }
+  },
+  "umbrales": {
+    "descripciones": 0.55,
+    "margen_cascada": 0.05,
+    "indice": 0.59
+  },
+  "uso_embeddings": {
+    "llamadas": 0,
+    "tokens_entrada": 0,
+    "tokens_salida": 0,
+    "coste_usd_estimado": 0.0,
+    "modelos_sin_precio": [
+      "gemini-embedding-001"
+    ],
+    "por_modelo": {
+      "gemini-embedding-001": {
+        "llamadas": 33,
+        "tokens_embebidos": 3151,
+        "exactos": false
+      }
+    }
+  },
+  "duracion_s": 76.3,
+  "agregados": {
+    "llm": {
+      "todos": {
+        "casos": 121,
+        "tasa": 0.8926,
+        "riesgo_tasa": 0.7826
+      },
+      "transferencia": {
+        "casos": 68,
+        "tasa": 0.8824,
+        "riesgo_tasa": 0.9231
+      }
+    },
+    "embeddings_descripciones": {
+      "todos": {
+        "casos": 121,
+        "tasa": 0.7769,
+        "riesgo_tasa": 0.8696
+      },
+      "transferencia": {
+        "casos": 68,
+        "tasa": 0.7353,
+        "riesgo_tasa": 1.0
+      }
+    },
+    "embeddings_indice": {
+      "todos": {
+        "casos": 121,
+        "tasa": 0.6612,
+        "riesgo_tasa": 0.5652
+      },
+      "transferencia": {
+        "casos": 68,
+        "tasa": 0.7059,
+        "riesgo_tasa": 0.5385
+      }
+    },
+    "cascada": {
+      "todos": {
+        "casos": 121,
+        "tasa": 0.8843,
+        "riesgo_tasa": 0.8261
+      },
+      "transferencia": {
+        "casos": 68,
+        "tasa": 0.8676,
+        "riesgo_tasa": 0.9231
+      }
+    }
+  }
+}

@@ -33,6 +33,7 @@ from .mcp_cliente import ClienteMCP, recortar_resultado
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
 from .router import enrutar
+from .router_embeddings import EnrutadorEmbeddings
 from .schema import Enrutamiento
 from .tenant import DESTINO_DOCUMENTAL, DESTINO_ESTRUCTURADO
 
@@ -322,6 +323,24 @@ def _construir_prompt_mixto(
 class Sistema:
     """Sistema bajo prueba, con los clientes vivos entre consultas."""
 
+    # Enrutador alternativo por embeddings, construido la primera vez que hace
+    # falta (sus prototipos cuestan una llamada de embeddings). `None` mientras
+    # `router_kind` sea `llm`, que es la línea base.
+    _enrutador_embeddings: EnrutadorEmbeddings | None = None
+
+    def _enrutar(self, consulta: str) -> Enrutamiento:
+        if self.cfg.router_kind == "llm":
+            return enrutar(self.cfg, self.chat, consulta)
+        if self._enrutador_embeddings is None:
+            self._enrutador_embeddings = EnrutadorEmbeddings(
+                self.cfg.tenant,
+                self.retriever.embedder,
+                self.retriever.col,
+                variante=self.cfg.router_kind.removeprefix("embeddings_"),
+                umbral_otro=self.cfg.router_umbral_otro,
+            )
+        return self._enrutador_embeddings.enrutar(consulta)
+
     def __init__(
         self,
         cfg: Config,
@@ -410,7 +429,7 @@ class Sistema:
         t0 = time.perf_counter()
 
         # 1. Enrutar
-        ruta: Enrutamiento = enrutar(self.cfg, self.chat, consulta)
+        ruta: Enrutamiento = self._enrutar(consulta)
         t_router = time.perf_counter() - t0
 
         # Lo que se va a consultar. Coincide con la categoría elegida salvo
