@@ -42,7 +42,9 @@ def directorio():
 
 @st.cache_resource
 def config_de(tenant_id: str) -> Config:
-    return load_config(tenant_id)
+    # La interfaz nunca evalúa: no exige las claves del juez. El primer
+    # despliegue en Render se paró tras el login por exigirlas (§38).
+    return load_config(tenant_id, con_juez=False)
 
 
 @st.cache_resource

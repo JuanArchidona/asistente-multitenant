@@ -85,13 +85,21 @@ class Config:
     judge_gemini_api_key: str = ""
 
 
-def load_config(tenant_id: str | None = None) -> Config:
+def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
     """Configuración del sistema para un inquilino.
 
     `tenant_id` manda sobre `TENANT_ID`. Existe para la interfaz desplegada,
     que sirve a varios inquilinos desde un mismo proceso y no puede cambiar
     el entorno por usuario; la línea de órdenes y el banco siguen usando la
     variable.
+
+    `con_juez=False` omite las comprobaciones de las claves del juez. Solo
+    lo pasa la interfaz desplegada, que nunca evalúa: el primer despliegue en
+    Render (23-09-2026, HALLAZGOS.md §38) se paró tras el login exigiendo
+    `GEMINI_API_KEY_JUEZ` a un proceso que no iba a llamar al juez jamás. El
+    banco y la línea de órdenes conservan la comprobación, y la regla de que
+    el juez no sea el mismo modelo que el generador se comprueba siempre:
+    no depende de ninguna clave.
     """
     provider = os.getenv("LLM_PROVIDER", "anthropic").lower()
     if provider not in ("anthropic", "gemini"):
@@ -208,6 +216,13 @@ def load_config(tenant_id: str | None = None) -> Config:
         sys.exit("[config] CHUNK_OVERLAP debe ser menor que CHUNK_SIZE.")
     if cfg.judge_provider not in PROVEEDORES_JUEZ:
         sys.exit(f"[config] JUDGE_PROVIDER inválido: {cfg.judge_provider!r}.")
+    if cfg.judge_model == cfg.model_generator:
+        sys.exit(
+            "[config] El juez no puede ser el mismo modelo que el generador: un modelo "
+            "evaluando su propio texto se aprueba a sí mismo. Cambia JUDGE_MODEL."
+        )
+    if not con_juez:
+        return cfg
     # Sin clave propia se falla en el arranque en vez de tirar de la del
     # sistema: caer a la clave del sistema funcionaría igual de bien y dejaría
     # la facturación mezclada sin que nadie se enterase. Es exactamente el
@@ -255,11 +270,6 @@ def load_config(tenant_id: str | None = None) -> Config:
             "variables solo aparenta que sí. Y con claves distintas no basta: en "
             "Google la cuota y la facturación van por PROYECTO, así que la clave del "
             "juez tiene que salir de un proyecto distinto al de los embeddings."
-        )
-    if cfg.judge_model == cfg.model_generator:
-        sys.exit(
-            "[config] El juez no puede ser el mismo modelo que el generador: un modelo "
-            "evaluando su propio texto se aprueba a sí mismo. Cambia JUDGE_MODEL."
         )
 
     return cfg
