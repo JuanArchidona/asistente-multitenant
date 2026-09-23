@@ -99,7 +99,9 @@ def test_sin_fichero_falla_ruidosamente(tmp_path, monkeypatch):
 
 
 def test_el_hash_de_una_contrasena_corta_se_rechaza():
-    with pytest.raises(Exception):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         Directorio.model_validate(
             {"sal": "s", "usuarios": [{"usuario": "a", "tenant": "t", "password_sha256": "abc"}]}
         )
