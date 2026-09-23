@@ -2634,3 +2634,19 @@ interfaz: es que el modelo no tenga forma de ejecutar la escritura, que esa
 imposibilidad esté declarada en dos sitios que se contrastan, y que el banco
 lo compruebe en todos los casos, no solo en los que piden escribir. El botón
 es lo último que se añade, y es lo único que un tribunal ve.
+
+**Añadido tras probarlo en el servicio desplegado (E-0008, 11:25).** La cadena
+funciona en Render tal cual: `gerencia` pidió la visita, la respuesta la
+resumió como pendiente, la traza traía `acciones_pendientes` con su
+identificador y la llamada marcada `propuesta: true`, Aprobar la ejecutó y la
+agenda devolvió **VIS-901** con `origen: asistente, con aprobacion humana`.
+Lo que no funcionaba era la interfaz, y de tres maneras que la demo no puede
+permitirse: la tarjeta de aprobación se pintaba antes de procesar la consulta
+y no aparecía hasta la siguiente pasada; el mensaje con la referencia VIS se
+perdía porque un `st.success` seguido de `st.rerun` no llega a verse; y la
+barra lateral no mostraba el resumen de escrituras que el registro ya
+calculaba. Los tres arreglados el mismo día: el resultado de aprobar o
+rechazar entra en el historial de la conversación antes del rerun, la
+propuesta fuerza la pasada, y la barra lateral cuenta propuestas, aprobadas y
+rechazadas. La lección es la misma del §38: la cadena estaba bien y lo que
+falló fue lo último que se añadió, el botón.

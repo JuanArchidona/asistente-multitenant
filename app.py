@@ -134,6 +134,12 @@ with st.sidebar:
             f"Este inquilino: {propio['consultas']} consultas, "
             f"{propio['coste_usd_acumulado']:.4f} USD, p95 {propio['latencia_p95_s']} s."
         )
+    escrituras = propio.get("acciones") or {}
+    if any(escrituras.values()):
+        st.caption(
+            f"Escrituras: {escrituras.get('propuesta', 0)} propuestas, "
+            f"{escrituras.get('aprobada', 0)} aprobadas, {escrituras.get('rechazada', 0)} rechazadas."
+        )
     st.divider()
     st.markdown(
         f"**Proveedor:** {cfg.provider}  \n**Enrutador:** `{cfg.model_router}`  \n"
@@ -176,6 +182,9 @@ if acciones:
             st.markdown(f"**{accion['herramienta']}** (id `{id_accion}`), propuesta por `{accion['usuario']}`")
             st.json(accion["argumentos"])
             col_a, col_r = st.columns(2)
+            # El resultado se guarda en el historial ANTES del rerun: un
+            # st.success seguido de st.rerun no llega a verse (visto en
+            # Render, E-0008), y la referencia VIS es lo que la demo enseña.
             if col_a.button("Aprobar", key=f"aprobar_{id_accion}", type="primary"):
                 try:
                     resultado = sistema_de(cfg.tenant.id).aprobar(id_accion, usuario=persona)
@@ -183,16 +192,27 @@ if acciones:
                     st.error(str(error))
                 else:
                     del st.session_state["acciones"][id_accion]
-                    st.success(f"Ejecutada por `{persona.id}`. Resultado: {resultado['resultado'][:400]}")
+                    st.session_state.historial.append({
+                        "rol": "assistant",
+                        "texto": (
+                            f"**Acción `{id_accion}` aprobada por `{persona.id}`** y ejecutada. "
+                            f"Resultado:\n\n```json\n{resultado['resultado'][:600]}\n```"
+                        ),
+                        "meta": resultado,
+                    })
                     st.rerun()
             if col_r.button("Rechazar", key=f"rechazar_{id_accion}"):
                 try:
-                    sistema_de(cfg.tenant.id).rechazar(id_accion, usuario=persona, motivo="rechazada en la interfaz")
+                    salida = sistema_de(cfg.tenant.id).rechazar(id_accion, usuario=persona, motivo="rechazada en la interfaz")
                 except KeyError as error:
                     st.error(str(error))
                 else:
                     del st.session_state["acciones"][id_accion]
-                    st.info("Rechazada y registrada.")
+                    st.session_state.historial.append({
+                        "rol": "assistant",
+                        "texto": f"**Acción `{id_accion}` rechazada por `{persona.id}`.** No se ha ejecutado nada.",
+                        "meta": salida,
+                    })
                     st.rerun()
 
 categorias = ", ".join(c.nombre for c in cfg.tenant.categorias)
@@ -234,3 +254,8 @@ if consulta:
     st.session_state.historial.append(
         {"rol": "assistant", "texto": traza["respuesta"], "meta": meta}
     )
+    # La tarjeta de aprobación se pinta ANTES de procesar la consulta, así que
+    # una acción recién propuesta no se ve hasta la siguiente pasada. Visto en
+    # Render (E-0008): se fuerza la pasada aquí.
+    if traza.get("acciones_pendientes"):
+        st.rerun()
