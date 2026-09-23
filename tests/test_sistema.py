@@ -163,7 +163,10 @@ def test_el_contexto_recuperado_llega_al_prompt_del_generador(cfg, chat_falso):
     _sistema(cfg, chat, [fragmento]).responder("¿longitud de línea?")
 
     system_gen, user_gen, _ = chat.llamadas[1]
-    assert system_gen == SYSTEM_GEN_BASE
+    # Desde el corte del 23-09-2026 el prompt lleva detrás quién pregunta
+    # (ALCANCE.md §5.c); el de la 3.1 sigue siendo su comienzo literal.
+    assert system_gen.startswith(SYSTEM_GEN_BASE)
+    assert "Quién pregunta" in system_gen
     assert "Lineas de hasta 100 caracteres" in user_gen
     assert "guia.md" in user_gen
 

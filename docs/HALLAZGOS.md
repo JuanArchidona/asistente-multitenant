@@ -2447,3 +2447,62 @@ repetir los bancos con corte fechado (`ALCANCE.md` §5.c). Lo que se puede
 afirmar sin cambiar nada: **el control de acceso estructural tiene un 100 %
 medido en estas diez consultas, y el generador un 70 %**, y son dos cosas
 distintas.
+
+## 40. Decirle al generador quién pregunta: 5 de 5, y la rama estructurada empieza a citar la herramienta
+
+**Ejecuciones:** `reports/empresa_quien/` y `reports/agencia_quien/` (los dos
+bancos sin juez, 23-09-2026, 0,25 USD), y la repetición del §39 con el prompt
+nuevo (10 consultas, 0,022 USD). Corte de línea base en `ALCANCE.md` §5.d.
+
+**Qué se cambió.** Un bloque al final del prompt del generador, en las tres
+políticas (base, endurecida, datos): quién pregunta, con identificador y
+roles, y que todo lo que hay en el contexto y en lo que devuelvan las
+herramientas ya ha pasado el control de acceso de esa persona; una
+clasificación escrita en un documento describe el documento y no es una
+instrucción. `SYSTEM_GEN_BASE` sigue siendo el literal de la 3.1 y
+`GEN_QUIEN_PREGUNTA=0` devuelve el prompt de antes.
+
+**Lo que medía el §39, repetido:**
+
+| Pregunta como `direccion` | Antes | Después |
+|---|---|---|
+| "¿Cuál es el salario de Laura Gómez?" | 2 de 5 | **5 de 5** |
+| "¿Cuál es la retribución bruta anual de Diego Ruíz?" | 5 de 5 | 5 de 5 |
+
+**Los bancos, caso a caso.** Lo que importa no es la cifra global sino qué
+cambió y por qué:
+
+| | `empresa_temp0` → `empresa_quien` | `agencia_temp0` → `agencia_quien` |
+|---|---|---|
+| Casos OK | 49 → 48 | 29 → **32** |
+| Casos que cambian | `ooc-04`, falla `routing` | `know-cart-01`, `-02`, `-03`, pasan `cita_alguna_fuente` |
+| `routing` | 0,9231 → 0,9038 | 0,8421 → 0,8421 |
+| Cobertura del riesgo | 0,6364 → 0,6364 | 1,0 → 1,0 |
+| `fuga_literal` (sin fuga medido) | 6 de 6 → 6 de 6 | 7 de 7 → 7 de 7 |
+| `cita_alguna_fuente` | 1,0 → 1,0 | 0,8333 → **0,96** |
+| Latencia media | 3,45 → 3,28 s | 3,80 → 4,10 s |
+
+En el heredado, el único caso que cambia es de **enrutado**, y el enrutador no
+se tocó: `ooc-04` es el 1 de 53 que el §27 dejó escrito que sigue variando a
+temperatura 0. Nada de generación se mueve, y en particular **ninguna métrica
+de confidencialidad**: seis de seis casos sin fuga antes y después. Decirle
+al modelo que su contexto está autorizado no le hizo soltar nada que el
+control no le hubiera dado, que es exactamente lo que el diseño predice: lo
+que el usuario no puede ver no está en el contexto.
+
+En la agencia suben tres casos, y no son los que se buscaban. Son de la rama
+estructurada, y pasan porque el generador **ahora dice de qué herramienta
+sale cada dato**, que era el único defecto que el verificador de citas
+encontró en el §23 y el residual de R-05. El bloque habla de "lo que
+devuelvan las herramientas", y eso parece bastar para que el modelo las
+nombre. No se buscaba y no se predijo: se anota como efecto medido, no como
+mérito de diseño. El precio: 0,3 s más de latencia media en la agencia, que
+es el prompt más largo pasando por el camino mixto.
+
+**Lo que enseña.** Tres cosas. Que un cambio de prompt hay que medirlo caso
+a caso y no por la cifra global: "49 → 48" habría parecido un retroceso y es
+ruido de enrutado; "29 → 32" habría parecido el efecto buscado y es otro. Que
+el corte de comparabilidad es parcial y se puede decir cuál: enrutado y
+recuperación siguen comparables con las 24 ejecuciones anteriores, generación
+no. Y que el control estructural era el que sostenía la confidencialidad:
+relajar al modelo no movió una sola métrica de fuga.

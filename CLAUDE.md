@@ -258,6 +258,16 @@ y §14).
   corte está documentado: para no citar en la memoria dos cifras que miden
   configuraciones distintas. `ROUTER_TEMPERATURE=defecto` y
   `JUDGE_PROVIDER=anthropic` reproducen el comportamiento viejo.
+- **Segundo corte de línea base, el 23-09-2026** (`docs/ALCANCE.md` §5.d):
+  el generador recibe quién pregunta (identificador y roles) y que todo su
+  contexto ya pasó el control de acceso. Antes no lo sabía y obedecía las
+  clasificaciones escritas dentro de los documentos: a `direccion` le negaba
+  un salario 3 veces de 5 aunque el control le hubiera entregado el anexo
+  (§39). Después, 5 de 5, y los bancos repetidos dan heredado 48/53 (el que
+  baja es enrutado, no generación) y agencia 32/38, tres más porque la rama
+  estructurada cita ahora la herramienta (§40). `GEN_QUIEN_PREGUNTA=0`
+  reproduce el prompt anterior. Las cifras de generación de antes y después
+  **no son comparables**; las de enrutado y recuperación sí.
 - **Con el juez por defecto en Gemini, `LLM_PROVIDER=gemini` colisiona**: los
   dos caen en `gemini-3.6-flash` y el juez evaluaría su propio texto. `Config`
   lo rechaza en el arranque y lo dice. Es la primera piedra de quien conmute el

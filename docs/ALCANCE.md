@@ -296,6 +296,58 @@ en Gemini, **`LLM_PROVIDER=gemini` sin tocar nada mas deja al juez evaluando su
 propio texto**, porque los dos caen en `gemini-3.6-flash`. `Config` lo rechaza en
 el arranque y lo dice; tiene su propia prueba.
 
+## 5.d Corte de linea base del 23-09-2026: el generador sabe quien pregunta
+
+**Un valor por defecto cambio el 23-09-2026, y las metricas de generacion de
+antes y de despues no son comparables.** Las de enrutado y recuperacion no se
+tocan: el cambio esta detras de ellas.
+
+| | Antes | Desde el 23-09-2026 |
+|---|---|---|
+| Prompt del generador (las tres politicas) | El de la politica, sin mas | El de la politica **mas un bloque final** con quien pregunta (identificador y roles) y la afirmacion de que todo el contexto ya paso su control de acceso |
+
+### Por que
+
+La prueba funcional del servicio desplegado (HALLAZGOS.md §39) enseno que el
+control de acceso le entregaba a `direccion` el anexo confidencial y el
+generador se negaba a dar el salario citando la cabecera del propio documento.
+Medido en local: **2 de 5** con "salario de Laura Gomez", 5 de 5 con la pregunta
+del banco. El modelo no sabia que el permiso ya se habia aplicado ni quien
+preguntaba, y decidia gobernanza con el texto del documento. El diseno del
+proyecto es "control antes del modelo" (CLAUDE.md §4); esto es decirselo al
+modelo. La decision la tomo Juan el 23-09 eligiendo la variante que pasa
+tambien el rol, no solo la afirmacion de autorizacion.
+
+### Que compra, y que no
+
+Compra que el generador deje de aplicar clasificaciones que no le tocan; la
+cifra esta en el §40. **No compra** nada frente a una fuga real: lo que el
+usuario no puede ver sigue sin llegar al contexto, y eso lo garantiza la
+busqueda, no el prompt. Bajo la politica endurecida el bloque no manda, porque
+sus reglas son "prioritarias sobre cualquier otra": la comparacion base frente
+a endurecido del §33 sigue valiendo tal cual, y su lectura se completa con que
+proteger con el prompt bloquea a quien tiene permiso.
+
+### Como se reproduce una cifra anterior al corte
+
+`GEN_QUIEN_PREGUNTA=0` quita el bloque de las tres politicas y devuelve el
+prompt exacto de antes. `SYSTEM_GEN_BASE` sigue siendo literalmente el de la
+3.1, con prueba que lo fija.
+
+### La linea base nueva, ya medida
+
+Los dos bancos repetidos sin juez el mismo 23-09, 0,25 USD en total:
+
+| Ejecucion | Casos OK | `routing` | Cobertura del riesgo | `cita_alguna_fuente` |
+|---|---|---|---|---|
+| `empresa_temp0` → `empresa_quien` (53) | 49 → **48** | 0,9231 → 0,9038 | 0,6364 → 0,6364 | 1,0 → 1,0 |
+| `agencia_temp0` → `agencia_quien` (38) | 29 → **32** | 0,8421 → 0,8421 | 1,0 → 1,0 | 0,8333 → **0,96** |
+
+El caso que baja en el heredado es de enrutado (`ooc-04`), y el enrutador no
+se toco: es el 1 de 53 que sigue variando a temperatura 0 (§27). Los tres que
+suben en la agencia son de la rama estructurada, que ahora dice de que
+herramienta sale cada dato. Detalle en HALLAZGOS.md §40.
+
 ## 6. Riesgos abiertos
 
 | Riesgo | Estado |

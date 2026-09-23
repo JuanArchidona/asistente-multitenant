@@ -47,13 +47,15 @@ puede decir.
 - Salir. Entrar como `direccion` (rol `rrhh_direccion`). **La misma
   pregunta.** Debe verse la respuesta con el dato (68.000 euros) y el anexo
   citado.
-- **No usar "¿Cuál es el salario de Laura Gómez?"** para este paso. Medido el
-  23-09 (§39): con esa formulación, `direccion` obtiene el dato 2 veces de 5,
-  porque el generador obedece la cabecera "CONFIDENCIAL" del anexo aunque el
-  control de acceso ya haya dejado pasar el documento; con la de Diego Ruíz,
-  5 de 5. Si en la defensa sale la negativa, es el propio hallazgo y se puede
-  contar: el control estructural funcionó (el anexo está en la traza) y el
-  modelo se puso una regla que nadie le dio.
+- Hay una historia detrás de este paso que vale la pena contar (§39, §40):
+  hasta el 23-09 el generador no sabía quién preguntaba, y con la pregunta
+  "¿Cuál es el salario de Laura Gómez?" le negaba el dato a `direccion` 3
+  veces de 5 obedeciendo la cabecera "CONFIDENCIAL" del anexo, aunque el
+  control de acceso ya se lo hubiera entregado. Desde que el prompt lleva
+  quién pregunta y que su contexto está autorizado, 5 de 5 con las dos
+  preguntas. Si aun así sale una negativa, se enseña la traza: el anexo está
+  en las fuentes, el control funcionó, y el modelo se puso una regla que
+  nadie le dio.
 - Frase para el tribunal: "Un prompt que dice 'no reveles el salario' deja el
   salario en la ventana de contexto. Aquí no está en la ventana."
 

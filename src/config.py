@@ -84,6 +84,16 @@ class Config:
     # que hace falta para tener un juez de otra familia. Ver §24.
     judge_gemini_api_key: str = ""
 
+    # Desde el 23-09-2026 el generador recibe quién pregunta (identificador y
+    # roles) y la afirmación de que todo lo que hay en su contexto ya pasó el
+    # control de acceso de esa persona. Antes no lo sabía y aplicaba por su
+    # cuenta las clasificaciones escritas dentro de los documentos: a un
+    # usuario con permiso le negaba el salario 3 veces de 5 (HALLAZGOS.md §39).
+    # Cambia el sistema bajo prueba, así que es un corte de línea base
+    # (ALCANCE.md §5.c). La escotilla para reproducir cifras anteriores es
+    # `GEN_QUIEN_PREGUNTA=0`.
+    gen_quien_pregunta: bool = True
+
 
 def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
     """Configuración del sistema para un inquilino.
@@ -205,6 +215,7 @@ def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
         judge_api_key=os.getenv("ANTHROPIC_API_KEY_JUEZ", ""),
         judge_gemini_api_key=os.getenv("GEMINI_API_KEY_JUEZ", ""),
         builder_model=os.getenv("BUILDER_MODEL", "claude-sonnet-5"),
+        gen_quien_pregunta=os.getenv("GEN_QUIEN_PREGUNTA", "1").strip() != "0",
     )
 
     # El chat (router/generador) usa Anthropic por defecto; los embeddings SIEMPRE Gemini.
