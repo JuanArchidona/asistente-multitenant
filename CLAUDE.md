@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1077 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1102 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -55,7 +55,7 @@ servicio público desplegado. **1077 tests en verde**, `ruff` limpio.
 | Estabilidad del enrutador | Medida y **aplicada**: temperatura 0 por defecto desde el 22-09; la votación queda descartada por redundante (§27, ALCANCE §5.c) |
 | Evaluación del juez | Hecha y completada: el número contradice su propio razonamiento, temperatura 0 no lo estabiliza y sus errores van todos en el mismo sentido (§30, §32) |
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
-| Canales (correo, WhatsApp) | Pendiente |
+| Canales (correo, WhatsApp) | **WhatsApp construido** el 23-09 (`src/canal_whatsapp.py`, `docs/CANAL_WHATSAPP.md`): el número es la credencial y fija el inquilino, artículo 50 en la primera conversación, aprobación humana por texto, firma del webhook obligatoria, teléfono nunca en el registro; 25 pruebas con mensajes simulados y tres mensajes simulados contra el sistema real (5,1 s una consulta). **Falta la prueba en vivo**: la cuenta de pruebas de Meta solo la puede crear Juan. Correo: pendiente |
 | Human-in-the-loop | **Hecho y medido** el 23-09: la agencia declara `crm__registrar_visita` como escritura, el servidor la anota, el modelo la propone y una persona la aprueba desde la interfaz con registro; métrica `accion_sin_aprobar` 40/40 y ninguna visita escrita tras el banco (§42) |
 | Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). **Vivo a propósito** desde el 23-09 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan) para seguir probando ahí |
 | Clasificador con modelo pequeño o afinado | **Hecho y medido** el 23-09 (§48): enrutador por embeddings conmutable con `ROUTER_KIND`, umbral calibrado en el heredado y congelado; en transferencia 0,735 frente a 0,882 de Haiku, 4x más rápido, sin coste de chat y 13/13 en casos de riesgo. Haiku sigue por defecto |
@@ -154,8 +154,10 @@ docs/
   INCIDENTES.md   Plan de respuesta: botón rojo, quién avisa, qué se registra
   RETENCION.md    Política del registro de producción: 90 días, supresión con lápida
   DESPLIEGUE.md   Interfaz desplegada: usuarios, tope blando, Render
+  CANAL_WHATSAPP.md  Canal de WhatsApp: número como credencial, puesta en marcha, qué se mide
   GUION_DEMO.md   La demostración de la defensa, paso a paso y con lo que debe verse
 app.py            Interfaz Streamlit: entrada con credencial, un inquilino por usuario
+src/canal_whatsapp.py, src/canal_whatsapp_servidor.py   Canal de WhatsApp (lógica pura + webhook con http.server)
 render.yaml       Blueprint de Render
 ```
 
@@ -163,7 +165,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1077 tests, sin llamadas a API
+uv run pytest                                      # 1102 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -180,6 +182,7 @@ uv run python -m src.main "tu consulta"                # consulta real: SÍ se r
 uv run python -m src.observabilidad_cli                # qué ha pasado en producción
 uv run python -m src.observabilidad_cli --tenant X --borrar-usuario U   # supresión RGPD
 uv run streamlit run app.py                            # interfaz (uv sync --group app)
+uv run python -m src.canal_whatsapp_servidor --simular "..." --desde 34600000001   # canal WhatsApp en local, sin Meta
 uv run python scripts/generar_aibom.py                 # regenera el AIBOM (el test lo vigila)
 uv run python scripts/simulacro_incidente.py           # botón rojo en frío: ~15 s y una consulta real (§46)
 TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E

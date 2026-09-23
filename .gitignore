@@ -11,6 +11,7 @@ __pycache__/
 # Usuarios de la interfaz desplegada, con sus hashes. El formato esta en
 # usuarios.example.json, que si se versiona.
 usuarios.local.json
+whatsapp.local.json
 
 # Datos locales (el indice se reconstruye desde corpus/)
 data/

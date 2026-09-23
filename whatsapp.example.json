@@ -1,0 +1,32 @@
+{
+  "numeros": [
+    {
+      "telefono": "34600000001",
+      "usuario": "empleado",
+      "nombre": "Empleado sin privilegios",
+      "tenant": "empresa_servicios",
+      "roles": []
+    },
+    {
+      "telefono": "34600000002",
+      "usuario": "direccion",
+      "nombre": "Direccion de RRHH",
+      "tenant": "empresa_servicios",
+      "roles": ["rrhh_direccion"]
+    },
+    {
+      "telefono": "34600000003",
+      "usuario": "gerencia",
+      "nombre": "Gerencia de la agencia",
+      "tenant": "agencia_inmobiliaria",
+      "roles": ["direccion"]
+    },
+    {
+      "telefono": "34600000004",
+      "usuario": "socio",
+      "nombre": "Socio del despacho",
+      "tenant": "gestoria_laboral",
+      "roles": ["socio"]
+    }
+  ]
+}

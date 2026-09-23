@@ -1,0 +1,105 @@
+# Canal de WhatsApp
+
+> Punto 13 del bloque 3 de `ALCANCE.md`: *canal de WhatsApp en entorno de
+> pruebas*. Construido el 23-09-2026 y **probado con mensajes simulados**;
+> la prueba en vivo está pendiente de la cuenta de pruebas de Meta, que solo
+> puede crear Juan. Este documento dice qué hace el canal, qué decide, cómo
+> se pone en marcha y qué se va a medir cuando esté conectado.
+
+## Qué es y qué no
+
+Es un segundo punto de entrada al **mismo sistema** que la interfaz web:
+mismo `Sistema` por inquilino, mismo registro de producción, mismo control
+de acceso, misma aprobación humana. No hay lógica de negocio en el canal;
+si la hubiera, la web y WhatsApp responderían distinto a la misma persona.
+
+No es un bot de WhatsApp con la cuenta personal de nadie. Usa la **API de
+WhatsApp Business de Meta** con su número de pruebas gratuito; automatizar
+una cuenta personal con librerías no oficiales viola las condiciones del
+servicio y puede costar el número.
+
+## Lo que decide la arquitectura
+
+| Decisión | Por qué |
+|---|---|
+| **El número es la credencial.** Una lista cerrada (`whatsapp.local.json` o `WHATSAPP_USUARIOS_JSON`) dice qué persona, inquilino y roles hay detrás de cada número | Meta ya verifica el emisor. Lo que no puede hacer es decir de qué cliente es: eso lo fija la lista, igual que en la web lo fija la credencial. Dos números de dos clientes nunca comparten `Sistema` |
+| **Un número desconocido no llega al modelo** | Recibe una frase fija, no cuesta una llamada y se anota por su huella SHA-256, no en claro |
+| **El artículo 50 va en el primer mensaje** de cada conversación y se repite tras 24 horas de silencio | En la web el aviso está siempre en pantalla; en un chat, repetirlo en cada mensaje es ruido y no ponerlo nunca es incumplir |
+| **La aprobación humana es por texto**: `APROBAR ACC-xxxxxx` o `RECHAZAR ACC-xxxxxx` | Pasa por el mismo `aprobar` y `rechazar` del agente (§42), con el mismo control de rol y el mismo registro. El modelo nunca ejecuta una escritura desde el canal |
+| **La firma del webhook se verifica** con el secreto de la app y el servidor **no arranca sin él** | Sin firma, quien conozca la URL inyecta mensajes en nombre de un número autorizado. Es el control de acceso del canal |
+| **Se contesta 200 antes de procesar** y se recuerdan los identificadores ya atendidos | Meta reintenta si no hay 200 en pocos segundos y una consulta tarda entre 3 y 8; sin memoria de identificadores, cada reintento sería una respuesta duplicada y una llamada pagada dos veces |
+| **El teléfono no se escribe en el registro de producción** | Al registro va el identificador de usuario de la lista, como en la web. El número es dato personal de quien escribe, y el registro se conserva 90 días (`RETENCION.md`) |
+| **Sin framework web**: `http.server` de la librería estándar | Dos rutas no justifican una dependencia nueva en el AIBOM |
+
+## Puesta en marcha
+
+### Lo que tiene que hacer Juan (una vez, unos 20 minutos)
+
+1. En [developers.facebook.com](https://developers.facebook.com) crear una
+   **app de tipo Business** y añadirle el producto **WhatsApp**. Meta asigna
+   un **número de pruebas** gratuito y un `Phone number ID`.
+2. En *API Setup*, añadir tu número personal como **destinatario de
+   pruebas** (hasta cinco) y confirmar el código que llega por WhatsApp.
+3. Generar un **token de acceso**. El temporal caduca en 24 horas; para la
+   defensa conviene un token de **usuario del sistema** desde *Business
+   Settings*, que no caduca.
+4. Anotar el **App Secret** (*App Settings > Basic*).
+5. Elegir una palabra cualquiera como `WHATSAPP_VERIFY_TOKEN`.
+6. Desplegar el servicio (abajo) y, en *Configuration > Webhook*, poner la
+   URL `https://<servicio>/webhook`, la palabra de verificación, y
+   suscribir el campo `messages`.
+7. Pasar los cuatro valores por variables de entorno, **nunca por el
+   chat ni por el repositorio**.
+
+### Variables
+
+```
+WHATSAPP_TOKEN=            # token de acceso de la app
+WHATSAPP_PHONE_NUMBER_ID=  # id del número emisor de pruebas
+WHATSAPP_VERIFY_TOKEN=     # la palabra que Meta manda al suscribir el webhook
+WHATSAPP_APP_SECRET=       # secreto de la app: verifica la firma de cada webhook
+WHATSAPP_USUARIOS_JSON=    # la lista de números (formato: whatsapp.example.json)
+```
+
+### Ejecutar
+
+```bash
+uv run python -m src.canal_whatsapp_servidor                 # escucha en $PORT (8080)
+uv run python -m src.canal_whatsapp_servidor --simular "¿Cuántos días de vacaciones tengo?" --desde 34600000001
+```
+
+`--simular` procesa un mensaje en local con el sistema real y sin Meta: es
+lo que se usó para medir antes de tener credenciales. Cuesta una consulta.
+
+En Render, `render.yaml` declara un segundo servicio (`asistente-whatsapp`)
+con el mismo repositorio y este arranque. No se crea hasta que se sincroniza
+el blueprint, y pide los valores de arriba. En local, para que Meta llegue
+al portátil hace falta un túnel (`ngrok http 8080`), y la URL cambia en cada
+arranque.
+
+## Lo que se va a medir cuando esté conectado
+
+| Medida | Cómo |
+|---|---|
+| **Aislamiento por número** | Dos números de dos inquilinos preguntan lo mismo; las respuestas citan corpus distintos y el registro las atribuye a usuarios distintos |
+| **Latencia de extremo a extremo** | Desde que se envía el mensaje hasta que llega la respuesta, con el reloj del teléfono; y por dentro, la del sistema, que ya está en la traza |
+| **Coste por mensaje** | El del registro de producción; el de WhatsApp es cero en la ventana de servicio de 24 horas del número de pruebas |
+| **Aprobación humana por texto** | Proponer una visita, `APROBAR`, y ver la referencia `VIS-*` en el CRM y las tres líneas en el registro (§42) |
+| **Rechazo de un número desconocido** | Un tercer número escribe y recibe la frase fija; en el registro no hay consulta y en la salida del servidor hay una huella |
+
+## Riesgos que abre, y dónde están
+
+- **Transferencia internacional (R-18)**: cada mensaje pasa por Meta. Con
+  datos sintéticos no importa; con un cliente real exige base jurídica y
+  las condiciones de tratamiento de WhatsApp Business. Está en el registro.
+- **Vigilancia (R-16)**: el registro ya no guarda solo quién preguntó, sino
+  que la persona escribió desde un teléfono. El teléfono no se guarda; la
+  correspondencia número-usuario vive en la lista, que es configuración.
+- **Suplantación**: la firma del webhook cubre el camino Meta-servidor; el
+  camino persona-teléfono depende de que el teléfono sea de quien dice. Es
+  el mismo supuesto que hace un banco con un SMS, y se escribe, no se
+  resuelve.
+- **Coste**: un número autorizado puede preguntar sin límite. El tope blando
+  de la interfaz aplica también aquí (`TOPE_GASTO_USD`), y el duro es el
+  prepago. No hay límite por número ni por minuto, como tampoco lo hay por
+  usuario en la web (R-08).
