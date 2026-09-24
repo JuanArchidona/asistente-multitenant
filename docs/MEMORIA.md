@@ -33,7 +33,7 @@ cubrían cuatro de los seis pasos del flujo y traían un banco de evaluación
 de 109 casos. Sobre esa base se construyeron en cuatro semanas la
 multi-tenencia, la rama estructurada, la capa de gobernanza, la
 observabilidad, el despliegue con autenticación, el análisis de IA
-responsable y dos canales.
+responsable, la interfaz web autenticada y un canal de WhatsApp.
 
 Tres cifras que resumen lo que se defiende:
 
@@ -167,7 +167,7 @@ entrada (interfaz, WhatsApp)
 
 Todo es Python sin framework de orquestación (capítulo 3.1). El código del
 núcleo son unas 5.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.102 tests que corren en 11 segundos sin llamar a ningún proveedor.
+1.107 tests que corren en 11 segundos sin llamar a ningún proveedor.
 
 ### 2.2 El inquilino como concepto de primera clase
 
@@ -386,11 +386,11 @@ este capítulo se sostiene argumentado, como prevé `ALCANCE.md` punto 14.]
 
 | Criterio | Python sin framework (elegido) | LangGraph |
 |---|---|---|
-| Calidad | El flujo es una función; cada paso tiene un test unitario sin proveedor. 1.102 tests en 11 s | El grafo aporta estructura, pero cada nodo sigue siendo la misma llamada; la calidad la deciden prompts, control de acceso y banco, que serían idénticos |
+| Calidad | El flujo es una función; cada paso tiene un test unitario sin proveedor. 1.107 tests en 11 s | El grafo aporta estructura, pero cada nodo sigue siendo la misma llamada; la calidad la deciden prompts, control de acceso y banco, que serían idénticos |
 | Coste | Cero dependencias de orquestación; el AIBOM lista 10 paquetes directos y 119 transitivos (§7.7). Ninguna capa entre el SDK y la contabilidad de tokens | Añade el framework y sus transitivas; la contabilidad de tokens pasa por sus callbacks |
 | Escalabilidad | Lo que escala aquí es el número de inquilinos, y eso lo resuelve el manifiesto, no el orquestador | Igual: el manifiesto es ortogonal al framework |
 | Riesgo | Superficie mínima: el control de acceso está en el `where` y en la salida de la herramienta, sitios que se leen en una pantalla. Sin fallbacks del framework que traguen errores | Riesgo de cadena de suministro (R-09): el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026. Comportamientos por defecto (reintentos, recorte) que hay que auditar |
-| Mantenimiento | Todo cambio es visible en un diff de Python. La conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Depende del ritmo de cambio de la API del framework, que en 2025-2026 ha sido alto |
+| Mantenimiento | Todo cambio es visible en un diff de Python. La conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Cada cambio de versión del framework es un cambio de comportamiento que hay que volver a medir con el banco, y el proyecto ya midió tres cambios no anunciados de los proveedores en cuatro semanas (§8.4) |
 | Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | |
 
 Lo que se pierde no lo necesita este sistema: el flujo es de un turno, sin
@@ -423,7 +423,7 @@ TFM no llama a idealista (`ALCANCE.md` §3).
 
 | Función | Modelo | Por qué |
 |---|---|---|
-| Clasificador y generación | `claude-haiku-4-5` | Heredado de la 3.3 con su línea base medida; 0,00245 USD por caso sin juez (§17, §21) |
+| Clasificador y generación | `claude-haiku-4-5` | Heredado de la 3.3 con su línea base medida; 0,00245 USD por caso sin juez en la ejecución del §17, y entre 0,0020 y 0,0037 por inquilino en las vigentes (capítulo 5.4) |
 | Juez | `gemini-3.6-flash`, desde el 22-09 | Otra familia que el generador, 5,5 veces más barato por evaluación que `claude-sonnet-5`, y el único que admite temperatura 0 de verdad (§24, §26, §32) |
 | Embeddings | `gemini-embedding-001`, 768 dimensiones | Heredado; en retirada con cierre anunciado el 14-05-2028 y sin precio publicado (§35). Decidido no migrar antes de la defensa: invalidaría el índice |
 | Proveedor alternativo | `gemini-3.6-flash` para chat, vía `LLM_PROVIDER=gemini` | La conmutación era una forma y no un hecho hasta el §29; verificada de extremo a extremo |
@@ -502,7 +502,7 @@ dimensiones enteras.
 
 ### 4.2 Resultados en la línea base vigente
 
-Ejecuciones del 23-09-2026, sin juez, tras el segundo corte de línea base:
+Ejecuciones del 23 y el 24-09-2026, sin juez, tras el segundo corte de línea base:
 
 | Ejecución | Casos OK | `routing` | Cobertura del riesgo | `cita_alguna_fuente` |
 |---|---|---|---|---|
@@ -629,10 +629,54 @@ que excluye los embeddings.
 
 ### 5.4 La ficha comercial: qué cuesta un cliente nuevo
 
-`ALCANCE.md` §5 fija como activo del TFM la cifra de coste de alta de un
-cliente. Está en el capítulo 8.1: 5 min 42 s de trabajo, cero ficheros de
-código, y el precio por consulta de la tabla anterior. [PENDIENTE: ficha
-mensual por volumen de consultas, apoyada en la contabilidad de tokens.]
+`ALCANCE.md` §5 fija como activos del TFM dos cifras comerciales: lo que
+cuesta dar de alta un cliente y lo que cuesta atenderlo cada mes. La
+primera está en el capítulo 8.1: 5 min 42 s de trabajo y cero ficheros de
+código. La segunda sale de la contabilidad de tokens de las ejecuciones
+vigentes de cada inquilino, que es la mejor aproximación que hay al tráfico
+real: cada banco es una mezcla de consultas cortas, largas, de una rama y
+de las dos.
+
+| Inquilino | Ejecución | Coste por consulta | Tokens de entrada por consulta | Latencia media / p95 |
+|---|---|---|---|---|
+| `empresa_servicios` (solo documental) | `empresa_quien` | 0,00198 USD | 973 | 3,28 s / 4,36 s |
+| `gestoria_laboral` (solo documental) | `gestoria_agregacion` | 0,00211 USD | 1.130 | 2,95 s / 4,01 s |
+| `agencia_inmobiliaria` (documental y estructurada, con grupo de solapamiento) | `agencia_quien` | 0,00372 USD | 2.379 | 4,10 s / 5,59 s |
+
+La agencia cuesta 1,9 veces más por consulta que los inquilinos solo
+documentales, y la causa está en los tokens de entrada: la rama
+estructurada mete en el contexto el resultado de las herramientas, y el
+grupo de solapamiento consulta las dos ramas (§22). Es el precio de
+responder lo que ningún documento contiene.
+
+Ficha mensual, a los precios vigentes de `claude-haiku-4-5` (1,00 / 5,00 USD
+por millón de tokens):
+
+| Consultas al mes | Inquilino documental (0,0020 USD) | Inquilino con rama estructurada (0,0037 USD) |
+|---|---|---|
+| 500 | 1,0 USD | 1,9 USD |
+| 2.000 | 4,0 USD | 7,4 USD |
+| 10.000 | 19,8 USD | 37,2 USD |
+
+Lo que la ficha no incluye, y hay que decir al presentarla:
+
+- **Embeddings.** Entre 12 y 15 tokens por consulta (§37), sin precio
+  publicado para el modelo actual. Al precio de su sucesor (0,20 USD por
+  millón) serían tres millonésimas de dólar por consulta: no cambia la
+  ficha, pero se declara.
+- **Infraestructura.** El servicio corre hoy en el plan gratuito de Render,
+  que duerme sin tráfico. Un plan de pago es un coste fijo independiente del
+  volumen y se suma aparte.
+- **Evaluación.** Mantener el banco cuesta entre 0,06 y 0,14 USD por
+  inquilino y pasada sin juez, y en torno a 0,40 USD las tres pasadas de
+  juez de Gemini sobre dos bancos (§32). Es coste por cambio, no por
+  consulta: se paga cuando se toca algo, no cuando se usa.
+- **Lo que la contabilidad no ve** (capítulo 5.3): un 22 % de gasto de
+  desarrollo y reintentos fuera del runner. En producción ese gasto no
+  existe, pero la cifra de desarrollo del proyecto sí lo lleva.
+- **Cambios de precio del proveedor.** `gemini-3.6-flash`, el proveedor
+  alternativo, dobla su precio el 1 de enero de 2027 (§29). La tabla de
+  precios del repositorio es viva y un test recalcula desde tokens.
 
 ## 6. Observabilidad, operación y despliegue
 
@@ -705,7 +749,7 @@ evidencia es una opinión.
 |---|---|---|
 | Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (13 filas) |
 | Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada, AIBOM (R-07, R-09, R-15) |
-| Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Lo que salió de mirar con desconfianza: cuatro hallazgos tenían el error en el instrumento (R-04, R-06, R-11, R-13, R-21) |
+| Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Lo que salió de mirar con desconfianza: cuatro de esos hallazgos tenían el error en el instrumento y no en el sistema (R-04, R-06, R-11, R-13, R-21) |
 | Desconocidos-desconocidos | Botón rojo y plan | Tope prepago, plan escrito y pulsado en frío (R-23) |
 
 ### 7.2 OWASP Top 10 para LLM
@@ -906,9 +950,67 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 (`ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic`,
 `GEN_QUIEN_PREGUNTA=0`) reproducen las cifras anteriores a cada corte.
 
+## 12. Documentación técnica y preparación de la defensa
+
+### 12.1 Cómo está documentado el proyecto
+
+La documentación no es un anexo del código: es donde viven las decisiones,
+y el código la hace cumplir con tests. Siete ficheros, cada uno con una
+función que no se solapa con la de los demás:
+
+| Fichero | Qué es | Quién lo hace cumplir |
+|---|---|---|
+| `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
+| `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
+| `docs/HALLAZGOS.md` | 49 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/RIESGOS.md` | 23 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
+| `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
+| `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
+| `reports/<etiqueta>/` | Evidencia de cada ejecución: `resumen.json`, `informe.md`, trazas | Versionados a propósito: una cifra sin carpeta no es un dato |
+
+Y tres más de operación, cada uno con lo medido dentro: `INCIDENTES.md`
+(botón rojo, 14,95 s), `RETENCION.md` (90 días, supresión en décimas de
+segundo) y `DESPLIEGUE.md` (usuarios, topes, Render).
+
+### 12.2 El método de trabajo, que también se defiende
+
+Dos reglas de método salieron del propio proyecto y están medidas:
+
+- **Una predicción escrita antes de mirar convierte una cifra en una
+  medida** (§21). La corrección del precio del juez se hizo escribiendo tres
+  resultados posibles antes de abrir la consola del proveedor; la consola
+  marcó uno de los tres.
+- **Una hipótesis que sale de los datos no se confirma con los mismos
+  datos** (§44). El matiz por origen en la generación era 2,00 veces su
+  suelo con 8 tiradas y 1,00 con 24 nuevas.
+
+El proyecto se trabajó desde dos superficies, Claude Code y la app de
+Claude, con un puente propio entre ellas (capítulo 6.5). Lo que un agente
+podía hacer sobre el repositorio quedó acotado por estructura, y el primer
+defecto que se encontró fue precisamente en esa acotación (§19).
+
+### 12.3 La defensa
+
+`docs/GUION_DEMO.md` fija la demostración: doce minutos en seis bloques,
+cada uno con qué se enseña, qué se hace y qué tiene que verse. Las
+consultas son literales del golden set o del registro de producción, así
+que su comportamiento está medido y no se improvisa delante del tribunal.
+Los tres bloques centrales son los tres argumentos de las conclusiones: el
+control de acceso dentro de la búsqueda con la misma pregunta desde dos
+roles, la rama estructurada con datos que no están en ningún documento, y
+la escritura propuesta por el modelo y aprobada por una persona. El guion
+incluye qué hacer si algo falla en directo: cada fallo posible se enseña
+como lo que es, porque la regla de nada de fallbacks silenciosos vale
+también para la demo.
+
+[PENDIENTE: formato de la defensa (duración, demo en vivo, tribunal), que
+decide si el servicio de Render sigue vivo o basta una grabación. Coste de
+la demo entera: menos de 0,05 USD; el riesgo no es el gasto, es quedarse
+sin crédito.]
+
 ## Anexo A. Índice de hallazgos por capítulo
 
-Los 48 hallazgos de `docs/HALLAZGOS.md`, con el capítulo de esta memoria
+Los 49 hallazgos de `docs/HALLAZGOS.md`, con el capítulo de esta memoria
 que los cita. Cada uno nombra la ejecución de `reports/` que lo respalda o
 dice que no la tiene.
 
@@ -934,10 +1036,3 @@ mayoría de tres no generaliza); §41 corrige una condición no escrita de
 lo que §12 dejó pendiente; §44 completa §34; §45 revisa §43 sin mover su
 cifra.
 
-## Anexo B. Guion de la demostración
-
-`docs/GUION_DEMO.md`: doce minutos en seis bloques, cada uno con qué se
-enseña, qué se hace y qué tiene que verse; las consultas son literales del
-golden set o del registro de producción. [PENDIENTE: formato de la defensa
-(duración, demo en vivo, tribunal), que decide si Render sigue vivo o basta
-una grabación.]
