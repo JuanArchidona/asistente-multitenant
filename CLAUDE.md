@@ -30,7 +30,7 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-23)
+## 2. Estado (2026-09-24)
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
@@ -209,6 +209,20 @@ y §14).
 
 ## 8. Riesgos abiertos
 
+- **La memoria técnica existe y cita, no opina** (`docs/MEMORIA.md`, borrador
+  desde el 24-09): cada cifra lleva su hallazgo y su ejecución, y los cortes
+  de línea base van con fecha y escotilla. Lo que le falta no es trabajo de
+  código: la prueba en vivo de WhatsApp y el formato de la defensa. La
+  rúbrica, cuando llegue, puede reordenar capítulos; las cifras no cambian.
+- **LangGraph está medido y descartado como orquestador por defecto** (§50):
+  mismas llamadas y mismos tokens de entrada que la línea base, +0,011 s, y a
+  cambio 95 líneas de orquestación frente a 21 y 14 paquetes. La comparación
+  vale para un flujo de un turno; con estado entre turnos o interrupciones
+  habría que rehacerla, y la aprobación humana sería el primer candidato.
+- **Las claves de API no se rotan antes de la defensa**, decidido por Juan el
+  24-09: no hay incidente que lo pida (el `.env` nunca ha estado en git y el
+  §19 se cerró sin que la clave saliera de la máquina). La mitad manual del
+  plan de incidentes queda como estimación, no como medida.
 - **Resuelto en la tutoría del 22-09** (`docs/TUTORIA_2026-09-22.md`), que era
   la vía abierta para los cuatro riesgos que el campus no permitía cerrar:
   **partir de entregas propias ya calificadas es admisible y no hay que

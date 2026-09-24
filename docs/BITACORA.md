@@ -4,6 +4,91 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+## 2026-09-24 — Sesión 8: la memoria deja de ser un hueco, y LangGraph se mide en diecinueve minutos
+
+**7 commits, 2 hallazgos (§49 y §50), 1.117 tests**, gasto del día en
+proveedores en torno a 0,37 USD. Y un documento fuera del repositorio, en
+`C:\Tecnicas_de_claude\`: el patrón del puente Claude Code / app de Claude
+escrito para trasladarlo a cualquier proyecto (PDF de 28 páginas con su
+`.md` y su `.css`), con un capítulo de vías de mejora investigado ese día.
+
+**Hecho, por orden:**
+
+- **Borrador 1 de la memoria técnica** (`docs/MEMORIA.md`, 23 páginas en
+  PDF con la cadena de la 3.3). Estructura según las cinco características
+  del capstone del programa; cada cifra con su hallazgo y su ejecución,
+  contrastada ficha a ficha contra `HALLAZGOS.md` (una docena de cifras
+  escritas de memoria se corrigieron en esa pasada). Ficha de coste mensual
+  por inquilino sacada de las ejecuciones vigentes (0,0020 USD por consulta
+  documental, 0,0037 con rama estructurada), capítulo de documentación y
+  defensa, anexo de hallazgos por capítulo.
+- **Caso de agregación real en la gestoría** (§49): `agg-03`, una baja de
+  trabajador que exige dos documentos de `laboral`. El primer rojo era del
+  banco otra vez: el literal con el número en letra, el defecto que §45 dejó
+  contado. Corregido a literal estable y reevaluado desde trazas sin coste:
+  **28 de 29**, único rojo `ooc-04`.
+- **LangGraph, construido y medido** (§50) con predicción escrita antes de
+  instalar nada. Refactor previo sin cambio de comportamiento (ramas a
+  métodos, cero tests tocados), grafo en `src/orquestacion_langgraph.py`
+  activable con `ORQUESTADOR=langgraph`, grupo de dependencias aparte, diez
+  tests de equivalencia. Heredado: **mismas 106 llamadas y mismos 51.559
+  tokens de entrada**, +0,011 s, 47/53 frente a 48 (el generador
+  muestreando). Agencia: 31/40 en los dos, 40/40 sin escritura sin aprobar,
+  trece casos por la rama mixta con MCP. Precio: **95 líneas frente a 21 y
+  14 paquetes**, uno de ellos `langsmith` sin usarse. Seis de siete
+  predicciones cumplidas; la séptima (atasco en el cliente MCP) no ocurrió.
+  **Vanilla se queda.** El capítulo 3.1 pasa de argumentado a medido.
+- Tabla de riesgos de `ALCANCE.md` §6 puesta al día: tres filas que seguían
+  "abiertas" estaban resueltas desde el 21 y el 22-09.
+
+**Decisiones:**
+
+- **Las claves de API no se rotan antes de la defensa** (Juan, 24-09). No
+  hay incidente que lo pida: el `.env` nunca ha estado en git y el §19 se
+  cerró sin que la clave saliera de la máquina. La mitad manual del plan de
+  incidentes queda como estimación (unos cinco minutos), declarada en
+  `INCIDENTES.md` §5, `RIESGOS.md` R-23 y la memoria.
+- **El prototipo LangGraph se hizo con corte de cuatro horas y solo la
+  orquestación**; el reloj real fueron 19 minutos, con la misma salvedad que
+  el alta de cliente: lo hizo un asistente de código con el proyecto en
+  contexto. La comparación con estado entre turnos queda para después de la
+  defensa.
+- **Un literal con número en letra se corrige a uno estable de formato**
+  cuando falla, y los ocho que hoy pasan no se tocan (§49).
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Prueba en vivo del canal de WhatsApp**: Juan crea la app de Meta y
+      pasa las cuatro credenciales por `.env` o Render, nunca por el chat;
+      después desplegar el servicio, conectar el webhook y medir (hallazgo
+      pendiente, ver `docs/CANAL_WHATSAPP.md`).
+- [ ] **Formato de la defensa**: duración, demo en vivo o grabación,
+      tribunal. Decide si Render sigue vivo. Sigue sin conocerse.
+- [ ] Rúbrica del TFM: llega con el Módulo 5 (6-13 de octubre). Al llegar,
+      reordenar la memoria si hace falta; las cifras no cambian.
+- [ ] Segunda clave de Gemini para el experimento del juez de otra familia
+      repetido tres veces (0,22 USD), si se quiere cerrar antes de la memoria
+      final.
+- [ ] Generar el PDF de la memoria para revisión en papel:
+      `uv run python docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md --salida MEMORIA.pdf --css docs/entrega/estilo.css`.
+
+**Notas:**
+
+- Regla del día: **el tiempo se mide con los timestamps de git, no a ojo**.
+  El §50 tuvo escrito "1 h 50 min" hasta que se miró el reloj: 19 minutos.
+- El comparador `contiene` no equipara números en letra con cifras a
+  propósito (docstring de `normalizar`); el mismo modelo escribe "tres" en
+  una pregunta de un dato y "3" cuando combina dos.
+- Un 503 del proveedor de embeddings de Google dejó un caso en ERROR en la
+  pasada de la agencia por el grafo; se propagó tal cual y la dimensión se
+  repitió aparte. Es el comportamiento que el §46 pide.
+- Investigación de vías de mejora del puente (24-09, en el PDF de
+  `C:\Tecnicas_de_claude\`): la especificación MCP 2026-07-28 depreca
+  sampling y saca las tareas a una extensión; Claude Code tiene mensajería
+  entre sesiones y hook `FileChanged`; la app descarta la elicitation
+  (incidencia abierta). Nada de eso está adoptado; se anota por si el puente
+  se toca.
+
 ## 2026-09-23 (tarde) — Sesión 7: el registro de riesgos se queda sin filas abiertas, y el bloque 3 llega hasta donde llegan las credenciales
 
 **8 commits, 5 hallazgos (del §44 al §48), 1.102 tests**, gasto del día en
