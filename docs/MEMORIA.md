@@ -167,7 +167,7 @@ entrada (interfaz, WhatsApp)
 
 Todo es Python sin framework de orquestación (capítulo 3.1). El código del
 núcleo son unas 5.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.107 tests que corren en 11 segundos sin llamar a ningún proveedor.
+1.117 tests que corren en 11 segundos sin llamar a ningún proveedor.
 
 ### 2.2 El inquilino como concepto de primera clase
 
@@ -962,7 +962,7 @@ y una hipótesis que sale de los datos no se confirma con los mismos datos.
 git clone https://github.com/JuanArchidona/asistente-multitenant
 uv sync --group judge --group app
 cp .env.example .env            # claves: sistema, juez, embeddings
-uv run pytest                   # 1107 tests, sin llamadas a API
+uv run pytest                   # 1117 tests, sin llamadas a API
 uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
 uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
 uv run streamlit run app.py

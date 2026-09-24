@@ -188,6 +188,9 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
 13. Canal de WhatsApp en entorno de pruebas.
 14. Prototipo en LangGraph para la comparativa de orquestación (si se cae, la
     comparativa se sostiene igual, argumentada sin prototipo).
+    **Hecho y medido el 24-09-2026 (§50):** mismas llamadas y mismos tokens de
+    entrada que la línea base en el heredado, +0,011 s de latencia, 95 líneas
+    de orquestación frente a 21 y 14 paquetes nuevos. Vanilla se queda.
 
 ### Bloque 4 — Cierre (no se corta)
 

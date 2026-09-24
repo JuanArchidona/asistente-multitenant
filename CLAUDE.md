@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1107 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1117 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -169,7 +169,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1107 tests, sin llamadas a API
+uv run pytest                                      # 1117 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
