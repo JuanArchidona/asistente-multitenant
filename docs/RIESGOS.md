@@ -57,8 +57,8 @@
 
 | Cuadrante | Contramedida que pide el 4.4 | Filas | Lo que el proyecto pone |
 |---|---|---|---|
-| Conocidos-conocidos | Pruebas y métricas | R-01, R-02, R-03, R-05, R-08, R-10, R-12, R-14, R-16, R-17, R-18, R-19, R-20 | El banco de 91 casos, las métricas deterministas, la contabilidad de coste |
-| Conocidos-desconocidos | Vigilar métricas, despliegue continuo | R-07, R-09, R-15 | Precios vivos con test, conmutación verificada; **falta** el inventario de la cadena de suministro |
+| Conocidos-conocidos | Pruebas y métricas | R-01, R-02, R-03, R-05, R-08, R-10, R-12, R-14, R-16, R-17, R-18, R-19, R-20 | Los bancos, 122 casos en tres inquilinos, las métricas deterministas, la contabilidad de coste |
+| Conocidos-desconocidos | Vigilar métricas, despliegue continuo | R-07, R-09, R-15 | Precios vivos con test, conmutación verificada, AIBOM generado y vigilado por test (R-09) |
 | Desconocidos-conocidos | Evaluar vulnerabilidades activamente | R-04, R-06, R-11, R-13, R-21 | Los hallazgos que salieron de **mirar con desconfianza**: cuatro de ellos tenían el error en el instrumento, no en el sistema |
 | Desconocidos-desconocidos | Botón rojo y plan | R-23 | El tope de gasto, el plan escrito y **pulsado en frío** (§46) |
 

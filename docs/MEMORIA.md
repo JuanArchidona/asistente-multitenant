@@ -30,10 +30,15 @@ de diseño tiene una medida detrás.
 
 El proyecto parte de las entregas 2.1, 2.3, 3.1 y 3.3 del máster, que ya
 cubrían cuatro de los seis pasos del flujo y traían un banco de evaluación
-de 109 casos. Sobre esa base se construyeron en cuatro semanas la
-multi-tenencia, la rama estructurada, la capa de gobernanza, la
-observabilidad, el despliegue con autenticación, el análisis de IA
-responsable, la interfaz web autenticada y un canal de WhatsApp.
+de 109 casos. Sobre esa base se construyeron, en **cinco días de trabajo**
+(del 20 al 24 de septiembre de 2026, ocho sesiones registradas en la
+bitácora), la multi-tenencia, la rama estructurada, la capa de gobernanza,
+la observabilidad, el despliegue con autenticación, el análisis de IA
+responsable, la interfaz web autenticada y un canal de WhatsApp. Todo el
+código y toda la documentación se produjeron con un asistente de código
+(Claude Code) dirigido por el autor, que tomó las decisiones, escribió las
+expectativas del banco y aprobó cada corrección; el capítulo 1.3 lo detalla
+y las cifras de tiempo de esta memoria llevan esa salvedad.
 
 Tres cifras que resumen lo que se defiende:
 
@@ -124,12 +129,28 @@ Cinco reglas que se derivan y que el repositorio hace cumplir con tests:
   escrito con fecha y con la escotilla que reproduce el comportamiento
   anterior (§4.4 de esta memoria).
 
+**Cómo se trabajó, y cuánto es del autor.** El programa del máster
+incorpora el uso profesional de la IA como herramienta de productividad, y
+el tutor confirmó el 22-09-2026 que su uso en el TFM es libre. Este
+proyecto lo usa sin reservas: el código, los tests, los documentos y esta
+memoria se escribieron con Claude Code, dirigido por el autor desde dos
+superficies (capítulo 6.5). Lo que es del autor sin intermediario: las
+decisiones de arquitectura y de línea base, las expectativas de los 122
+casos del banco y cada corrección de una expectativa, la aprobación de
+cada escritura, y las decisiones que esta memoria fecha con nombre. La
+bitácora registra ocho sesiones en cinco días, no horas; las dos cifras de
+tiempo que la memoria da (5 min 42 s el alta de un cliente, 19 min el
+prototipo de LangGraph) son tiempo del asistente con el proyecto en
+contexto, y las dos lo dicen. Un tribunal que quiera saber qué habría
+costado a mano no encontrará aquí ese número, porque no se midió.
+
 ### 1.4 Los tres inquilinos
 
 Los tres son sintéticos: ningún dato real de ninguna empresa entra en el
-repositorio, que es público. Eso es además una medida de cumplimiento del
-capítulo 5 del RGPD (transferencias internacionales), no una comodidad de
-desarrollo (§7.6).
+repositorio, que es público. Eso mitiga hoy el riesgo de transferencia
+internacional del capítulo 5 del RGPD; lo que exigiría producción (base
+jurídica, contrato con el proveedor) sigue siendo un hueco declarado
+(capítulo 7.5, R-18).
 
 | | `empresa_servicios` | `agencia_inmobiliaria` | `gestoria_laboral` |
 |---|---|---|---|
@@ -167,7 +188,9 @@ entrada (interfaz, WhatsApp)
 
 Todo es Python sin framework de orquestación (capítulo 3.1). El código del
 núcleo son unas 5.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.117 tests que corren en 11 segundos sin llamar a ningún proveedor.
+1.117 tests que corren en 11 segundos sin llamar a ningún proveedor (los dos
+números, contados el 24-09-2026 con `wc -l` y `pytest`; no están en ningún
+hallazgo).
 
 ### 2.2 El inquilino como concepto de primera clase
 
@@ -309,9 +332,9 @@ usuario no puede ver no llega al modelo.
 
 | Mecanismo | Dónde actúa | Medida |
 |---|---|---|
-| Permiso en el `where` | Recuperación documental | Contra la línea base: heredado 45/52 a 47/53 con fugas literales de 2 a 0; agencia 27/36 a 29/38 con fugas de 1 a 0, y sin la caída de relevancia (0,880 a 0,778) que costó endurecer el prompt en la 3.3 (§8). `fuga_literal` 10/10 con política endurecida (§33); cobertura del riesgo 0,636 (heredado) y 1,0 (agencia) (§11, §22) |
+| Permiso en el `where` | Recuperación documental | Contra la línea base: heredado 45/52 a 47/53 (el caso 53 es el de acceso autorizado, `auth-rrhh-01`) con fugas literales de 2 a 0; agencia 27/36 a 29/38 (dos casos de acceso añadidos) con fugas de 1 a 0, y sin la caída de relevancia (0,880 a 0,778) que costó endurecer el prompt en la 3.3 (§8). `fuga_literal` 10/10 con política endurecida (§33); cobertura del riesgo 0,636 (heredado) y 1,0 (agencia) (§11, §22) |
 | Redacción de campos | Salida de cada herramienta MCP, antes del recorte | Línea base sin gobernanza: DNI, teléfono, correo e ingresos del comprador reproducidos (§5); tres de cuatro casos de confidencialidad de la agencia filtraban (§2). Después, 0. Agujero por tamaño cerrado (§41) |
-| Denegación explícita | Camino documental vaciado por permiso | 5 casos de la gestoría, 28/28 en `fuga_literal` (§47) |
+| Denegación explícita | Camino documental vaciado por permiso | 5 casos de la gestoría, 28 de 28 (los casos de entonces) en `fuga_literal` (§47) |
 | El generador sabe quién pregunta | Prompt del generador, desde el 23-09 | De 2 de 5 a 5 de 5 al dar un dato autorizado a dirección (§39, §40) |
 | Escritura con aprobación humana | Herramientas declaradas como escritura | `accion_sin_aprobar` 40/40; ninguna visita escrita tras el banco (§42) |
 | Verificación determinista de citas | Salida | 588 de 588 citas resolubles en 22 ejecuciones, cero inventadas (§23) |
@@ -330,7 +353,10 @@ protegido en juego, solo 11 llegaban al control (§11): "cero fugas sobre 17
 casos" era en realidad "cero fugas sobre 9". Por eso la métrica publica su
 denominador. El 0,636 del heredado son casos que no llegan al control
 por fallo de enrutado, y subirlos es trabajo de enrutador, no de
-gobernanza; uno de ellos, `inj-04`, se queda como residual documentado.
+gobernanza; uno de ellos, `inj-04`, se queda como residual documentado. Y
+el tamaño de la muestra se dice: en el heredado la seguridad está medida
+sobre los 7 casos que llegan al control, y en la agencia sobre 9. Son pocos,
+y por eso cada uno está en la traza con su razón.
 
 ### 2.8 Generación anclada
 
@@ -370,7 +396,9 @@ alguien pidió lo que no le toca, y aplica la política de retención (§6.2).
   número de teléfono es la credencial y fija el inquilino, aviso del
   artículo 50 en la primera conversación, aprobación humana por texto, firma
   del webhook obligatoria, el teléfono nunca entra en el registro. 25
-  pruebas con mensajes simulados; 5,1 s una consulta contra el sistema real.
+  pruebas con mensajes simulados (`tests/test_canal_whatsapp.py`); 5,1 s una
+  consulta contra el sistema real (bitácora, sesión 7; sin carpeta en
+  `reports/`).
   [PENDIENTE: prueba en vivo con la cuenta de pruebas de Meta.]
 - **Correo**: no construido; queda fuera (capítulo 9).
 
@@ -412,7 +440,7 @@ ahí la lectura por los cinco criterios del capstone:
 | Coste | Cero dependencias de orquestación; ninguna capa entre el SDK y la contabilidad de tokens | +14 paquetes en el AIBOM (R-09); latencia y coste por consulta iguales |
 | Escalabilidad | Lo que escala aquí es el número de inquilinos, y eso lo resuelve el manifiesto, no el orquestador | Igual: el manifiesto es ortogonal al framework |
 | Riesgo | Superficie mínima: 21 líneas que se leen en una pantalla; el control de acceso está en el `where` y en la salida de la herramienta, no en el orquestador | Cadena de suministro: el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026; `langsmith` entra sin usarse |
-| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cuatro semanas (§8.4) |
+| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cinco días (§8.4) |
 | Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | Lo aporta, y este sistema no lo usa |
 
 Lo que la medida no dice: nada sobre lo que LangGraph aporta cuando hay
@@ -435,12 +463,10 @@ mantienen abiertos en vez de abrirse por consulta, porque con 36 casos de
 banco la alternativa habría añadido unos 40 segundos y un proceso por
 pregunta; las sesiones del SDK se abren y se cierran en la misma tarea,
 porque repartirlas entre dos revienta al salir; y el prompt lleva la fecha
-del sistema, porque el modelo no sabe qué día es y "esta semana" acababa
-pidiendo el rango al usuario. Riesgo de negocio medido: el servidor MCP oficial
-de idealista existe y está cerrado a clientes externos (403 en el
-`initialize`, política declarada en su documentación); depender de un MCP
-de terceros es un riesgo de negocio, no técnico, y por eso el código del
-TFM no llama a idealista (`ALCANCE.md` §3).
+del sistema, porque el modelo no sabe qué día es. Un MCP de terceros es
+además un riesgo de negocio: el de idealista existe y está cerrado a
+clientes externos por política declarada (`ALCANCE.md` §3), y por eso el
+sistema no depende de ninguno.
 
 ### 3.3 Modelos
 
@@ -470,6 +496,13 @@ Pero es la única configuración medida en la que `inj-04` llega al control,
 y la línea de mejora que sale es dar ejemplos a las descripciones, no
 afinar un modelo. La cascada (embeddings y Haiku solo en duda) iguala a
 Haiku en muestra pero fuera manda al LLM el 75-88 % de las consultas.
+
+Lo que no se comparó: el generador. `claude-haiku-4-5` genera porque la 3.3
+lo heredó con su línea base, y su barrido de configuraciones comparó
+recuperación (chunking, `top_k`, dimensiones), no modelos de generación. La
+conmutación a Gemini (§29) verifica que el camino funciona, no cuánto
+cambia la calidad; es una comparación que queda por hacer y el capítulo 9
+la lista.
 
 Un prerrutado determinista por identificador (OP-2026-118 va a
 expedientes) se descartó con una cuenta de dos minutos (§25): los
@@ -530,16 +563,19 @@ Ejecuciones del 23 y el 24-09-2026, sin juez, tras el segundo corte de línea ba
 | Ejecución | Casos OK | `routing` | Cobertura del riesgo | `cita_alguna_fuente` |
 |---|---|---|---|---|
 | `empresa_quien` (53) | 48 | 0,9038 | 0,6364 | 1,0 |
-| `agencia_quien` (38) | 32 | 0,8421 | 1,0 | 0,96 |
+| `agencia_hitl_v3` (40) | 31 | 0,825 | 1,0 | 0,92 |
 | `gestoria_agregacion_v2` (29) | 28 | 0,963 | 1,0 | 1,0 |
 
 Lo que dicen: el heredado no se ha degradado con la multi-tenencia (49 con
 la línea anterior; el que baja es `ooc-04`, el 1 de 53 que sigue variando a
-temperatura 0); la agencia sube tres casos porque la rama estructurada cita
-ahora la herramienta; la gestoría, montada en menos de seis minutos, da 28
+temperatura 0); la agencia, con los dos casos de escritura añadidos en el
+§42 (de 38 a 40), queda en 31 de 40 con `accion_sin_aprobar` 40 de 40, y el
+0,96 de citas de la pasada anterior (`agencia_quien`, 32 de 38) bajó a 0,92:
+el §42 avisa de que ese efecto no es estable entre pasadas; la gestoría, montada en menos de seis minutos, da 28
 de 29 tras corregir dos expectativas del banco (§45), recuperar un caso de
 agregación real de dos documentos (§49) y quedarse con un fallo real del
-sistema (`ooc-04`).
+sistema (`ooc-04`; es otro caso con el mismo identificador que el del
+heredado, no el mismo).
 
 ### 4.3 Evaluar al evaluador
 
@@ -555,7 +591,7 @@ hizo, y el resultado cambia cómo se lee cualquier métrica de juez:
   *"cumple exactamente"* y emitió 0,1. No es la temperatura ni la familia:
   es pedir número y justificación en la misma respuesta.
 - **La temperatura no le hace nada y sus errores van en un solo sentido**
-  (§32, seis pasadas): de 24 veredictos, 4 son espurios y **los cuatro
+  (§32, un piloto de 4 casos por 6 pasadas): de 24 veredictos, 4 son espurios y **los cuatro
   suspenden lo que debía aprobar**. Consecuencia: `casos_ok` de una pasada
   con juez es un suelo, y promediar pasadas empeora la cifra en vez de
   cancelar el error. La única corrección conocida es la mayoría de tres.
@@ -586,20 +622,18 @@ citar dos cifras que miden configuraciones distintas.
 | 22-09-2026 (`ALCANCE.md` §5.c) | Temperatura del enrutador a 0; juez por defecto a `gemini-3.6-flash` | 3 casos inestables de 38 pasan a 0; independencia de familia; juez 5,5 veces más barato | Determinismo (1 de 53 sigue variando); estabilidad del juez | `ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic` |
 | 23-09-2026 (§5.d) | El generador recibe quién pregunta y que su contexto está autorizado | 2 de 5 a 5 de 5 al dar un dato autorizado; la rama estructurada cita la herramienta | Nada frente a una fuga real: eso lo garantiza la búsqueda | `GEN_QUIEN_PREGUNTA=0` |
 
-Se decidieron antes de conocer la rúbrica, y a propósito: entre que
-aparece (6-13 de octubre) y la defensa hay una o dos semanas, y una
-decisión que invalida la comparación con las ejecuciones anteriores no deja
-tiempo de volver a medir. La rúbrica puede cambiar cómo se presentan las
-cifras, no qué configuración es la buena.
+Se decidieron antes de conocer la rúbrica, y a propósito: una decisión
+que invalida la comparación con las ejecuciones anteriores necesita tiempo
+para volver a medir, y entre la rúbrica y la defensa no lo habrá.
 
 ### 4.5 El banco descubrió sus propios defectos
 
-Cinco veces el error estaba en el instrumento y no en el sistema, y
-las cinco se corrigieron por escrito antes de sacar conclusiones: dos
-defectos del banco de la agencia (§3), la mitad de los casos de seguridad
-que no probaban nada (§11), la métrica de PII invertida (§31), dos casos de
-la gestoría (§45) y un comparador que no ignoraba el énfasis de markdown
-(§47). La regla es no relajar el banco tras ver los resultados; cada
+Seis veces el error estaba en el instrumento y no en el sistema, y las
+seis se corrigieron por escrito antes de sacar conclusiones: dos defectos
+del banco de la agencia (§3), la mitad de los casos de seguridad que no
+probaban nada (§11), la métrica de PII invertida (§31), dos casos de la
+gestoría (§45), un comparador que no ignoraba el énfasis de markdown (§47)
+y un literal con el número en letra (§49). La regla es no relajar el banco tras ver los resultados; cada
 corrección cita por qué la expectativa era incorrecta.
 
 ## 5. Coste
@@ -617,9 +651,15 @@ corrección cita por qué la expectativa era incorrecta.
 | Pasada completa de los dos bancos con el juez nuevo | 0,73 USD (una de Anthropic) o 0,40 USD (tres de Gemini), como mínimo | §32 |
 | Experimento de sesgo, las tres capas | 0,0046 USD (recuperación y enrutado) y 0,27 USD (generación, 336 respuestas) | §34, §44 |
 | Solapamiento consultando dos ramas | +40 % por caso en el grupo, +0,5 s | §22 |
-| Demo completa de la defensa | menos de 0,05 USD | `GUION_DEMO.md` |
+| Demo completa de la defensa | menos de 0,05 USD, estimación a partir del coste por consulta; no medida | `GUION_DEMO.md` |
 
-La primera cifra de la 3.3 tenía el precio de `claude-sonnet-5` un 50 %
+Hay tres cifras de coste por consulta en esta memoria y miden cosas
+distintas: 0,0021 USD (capítulo 1.2) es la del documento de concepto,
+medida en la 3.1 sobre el sistema heredado; 0,00245 USD (§17) es la del
+banco heredado el 21-09, antes de los dos cortes de línea base; y las de la
+ficha del capítulo 5.4 (0,00198 a 0,00406 USD) son las de las ejecuciones
+vigentes de cada inquilino. Al citar una, decir cuál. La primera cifra de
+la 3.3 tenía el precio de `claude-sonnet-5` un 50 %
 alto y todo lo derivado salía inflado (§21). La tabla de precios es viva y
 un test recalcula desde tokens; un modelo sin precio en la tabla costaba
 cero hasta el §28, y ahora el registro marca `modelos_sin_precio`.
@@ -627,8 +667,9 @@ cero hasta el §28, y ahora el registro marca `modelos_sin_precio`.
 ### 5.2 Tope de gasto y una clave por fin
 
 - **Tope duro**: cuentas de prepago en los dos proveedores con recarga
-  automática desactivada. 12,66 USD de crédito en Anthropic; el peor caso de
-  una fuga se agota solo en una hora. El riesgo se ha invertido: lo que hay
+  automática desactivada. 12,87 USD de crédito en Anthropic el 21-09 (§16) y
+  12,66 el 23-09; una fuga a pleno ritmo, medida en 12,5 USD por hora (§17),
+  lo agota sola en una hora. El riesgo se ha invertido: lo que hay
   que vigilar es quedarse sin crédito en la defensa (§16).
 - **Tope blando**: `TOPE_GASTO_USD` en la interfaz, sobre el registro de
   producción. Es un suelo: excluye embeddings y lo gastado fuera de la
@@ -664,9 +705,9 @@ de las dos.
 |---|---|---|---|---|
 | `empresa_servicios` (solo documental) | `empresa_quien` | 0,00198 USD | 973 | 3,28 s / 4,36 s |
 | `gestoria_laboral` (solo documental) | `gestoria_agregacion` | 0,00211 USD | 1.130 | 2,95 s / 4,01 s |
-| `agencia_inmobiliaria` (documental y estructurada, con grupo de solapamiento) | `agencia_quien` | 0,00372 USD | 2.379 | 4,10 s / 5,59 s |
+| `agencia_inmobiliaria` (documental y estructurada, con grupo de solapamiento y dos casos de escritura) | `agencia_hitl_v3` | 0,00406 USD | 2.671 | 4,09 s / 5,73 s |
 
-La agencia cuesta 1,9 veces más por consulta que los inquilinos solo
+La agencia cuesta el doble por consulta que los inquilinos solo
 documentales, y la causa está en los tokens de entrada: la rama
 estructurada mete en el contexto el resultado de las herramientas, y el
 grupo de solapamiento consulta las dos ramas (§22). Es el precio de
@@ -675,11 +716,11 @@ responder lo que ningún documento contiene.
 Ficha mensual, a los precios vigentes de `claude-haiku-4-5` (1,00 / 5,00 USD
 por millón de tokens):
 
-| Consultas al mes | Inquilino documental (0,0020 USD) | Inquilino con rama estructurada (0,0037 USD) |
+| Consultas al mes | Inquilino documental (0,00198 USD) | Inquilino con rama estructurada (0,00406 USD) |
 |---|---|---|
-| 500 | 1,0 USD | 1,9 USD |
-| 2.000 | 4,0 USD | 7,4 USD |
-| 10.000 | 19,8 USD | 37,2 USD |
+| 500 | 1,0 USD | 2,0 USD |
+| 2.000 | 4,0 USD | 8,1 USD |
+| 10.000 | 19,8 USD | 40,6 USD |
 
 Lo que la ficha no incluye, y hay que decir al presentarla:
 
@@ -726,9 +767,9 @@ Render, desde `render.yaml`: primer despliegue en 1 min 32 s (§38). Se
 paró en el login por exigir la clave del juez, que la interfaz no usa;
 arreglado. Seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las
 contraseñas solo las tiene el autor. El servicio público resultó ser el
-mejor banco de pruebas: cinco de los nueve hallazgos del 23-09 salieron de
-probar fuera del banco, y tres de ellos (§39, §41, §42) en el servicio
-desplegado.
+mejor banco de pruebas: de los nueve hallazgos de la sesión del 23-09 por
+la mañana (§35 a §43), cinco salieron de probar fuera del banco, y tres de
+ellos (§39, §41, §42) en el servicio desplegado.
 
 ### 6.4 Plan de incidentes, pulsado en frío
 
@@ -747,14 +788,12 @@ minutos, no como medida.
 ### 6.5 Cómo se trabajó: dos superficies y un puente
 
 El proyecto se desarrolló desde Claude Code y desde la app de Claude, con
-un puente MCP local propio (`puente/`) que da a la app lo que el conector
-de GitHub no puede: el árbol sin pushear, un buzón de encargos y un
-registro de lo hecho, con un canal de vuelta que avisa a Claude Code en su
-siguiente prompt. La regla que no se negocia es que la cadena termina en
-una persona: un aviso nunca genera un encargo. Al montarlo se descubrió que
-la sesión hija podía leer el `.env` con las claves (§19), y de ahí salió la
-fila R-04 del registro de riesgos. El patrón está documentado aparte y es
-trasladable a cualquier proyecto (`docs/SINCRONIZACION_SUPERFICIES.md`).
+un puente MCP local propio (`puente/`, documentado en
+`docs/SINCRONIZACION_SUPERFICIES.md`). Es utillaje del autor, no del
+sistema, y se menciona por una razón: al montarlo, la sesión hija de solo
+lectura podía leer el `.env` con las claves (§19), y ese hallazgo es la fila
+R-04 del registro de riesgos y la prueba de que confinar a un directorio no
+es confinar a lo que se puede enseñar.
 
 ## 7. Gobernanza, seguridad e IA responsable
 
@@ -776,7 +815,7 @@ evidencia es una opinión.
 |---|---|---|
 | Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (13 filas) |
 | Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada, AIBOM (R-07, R-09, R-15) |
-| Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Lo que salió de mirar con desconfianza: cuatro de esos hallazgos tenían el error en el instrumento y no en el sistema (R-04, R-06, R-11, R-13, R-21) |
+| Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Cinco filas que salieron de mirar con desconfianza (R-04, R-06, R-11, R-13, R-21); en tres de ellas (juez, índice, sesgo) el error estaba en el instrumento y no en el sistema |
 | Desconocidos-desconocidos | Botón rojo y plan | Tope prepago, plan escrito y pulsado en frío (R-23) |
 
 ### 7.2 OWASP Top 10 para LLM
@@ -786,16 +825,17 @@ evidencia es una opinión.
 | 1 | Inyección de instrucciones | Medido: `fuga_literal` 8/10 base frente a 10/10 endurecido (§33); residual `inj-04` |
 | 2 | Salida insegura | Por construcción: texto para una persona; se reevaluará con los canales |
 | 3 | Envenenamiento de datos | Por construcción, no medido como ataque: corpus sintético con semilla. Un cliente real trae su corpus y la mitigación desaparece |
-| 4 | Denegación de servicio | Medido: tope duro y blando; sin límite por usuario ni por minuto |
+| 4 | Denegación de servicio | Por construcción: tope duro (prepago sin recarga) y blando; la fuga medida es de 12,5 USD por hora (§17). Sin límite por usuario ni por minuto |
 | 5 | Cadena de suministro | Por construcción: AIBOM generado y vigilado por test; destapó el §35 al generarse |
 | 6 | Divulgación de información confidencial | Lo más fuerte del proyecto: permiso en el `where`, redacción, cobertura del riesgo, una fuga real cerrada, aislamiento por colección |
-| 7 | Complementos no seguros | Medido: servidores MCP como procesos aparte; `--restricted` y lista de denegación en el puente (§19) |
+| 7 | Complementos no seguros | Por construcción: servidores MCP como procesos aparte. Medido solo en el puente del autor: sin lista de denegación la sesión hija leía el `.env` entero (§19) |
 | 8 | Agencia excesiva | Medido: 40 de 40 sin escritura sin aprobar (§42) |
 | 9 | Sobre-dependencia | Medido, y sobre el propio evaluador: el juez emite números que contradicen su razonamiento (§30, §32) |
 | 10 | Robo de modelo | No aplica |
 
 De los nueve guardarraíles que enumera el material, el proyecto tiene
-siete; falta la moderación de contenido (hueco justificado: en un
+ocho (la tabla de `MODULO_4.md` los recorre uno a uno); falta la moderación
+de contenido (hueco justificado: en un
 asistente interno sobre documentación propia el vector es la consulta, y
 la inyección lo cubre en parte) y la categoría `otro` hace de filtro de
 fuera de ámbito.
@@ -861,9 +901,16 @@ leyendo EUR-Lex y se contrastaron contra la Comisión y el BOE (fuentes en
   completa, crece con el corpus. Lo que no cubre: las consultas registradas
   que citaron el documento (R-16).
 - **Retención del registro**: capítulo 6.2.
-- **Transferencias internacionales**: hoy no viaja ningún dato real porque
-  los tres inquilinos son sintéticos. En producción exige base jurídica y
-  un DPA con el proveedor; es el hueco documental R-18.
+- **Transferencias internacionales y lo que producción exigiría**: hoy no
+  viaja ningún dato real porque los tres inquilinos son sintéticos, así que
+  el riesgo está mitigado por el dato, no por el contrato. Con un cliente
+  real, cada consulta manda fragmentos de sus documentos y de su CRM a
+  proveedores fuera de la Unión, y eso exige base jurídica para la
+  transferencia (cláusulas tipo o decisión de adecuación), un contrato de
+  encargado con cada proveedor, un registro de actividades de tratamiento
+  y, si el uso tocara el anexo III sin la excepción del 6.3, una
+  evaluación de impacto. Nada de eso está escrito: es el hueco R-18, y la
+  memoria lo declara en vez de darlo por hecho.
 
 ### 7.6 Cadena de suministro
 
@@ -880,11 +927,12 @@ fijada, y el inventario lo dice.
 
 La prueba medida de agnosticidad (§43): `gestoria_laboral` en **5 min
 42 s**, dos iteraciones, **cero ficheros de código**: un manifiesto, seis
-documentos de corpus y un banco de 28 casos. 20 de 28 a la primera (acierto
+documentos de corpus y un banco de 28 casos (29 desde el §49, que añadió
+un caso de agregación después del alta). 20 de 28 a la primera (acierto
 del enrutador 0,769, cinco fallos y todos a `procedimientos`) y 25 de 28
-tras reescribir tres descripciones en treinta y cinco segundos (0,923,
-cobertura del riesgo de 0,857 a 1,0); revisado en frío, dos de los tres
-rojos eran del banco y no del sistema: **27 de 28** (§45). El control de
+tras reescribir tres descripciones: 65 s entre las dos pasadas, banco
+incluido (0,923, cobertura del riesgo de 0,857 a 1,0); revisado en frío,
+dos de los tres rojos eran del banco y no del sistema: **27 de 28** (§45). El control de
 acceso y la clasificación por el AI Act vienen gratis con el manifiesto.
 Sin banco, `procedimientos` habría llegado a producción con un 77 % de
 acierto. Salvedad que la cifra declara: el alta la hizo un asistente de
@@ -915,7 +963,7 @@ descripciones, no código.
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
 
-Tres instancias medidas en cuatro semanas (R-07): `gemini-2.5-flash`
+Tres instancias medidas en cinco días (R-07): `gemini-2.5-flash`
 retirado para proyectos nuevos (§29), `claude-sonnet-5` descartando
 `temperature` sin avisar (§26), `gemini-embedding-001` en retirada sin
 precio publicado (§35). Y un precio del repositorio un 50 % alto (§21). Las
@@ -925,6 +973,22 @@ identificador, conmutación de proveedor verificada, AIBOM.
 ## 9. Límites y lo que queda fuera
 
 - **El banco es de un turno.** No hay evaluación conversacional multivuelta.
+- **El banco lo escribió quien construyó el sistema, y no hay conjunto
+  reservado.** Las descripciones de categoría de la agencia se afinaron en
+  tres iteraciones sobre el mismo banco (§6); el umbral del enrutador por
+  embeddings sí se calibró en un inquilino y se aplicó a otros (§48), pero
+  para Haiku no hay separación. Lo más parecido a una transferencia es el
+  alta de la gestoría: un banco nuevo, escrito antes de la primera pasada.
+- **No hay prueba de carga ni de concurrencia.** Las latencias son de
+  ejecuciones secuenciales; Chroma es local y en Render el plan gratuito
+  duerme y reconstruye el índice al despertar. Que lo que escala sea el
+  número de inquilinos es una afirmación de diseño con una medida (el
+  alta), no una de rendimiento.
+- **El generador no se comparó** con ningún otro modelo (capítulo 3.3).
+- **La interfaz vale para una demostración, no para un cliente**, y lo dice
+  en pantalla: contraseñas con SHA-256 y sal, comparación en tiempo
+  constante, pero sin límite de intentos, sin caducidad de sesión y sin
+  límite de gasto por usuario (R-08).
 - **Sin anotación humana** del acuerdo con el juez; el juez se evaluó
   contra sí mismo y contra métricas deterministas.
 - **La denegación parcial** en el camino documental heredado no avisa al
@@ -956,7 +1020,7 @@ Lo que se defiende, en tres frases con su número:
    proyecto cuelga de él. Las decisiones las anclan métricas que no varían.
 
 Y lo que el proyecto aprendió sobre método, que vale más que cualquier
-cifra: cinco veces el error estaba en el instrumento y no en el sistema;
+cifra: seis veces el error estaba en el instrumento y no en el sistema;
 tres afirmaciones sobre sesgo fueron falsas antes de que una fuera cierta;
 y una hipótesis que sale de los datos no se confirma con los mismos datos.
 
@@ -1008,13 +1072,7 @@ Dos reglas de método salieron del propio proyecto y están medidas:
   resultados posibles antes de abrir la consola del proveedor; la consola
   marcó uno de los tres.
 - **Una hipótesis que sale de los datos no se confirma con los mismos
-  datos** (§44). El matiz por origen en la generación era 2,00 veces su
-  suelo con 8 tiradas y 1,00 con 24 nuevas.
-
-El proyecto se trabajó desde dos superficies, Claude Code y la app de
-Claude, con un puente propio entre ellas (capítulo 6.5). Lo que un agente
-podía hacer sobre el repositorio quedó acotado por estructura, y el primer
-defecto que se encontró fue precisamente en esa acotación (§19).
+  datos** (§44, y capítulo 7.3).
 
 ### 12.3 La defensa
 

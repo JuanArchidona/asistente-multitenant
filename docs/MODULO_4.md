@@ -60,7 +60,7 @@ decir qué hay en cada una **con la ejecución que lo respalda**.
 
 ### Los nueve guardarrailes (4.3)
 
-El material los enumera; el proyecto tiene **siete de los nueve**, y eso es una
+El material los enumera; el proyecto tiene **ocho de los nueve** (siete hasta que el §44 midió el sesgo en generación), y eso es una
 afirmación citable:
 
 | Guardarrail | En el proyecto |

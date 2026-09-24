@@ -246,7 +246,7 @@ y §14).
   módulo, el 4.1 es ética y normativa y **el 4.2, 4.3 y 4.4 son seguridad,
   guardarrailes, red-teaming y gobierno del riesgo**. La primera lectura, hecha
   solo con el 4.1 delante, concluyó que no era ciberseguridad y era falsa.
-  El proyecto cubre **7 de los 9 guardarrailes** que enumera el 4.3 y tiene
+  El proyecto cubre **8 de los 9 guardarrailes** que enumera el 4.3 y tiene
   material medido en los diez riesgos del OWASP Top 10 para LLM o en la mayoría;
   los huecos ordenados están al final de `MODULO_4.md`.
 - **El material docente del máster no entra en este repositorio.** Es obra de un
