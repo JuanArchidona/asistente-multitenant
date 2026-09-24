@@ -121,13 +121,23 @@ OWASP LLM 8).
 - Abrir `reports/`: cada cifra de la memoria tiene su carpeta.
 - Si hay tiempo, `uv run python -m evals.runner --etiqueta demo --sin-juez`
   sobre la agencia: 38 casos en menos de un minuto, sin coste de juez.
+- Si preguntan por LangGraph (y suelen): el mismo sistema encadenado por
+  un grafo existe, `ORQUESTADOR=langgraph`, y está medido (§50): mismas 106
+  llamadas y mismos 51.559 tokens de entrada que la línea base en los 53
+  casos del heredado, +0,011 s de latencia, y a cambio 95 líneas de
+  orquestación frente a 21 y 14 paquetes. Enseñar `reports/langgraph_empresa`
+  al lado de `reports/empresa_quien`. Frase para el tribunal: "No es que no
+  sepamos usarlo; es que lo medimos y para un flujo de un turno no compra
+  nada."
 
 ## 6. Cierre (1 minuto)
 
 Tres frases, cada una con un número detrás:
 
 - "El aislamiento es estructural: una colección por inquilino, y un test que
-  abre la colección equivocada falla."
+  abre la colección equivocada falla. Dar de alta un cliente costó cinco
+  minutos y cuarenta y dos segundos sin tocar un fichero de código, y su banco
+  da 28 de 29."
 - "El control de acceso está medido: cobertura del riesgo 1,0 en la agencia,
   y una fuga real encontrada y cerrada en el heredado."
 - "El evaluador también se evaluó: 4 de 24 veredictos del juez eran falsos y
