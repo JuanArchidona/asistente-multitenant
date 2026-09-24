@@ -10,8 +10,12 @@ aparece en ningún sitio más que en el destinatario.
 import hashlib
 import hmac
 import json
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
+
+RAIZ = Path(__file__).resolve().parents[1]
 
 from src.canal_whatsapp import (
     MAX_CARACTERES,
@@ -324,3 +328,25 @@ def test_una_lista_invalida_falla_con_mensaje(monkeypatch):
     monkeypatch.setenv("WHATSAPP_USUARIOS_JSON", '{"numeros": []}')
     with pytest.raises(ValueError):
         cargar_telefonos()
+
+
+# --- El servidor construye el índice antes que el sistema (24-09-2026) ------
+
+
+def test_el_servidor_asegura_el_indice_antes_de_crear_el_sistema(monkeypatch):
+    """Las dos primeras consultas reales del canal en Render terminaron en
+    NotFoundError porque el disco es efímero y nadie construía el índice:
+    `app.py` y el banco lo hacían, el servidor no. Aquí se fija el orden."""
+    import src.canal_whatsapp_servidor as srv
+
+    orden: list[str] = []
+    cfg = SimpleNamespace(tenant=SimpleNamespace(id="empresa_servicios", ai_act=SimpleNamespace(aviso_usuario="aviso")))
+    monkeypatch.setattr(srv, "load_config", lambda tenant_id, con_juez=True: cfg)
+    monkeypatch.setattr(srv, "asegurar_indice", lambda c, avisar=None: orden.append("indice"))
+    monkeypatch.setattr(srv, "desde_config", lambda c: None)
+    monkeypatch.setattr(srv, "Sistema", lambda c, registro=None: orden.append("sistema") or object())
+    monkeypatch.setenv("WHATSAPP_USUARIOS_JSON", (RAIZ / "whatsapp.example.json").read_text("utf-8"))
+
+    canal = srv.construir_canal()
+    canal.sistema("empresa_servicios")
+    assert orden == ["indice", "sistema"]

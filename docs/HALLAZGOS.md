@@ -3388,3 +3388,65 @@ base no cambia: `ORQUESTADOR=vanilla`.
 503 externo; la cobertura del riesgo de la ejecución completa por el grafo
 (0,9091) no es un dato del grafo sino del proveedor, y por eso se repitió
 la dimensión aparte en vez de tomar la cifra tal cual.
+
+## 51. El canal de WhatsApp llegó a producción sin índice: la primera consulta real fue un NotFoundError, y el guion de Meta tenía cuatro pasos que no estaban escritos
+
+**Fuente:** el encargo E-0009 (24-09-2026), ejecutado por la app de Claude
+con Juan delante y registrado por el puente; la reproducción en local; y
+`data/observabilidad/empresa_servicios/trazas.jsonl`.
+
+**Qué pasó.** La puesta en marcha real del canal (app de Meta, variables en
+Render, webhook, mensajes desde el teléfono de Juan) llegó de extremo a
+extremo en unas dos horas y media, y las dos primeras consultas reales
+(11:35 y 11:36) devolvieron la frase de frontera del canal: *"La consulta no
+se pudo atender (NotFoundError)"*. El control de acceso no llegó a probarse
+porque la segunda pregunta, la del salario, falló igual que la primera.
+
+**La causa, con traza y no por hipótesis.** El registro del canal captura la
+excepción y la manda al registro de producción (§46), así que los logs de
+Render no la enseñaban. Reproducido en local con un `CHROMA_PATH` vacío y el
+mismo `--simular`: la misma frase, y en el registro de producción la línea
+`_fallo: NotFoundError ... Collection [corpus_empresa__empresa_servicios]
+does not exist`. En Render el disco es efímero: el índice no existe hasta que
+alguien lo construye, y `app.py` y el banco lo construían cada uno con su
+copia de `asegurar_indice`; el servidor de WhatsApp no tenía ninguna. Tres
+puntos de entrada, dos copias, un olvido: el mismo patrón que el §8 del
+`ejecutor` único.
+
+**Corrección.** `indice_existe` y `asegurar_indice` pasan a `src/ingest.py` y
+los tres puntos de entrada llaman a la misma función; el servidor la llama
+antes de crear el sistema, y un test fija el orden. `/salud` devuelve además
+el commit desplegado, porque hasta hoy no había forma de saber desde fuera
+qué versión corría. El servicio pasa a `autoDeploy: true`.
+
+**Lo que Meta exigió y el documento no decía**, en el orden en que apareció:
+el flujo por caso de uso con portfolio empresarial; que sin publicar la app
+solo llegan los webhooks de prueba del panel, y publicar exige una URL de
+política de privacidad (se redactó y publicó una desde la app de Claude);
+que la cuenta de WhatsApp Business hay que suscribirla a la app con una
+llamada a `subscribed_apps` desde la terminal; y que un token generado antes
+de publicar devolvía `403 (#131005)` al enviar. Cada uno costó una vuelta:
+mensajes reales a las 10:55 y a las 11:12 que no llegaron al servicio, y uno a
+las 11:27 que llegó y no se pudo contestar. `consultar_tfm` había afirmado que
+en modo de pruebas no hacía falta política publicada; Meta lo desmintió en la
+práctica. `docs/CANAL_WHATSAPP.md` lo recoge.
+
+**Lo medido, y lo que no.** Despliegues de 1 min 31 s y 1 min 22 s; webhook
+verificado a la primera; del envío a la recepción en el servicio, 11:27 a
+11:28:18 con el reloj del teléfono a precisión de minuto; respuesta en el
+mismo minuto que la pregunta en los dos mensajes. **No hay todavía latencia
+de una respuesta real ni prueba del control de acceso por el canal**: exigen
+redesplegar con la corrección y repetir las dos preguntas antes de que caduque
+el token temporal (25-09, sobre las 11:32). El comportamiento con un número
+no autorizado se vio con el webhook de prueba del panel: el servicio lo
+rechazó por huella e intentó contestar la frase fija, y Meta devolvió `400
+(#131030)` porque el número de pruebas solo escribe a destinatarios
+registrados. Es lo previsto, contra una restricción del modo de pruebas.
+
+**Lo que enseña.** Un canal probado con mensajes simulados prueba el canal,
+no el entorno: lo que falló no estaba en las 25 pruebas porque en local el
+índice siempre existe. Y la regla de nada de fallbacks silenciosos funcionó
+en los dos lados: el canal contestó con el nombre de la excepción en vez de
+"no tengo esa información", y el registro de producción guardó el fallo con
+el nombre de la colección que faltaba. Sin eso, la causa habría sido una
+hipótesis del análisis automático en vez de una línea de log.

@@ -44,6 +44,7 @@ from .canal_whatsapp import (
     huella,
 )
 from .config import load_config
+from .ingest import asegurar_indice
 from .observabilidad import desde_config
 
 VERSION_GRAPH = "v21.0"
@@ -104,6 +105,10 @@ def construir_canal() -> CanalWhatsApp:
 
     def fabrica(tenant_id: str) -> Sistema:
         cfg = config_de(tenant_id)
+        # El índice, antes que el sistema: en Render el disco es efímero y sin
+        # esto la primera consulta real del canal terminó en NotFoundError
+        # (24-09-2026, ver `asegurar_indice`).
+        asegurar_indice(cfg, avisar=lambda m: print(f"[whatsapp] {m}", file=sys.stderr))
         return Sistema(cfg, registro=desde_config(cfg))
 
     def aviso(tenant_id: str) -> str:
@@ -140,7 +145,9 @@ def crear_manejador(canal: CanalWhatsApp, enviador, verify_token: str, app_secre
         def do_GET(self):  # nombre que exige BaseHTTPRequestHandler
             url = urllib.parse.urlparse(self.path)
             if url.path == "/salud":
-                return self._responder(200, "ok")
+                # Con el commit desplegado (Render lo expone en RENDER_GIT_COMMIT):
+                # sin esto no hay forma de saber desde fuera qué versión corre.
+                return self._responder(200, f"ok {os.getenv('RENDER_GIT_COMMIT', 'local')[:7]}")
             if url.path != "/webhook":
                 return self._responder(404, "no encontrado")
             q = urllib.parse.parse_qs(url.query)

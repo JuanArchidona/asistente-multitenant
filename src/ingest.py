@@ -86,6 +86,40 @@ def trocear(texto: str, cfg: Config) -> list[str]:
     return _chunk_chars(texto, cfg.chunk_size, cfg.chunk_overlap)
 
 
+def indice_existe(cfg: Config) -> bool:
+    """Existe *y* tiene contenido.
+
+    Una colección creada pero vacía no es un índice: es el resto de una ingesta
+    que se cortó a mitad. Darla por buena hace que un barrido reporte cero
+    aciertos y parezca que la configuración es mala cuando lo que pasa es que
+    nunca llegó a indexarse.
+    """
+    client = chromadb.PersistentClient(path=cfg.chroma_path)
+    nombres = [getattr(c, "name", c) for c in client.list_collections()]
+    if cfg.collection not in nombres:
+        return False
+    return client.get_collection(cfg.collection).count() > 0
+
+
+def asegurar_indice(cfg: Config, avisar=None) -> dict | None:
+    """Construye el índice de esta configuración si aún no existe.
+
+    Vive aquí y no en cada punto de entrada porque el 24-09-2026 el canal de
+    WhatsApp salió a producción sin llamarlo: en el disco efímero de Render no
+    había colección, y las dos primeras consultas reales del canal terminaron
+    en `NotFoundError` (`Collection [...] does not exist`). La interfaz y el
+    banco ya lo hacían, cada uno con su copia; ahora los tres llaman a esta.
+    """
+    if indice_existe(cfg):
+        return None
+    if avisar:
+        avisar(f"Construyendo el índice {cfg.collection}...")
+    info = construir_indice(cfg)
+    if avisar:
+        avisar(f"Índice construido: {info['documentos']} fragmentos, {info['tokens_embebidos']} tokens de embeddings.")
+    return info
+
+
 def construir_indice(cfg: Config, uso=None) -> dict:
     # Contado exacto: en la ingesta la latencia no importa y el volumen si.
     # Sin `uso` se crea uno local para que el resultado traiga la cifra igual.

@@ -76,7 +76,7 @@ Hora de fin de la fase A: anotar.
 3. *Manual Deploy > Deploy latest commit*. Anotar la hora de inicio y la de
    *Live*. El primer despliegue del otro servicio tardó 1 min 32 s (§38).
 4. Comprobar que responde: abrir
-   <https://asistente-whatsapp.onrender.com/salud>. Tiene que decir `ok`.
+   <https://asistente-whatsapp-n2s9.onrender.com/salud> (Render añade un sufijo al nombre; la URL exacta está en el dashboard del servicio). Tiene que decir `ok`.
    Si el servicio no arranca, *Logs* dirá `[whatsapp] Faltan variables de
    entorno: ...` con cuáles: es la comprobación de arranque, no un error del
    despliegue.
@@ -86,7 +86,7 @@ Hora de fin de la fase B: anotar, con la duración del despliegue.
 ## Fase C: el webhook en Meta
 
 1. Volver a la app de Meta: *WhatsApp > Configuration > Webhook > Edit*.
-2. *Callback URL*: `https://asistente-whatsapp.onrender.com/webhook`.
+2. *Callback URL*: `https://asistente-whatsapp-n2s9.onrender.com/webhook` (la URL del servicio en Render, más `/webhook`).
    *Verify token*: la palabra de la fase A. *Verify and save*. Meta llama al
    servicio con un `hub.challenge`; si el servicio está dormido (plan
    gratuito) la primera llamada puede tardar unos 30 s en responder y Meta

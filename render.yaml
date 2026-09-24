@@ -53,12 +53,15 @@ services:
   # WHATSAPP_* de la app de Meta el servidor no arranca (un webhook sin firma
   # acepta mensajes de cualquiera). autoDeploy en falso hasta que existan las
   # credenciales; entonces se despliega a mano desde el dashboard.
+  # Desde el 24-09-2026 las credenciales existen (encargo E-0009) y el
+  # servicio se despliega con cada push, como el otro. URL real asignada por
+  # Render: https://asistente-whatsapp-n2s9.onrender.com
   - type: web
     name: asistente-whatsapp
     runtime: python
     region: frankfurt
     plan: free
-    autoDeploy: false
+    autoDeploy: true
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_whatsapp_servidor
     healthCheckPath: /salud

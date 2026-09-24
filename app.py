@@ -23,13 +23,12 @@ Lo que decide la arquitectura, y no la interfaz:
 Lo que NO hace, y está escrito en docs/DESPLIEGUE.md: cargar documentos,
 gestionar usuarios desde la interfaz, ni sustituir el tope duro del prepago.
 """
-import chromadb
 import streamlit as st
 
 from src.acceso import cargar_directorio, tope_superado
 from src.agent import Sistema
 from src.config import Config, load_config
-from src.ingest import construir_indice
+from src.ingest import construir_indice, indice_existe
 from src.observabilidad import desde_config, leer, resumir
 
 st.set_page_config(page_title="Asistente multi-tenant", layout="wide")
@@ -51,11 +50,6 @@ def config_de(tenant_id: str) -> Config:
 def sistema_de(tenant_id: str) -> Sistema:
     cfg = config_de(tenant_id)
     return Sistema(cfg, registro=desde_config(cfg))
-
-
-def indice_existe(cfg: Config) -> bool:
-    client = chromadb.PersistentClient(path=cfg.chroma_path)
-    return cfg.collection in [getattr(c, "name", c) for c in client.list_collections()]
 
 
 def asegurar_indice(cfg: Config) -> None:

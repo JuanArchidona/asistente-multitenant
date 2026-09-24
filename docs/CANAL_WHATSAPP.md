@@ -33,7 +33,12 @@ servicio y puede costar el número.
 
 ## Puesta en marcha
 
-### Lo que tiene que hacer Juan (una vez, unos 20 minutos)
+### Lo que tiene que hacer Juan (una vez; en la práctica, 70 minutos)
+
+> **Hecho el 24-09-2026** por la app de Claude con Juan delante (encargo
+> E-0009). Los pasos de abajo eran los previstos; lo que Meta pidió de
+> verdad está en la lista *Lo que no estaba en el guion*, al final de esta
+> sección, y es lo que hay que leer antes de repetirlo.
 
 1. En [developers.facebook.com](https://developers.facebook.com) crear una
    **app de tipo Business** y añadirle el producto **WhatsApp**. Meta asigna
@@ -50,6 +55,45 @@ servicio y puede costar el número.
    suscribir el campo `messages`.
 7. Pasar los cuatro valores por variables de entorno, **nunca por el
    chat ni por el repositorio**.
+
+**Lo que no estaba en el guion, y Meta exigió el 24-09-2026:**
+
+- El flujo actual de Meta no pregunta el tipo de app: pregunta el **caso de
+  uso** ("Conecta con los clientes a través de WhatsApp"), y ese caso exige
+  un **portfolio empresarial**; vale uno sin verificar. Las condiciones se
+  aceptan dos veces (app y Cloud API).
+- **Sin publicar la app, solo llegan los webhooks de prueba del panel.** Los
+  mensajes reales no llegan aunque el webhook esté verificado. Publicar
+  exige una **URL de política de privacidad**; se redactó una a partir de
+  este documento y de `RETENCION.md` y se publicó como página pública desde
+  la app de Claude. Con un cliente real esa política tiene que ser la del
+  cliente, en su dominio.
+- Publicada la app, los mensajes **tampoco llegan hasta suscribir la cuenta
+  de WhatsApp Business (WABA) a la app**: `POST /{WABA_ID}/subscribed_apps`
+  con el token, desde una terminal. El panel no lo hace solo.
+- Un token temporal generado antes de publicar puede devolver `403 (#131005)
+  Access denied` al enviar; se regenera después de publicar.
+- La URL del servicio la asigna Render con sufijo:
+  `https://asistente-whatsapp-n2s9.onrender.com`. `/salud` responde `ok` y
+  el commit desplegado.
+- El webhook de prueba del panel usa un número ficticio; el servicio lo
+  rechaza como no autorizado (huella en la salida) y, al intentar contestarle
+  la frase fija, Meta devuelve `400 (#131030)` porque en modo de pruebas solo
+  se puede escribir a los destinatarios registrados. No es un fallo del canal:
+  es el comportamiento previsto (un número desconocido recibe una frase
+  fija) contra una restricción del número de pruebas.
+- **Y el fallo propio**: las dos primeras consultas reales devolvieron
+  `NotFoundError`, porque el servidor no construía el índice de Chroma y el
+  disco de Render es efímero. `app.py` y el banco lo hacían; el servidor no.
+  Corregido el mismo día (`asegurar_indice` en `src/ingest.py`, que llaman
+  los tres puntos de entrada) y reproducido antes en local con un
+  `CHROMA_PATH` vacío; `HALLAZGOS.md` §51.
+
+Tiempos medidos por la app ese día (hora de Madrid): fase A (Meta) hasta las
+10:20; despliegue en Render 1 min 31 s y, tras cambiar el token, 1 min 22 s;
+webhook verificado a la primera a las 10:51; primer mensaje real que llegó
+al servicio, 11:27, recibido a las 11:28:18; primera respuesta (con el
+NotFoundError) a las 11:35, en el mismo minuto que la pregunta.
 
 ### Variables
 

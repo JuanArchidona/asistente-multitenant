@@ -17,10 +17,8 @@ import hashlib
 from dataclasses import replace
 from pathlib import Path
 
-import chromadb
-
 from src.config import Config
-from src.ingest import construir_indice
+from src.ingest import construir_indice, indice_existe
 
 # Parámetros que condicionan el contenido del índice.
 CAMPOS_INDICE = ("chunk_strategy", "chunk_size", "chunk_overlap", "embed_model", "embed_dims")
@@ -102,21 +100,6 @@ def variante(base: Config, **cambios) -> Config:
     """Nueva Config con los cambios aplicados y la colección recalculada."""
     nueva = replace(base, **cambios)
     return replace(nueva, collection=nombre_coleccion(nueva))
-
-
-def indice_existe(cfg: Config) -> bool:
-    """Existe *y* tiene contenido.
-
-    Una colección creada pero vacía no es un índice: es el resto de una ingesta
-    que se cortó a mitad. Darla por buena hace que el barrido reporte cero
-    aciertos y parezca que la configuración es mala cuando lo que pasa es que
-    nunca llegó a indexarse.
-    """
-    client = chromadb.PersistentClient(path=cfg.chroma_path)
-    nombres = [getattr(c, "name", c) for c in client.list_collections()]
-    if cfg.collection not in nombres:
-        return False
-    return client.get_collection(cfg.collection).count() > 0
 
 
 def asegurar_indice(cfg: Config, forzar: bool = False, verboso: bool = True) -> dict | None:
