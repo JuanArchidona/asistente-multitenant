@@ -136,6 +136,14 @@ arranque.
 | **Aprobación humana por texto** | Proponer una visita, `APROBAR`, y ver la referencia `VIS-*` en el CRM y las tres líneas en el registro (§42) |
 | **Rechazo de un número desconocido** | Un tercer número escribe y recibe la frase fija; en el registro no hay consulta y en la salida del servidor hay una huella |
 
+**Medido el 24-09-2026 tras el redespliegue** (§51): las dos preguntas de
+la hoja respondieron en el mismo minuto de enviarse, la de vacaciones con
+la misma respuesta que la web y la del salario con la denegación sin el
+dato; aviso de IA en el primer mensaje; la línea "Retenido por permiso" en
+las dos. Sin medir todavía: la latencia interna (en el registro del
+servicio, en el disco de Render), el aislamiento con dos números y la
+aprobación por texto en vivo.
+
 ## Riesgos que abre, y dónde están
 
 - **Transferencia internacional (R-18)**: cada mensaje pasa por Meta. Con

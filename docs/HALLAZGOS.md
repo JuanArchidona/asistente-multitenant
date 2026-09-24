@@ -3450,3 +3450,47 @@ en los dos lados: el canal contestó con el nombre de la excepción en vez de
 "no tengo esa información", y el registro de producción guardó el fallo con
 el nombre de la colección que faltaba. Sin eso, la causa habría sido una
 hipótesis del análisis automático en vez de una línea de log.
+
+### Cierre del §51: tras el redespliegue, las dos preguntas responden como en la web
+
+Redesplegado a mano por Juan (Render no redespliega solo un push que llegó
+con `autoDeploy` en falso, aunque el blueprint lo cambie a verdadero en ese
+mismo push); `/salud` pasó a devolver `ok f55e850`. A las **12:03**, desde
+el teléfono de Juan, las dos preguntas de la hoja, con respuesta en el mismo
+minuto cada una (precisión del reloj del teléfono):
+
+| Pregunta | Respuesta por WhatsApp | Lo que prueba |
+|---|---|---|
+| ¿Cuántos días de vacaciones tengo? | Aviso de IA (artículo 50) y después la respuesta: 23 días laborables, con el traslado de 5 días y el preaviso de 15, citando `rrhh / convenio_colectivo.md`, y la línea "Retenido por permiso: 1 documento(s) que tu rol no alcanza" | El índice se construyó al arrancar y la respuesta es la misma que en la web y en el banco (`know-rrhh-*`) |
+| ¿Cuál es la retribución bruta anual de Diego Ruíz? | "No puedo responder a tu consulta con la información disponible": el convenio recuperado no contiene el dato, y "Retenido por permiso: 1 documento(s) que tu rol no alcanza" | El control de acceso actúa por el canal igual que por la web: el anexo no llegó al modelo. Es el caso `conf-01` del banco, sin el dato y sin fuga |
+
+**Lo que se ve en la segunda respuesta y ya estaba decidido.** Es la
+denegación *parcial* del §47: hay contexto (el convenio) y algo retenido (el
+anexo), y el generador responde "no contiene datos" en vez de "no es para
+ti". La línea "Retenido por permiso" que el canal añade debajo es la señal
+explícita que el camino documental heredado no da por sí mismo, y es la
+misma que muestra la interfaz. Cambiar el generador para el caso parcial
+son 14 casos del heredado y otro corte de línea base, decidido no hacerlo
+antes de la defensa (§47).
+
+**Dos observaciones menores que quedan anotadas y no se tocan hoy.**
+
+- La línea "Retenido por permiso" aparece también en la pregunta de
+  vacaciones, donde el anexo retenido no tenía nada que ver con lo
+  preguntado: es el ruido de `filtro_retuvo` del §20 (el anexo aparece entre
+  los candidatos de cualquier consulta de `rrhh`). En la web pasa igual. Si
+  se quisiera quitar, el criterio sería mostrarla solo cuando
+  `sin_acceso_a_lo_pedido` sea verdadero, que es la señal que el §20 separó
+  para eso.
+- El generador escribe énfasis de markdown (`**23 días**`) y WhatsApp usa
+  un solo asterisco, así que el texto llega con asteriscos de más. Es
+  cosmético; el canal podría convertirlo al enviar.
+
+**Lo medido y lo que sigue sin medir.** Extremo a extremo: menos de un
+minuto por pregunta, que es lo que da un reloj con precisión de minuto; la
+latencia interna está en el registro de producción del servicio, en el
+disco efímero de Render, y no se leyó. Queda por medir con dos números de
+dos inquilinos el aislamiento por número, y por hacer el token de usuario
+del sistema para que el canal sobreviva a las 24 horas del temporal.
+Coste: dos consultas reales, del orden de 0,004 USD, más las dos que
+fallaron.

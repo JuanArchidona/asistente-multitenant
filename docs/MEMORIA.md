@@ -398,8 +398,13 @@ alguien pidió lo que no le toca, y aplica la política de retención (§6.2).
   del webhook obligatoria, el teléfono nunca entra en el registro. 25
   pruebas con mensajes simulados (`tests/test_canal_whatsapp.py`); 5,1 s una
   consulta contra el sistema real (bitácora, sesión 7; sin carpeta en
-  `reports/`).
-  [PENDIENTE: prueba en vivo con la cuenta de pruebas de Meta.]
+  `reports/`). **Probado en vivo el 24-09-2026** (§51): app de Meta,
+  webhook y servicio en Render; las dos primeras consultas reales dieron
+  `NotFoundError` porque el servidor no construía el índice en el disco
+  efímero de Render (la interfaz y el banco sí lo hacían, cada uno con su
+  copia), corregido el mismo día con una única `asegurar_indice`; tras el
+  redespliegue, la pregunta de vacaciones respondió como en la web y la del
+  salario denegó sin el dato y sin fuga, en menos de un minuto cada una.
 - **Correo**: no construido; queda fuera (capítulo 9).
 
 ## 3. Selección y justificación de modelos, patrones y herramientas
@@ -1000,7 +1005,9 @@ identificador, conmutación de proveedor verificada, AIBOM.
 - **La moderación de contenido** no existe.
 - **El coste blando es un suelo** y no hay límite por usuario ni por minuto.
 - **Los embeddings no se convierten a dólares.**
-- **WhatsApp** no está probado en vivo; **correo** no está construido.
+- **WhatsApp** está probado en vivo con un número y dos preguntas; falta
+  el aislamiento con dos números y el token permanente. **Correo** no está
+  construido.
 - **Conectores a CRM comerciales**, despliegue íntegramente local y
   omnicanalidad completa quedan fuera (`ALCANCE.md` §7).
 
