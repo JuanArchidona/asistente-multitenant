@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1102 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1107 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -43,7 +43,7 @@ servicio público desplegado. **1102 tests en verde**, `ruff` limpio.
 | Rama documental (RAG heredado) | Hecho |
 | Rama estructurada (MCP) | Hecho |
 | Control de acceso en las dos ramas | Hecho y medido |
-| Bancos de evaluación por inquilino | Hecho (53 + 40 + 28 casos) |
+| Bancos de evaluación por inquilino | Hecho (53 + 40 + 29 casos; el 24-09 la gestoría recuperó su caso de agregación real, §49) |
 | Cobertura del riesgo en el banco | Hecha y medida (A 0,636 / C 0,778) |
 | Contabilidad de coste del sistema y del juez | Hecha y medida, con clave propia por fin usada (§18) |
 | Puente MCP con la app (consulta y registro) | Hecho, declarado en la app y probado contra exfiltracion (§19) |
@@ -83,7 +83,7 @@ que profundidad de la documentación.
 | Para qué está | Sostener el banco heredado como **suite de regresión** | Demostrar agnosticidad y la rama estructurada | Medir el alta de un cliente nuevo (§43): 5 min 42 s, sin código |
 | Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), expedientes, procesos, normativa, comercial, actas | laboral, fiscal, clientes, procedimientos, actas |
 | Corpus | 7 documentos | 10 documentos | 6 documentos |
-| Banco | 53 casos | 40 casos | 28 casos (27/28, §45) |
+| Banco | 53 casos | 40 casos | 29 casos (28/29, §49) |
 | MCP | No | `mcp_servers/agencia_crm.py`, con una escritura aprobada por persona | No |
 
 Los tres son **sintéticos**. Ningún dato real de ninguna empresa entra aquí: el
@@ -167,7 +167,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1102 tests, sin llamadas a API
+uv run pytest                                      # 1107 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

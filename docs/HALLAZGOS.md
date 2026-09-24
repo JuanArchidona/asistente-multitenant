@@ -3210,3 +3210,65 @@ hereda el ruido del corpus; la descripción, no.
   categoría lleve **ejemplos** además de la frase, porque eso es lo que
   daría al clasificador la distinción de tipo de documento que hoy no ve.
   Se declara y no se hace: el bloque 3 se corta antes que la documentación.
+
+## 49. El banco de la gestoría recupera su caso de agregación real, y el primer rojo fue del banco otra vez
+
+**Ejecuciones:** `gestoria_agregacion` (29 casos, sin juez, 0,061 USD) y
+`gestoria_agregacion_v2` (reevaluación desde sus trazas, sin coste).
+
+**Por qué.** El §45 corrigió `agg-01` porque el enrutador acertaba: la
+consulta decía literalmente "plazos internos", que es el título de una tabla
+del protocolo de recepción, y esa tabla tenía las dos filas pedidas. Al
+corregir la categoría y el archivo esperados, el caso pasó a medir un
+documento, y el banco de la gestoría se quedó sin ningún caso que exigiera
+combinar dos. La dimensión `agregacion` seguía existiendo con dos casos,
+pero ninguno medía recall con más de una fuente.
+
+**El caso nuevo, `agg-03`.** Una baja de trabajador: el plazo para
+comunicarla a la Seguridad Social está en `altas_bajas_seguridad_social.md`
+(tres días naturales) y el envío del finiquito en `nominas_y_convenios.md`
+(el mismo día, al cliente en 24 horas). Los dos documentos son de `laboral`,
+así que no entra ningún grupo de solapamiento: es agregación dentro de una
+categoría, la misma forma que tienen los `agg-*` del inquilino heredado.
+Escrito antes de ejecutar nada.
+
+**Primera pasada: 27 de 29, y el rojo nuevo era del banco.** El enrutador
+mandó la consulta a `laboral` con confianza 0,95, la recuperación trajo los
+dos documentos (`hit_rate` y `recall_at_k` 2/2, distancias 0,27 y 0,27) y la
+respuesta dio los dos datos: *"3 días naturales siguientes al cese"* y
+*"se envía al cliente en 24 horas"*. Falló `contiene` porque el literal
+exigido era `tres dias naturales`, con el número en letra, y el comparador
+no equipara `tres` con `3` **a propósito**: el docstring de `normalizar`
+dice que un dato cuya redacción varía así no es candidato a métrica literal
+y se comprueba en la capa de juez. Es exactamente el defecto que el §45
+dejó contado —*"quedan ocho literales más con números en letra en los tres
+bancos"*— y el caso nuevo lo repetía. Contados hoy: siguen siendo ocho,
+más este.
+
+Lo llamativo es que `know-lab-02` y `robust-01` exigen el mismo literal,
+`tres dias naturales`, y pasan: cuando la pregunta es de un solo dato el
+generador copia la forma del documento, y cuando tiene que combinar dos
+escribe la cifra. El literal en letra no es incorrecto, es inestable, y se
+ve cuando la respuesta se alarga.
+
+**Corrección, y por qué no es relajar el banco.** `debe_contener` pasa a
+`["dias naturales", "24 horas"]`, que casa con las dos formas. Lo que se
+pierde es explícito: `dias naturales` también casaría con el plazo del alta
+(sesenta días naturales), así que el literal ya no prueba que la cifra sea
+*tres*, solo que se dio un plazo en días naturales; el `3` queda para la
+capa de juez, que es donde el comparador dice que va. Lo que no se pierde:
+la recuperación sigue exigiendo los dos archivos, y `24 horas` sigue
+anclando el segundo dato. Es la misma corrección que el §45 aplicó a
+`front-03`: un literal estable de formato en vez de uno que depende de cómo
+le dé al modelo escribir el número.
+
+**Reevaluación desde las trazas** (`gestoria_agregacion_v2`, cero
+llamadas): **28 de 29**; el único rojo es `ooc-04`, el mismo desde el §43.
+`agregacion` 3 de 3, `routing` 0,963, cobertura del riesgo 1,0,
+`fuga_literal` sin fugas, latencia media 2,95 s.
+
+**Lo que queda dicho.** Los ocho literales en letra de los otros casos no
+se tocan: pasan hoy y corregirlos sin un rojo delante sería mover el banco
+por comodidad. Cuando uno falle, la corrección es esta y no otra. Y la
+cifra del alta (§43, §45) no cambia: el caso nuevo no existía cuando se
+cronometró.

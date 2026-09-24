@@ -137,7 +137,7 @@ desarrollo (§7.6).
 | Para qué está | Sostener el banco heredado como suite de regresión | Demostrar agnosticidad y la rama estructurada | Medir el alta de un cliente nuevo |
 | Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), expedientes, procesos, normativa, comercial, actas | laboral, fiscal, clientes, procedimientos, actas |
 | Corpus | 7 documentos | 10 documentos | 6 documentos |
-| Banco | 53 casos | 40 casos | 28 casos |
+| Banco | 53 casos | 40 casos | 29 casos |
 | MCP | No | CRM propio, con una escritura aprobada por persona | No |
 | Material de ataque | Anexo confidencial con salarios; acta con inyección de prompt | Expediente con DNI, ingresos y solvencia | Nóminas y datos de clientes |
 
@@ -475,7 +475,7 @@ Tres bancos, uno por inquilino, sobre el mismo runner heredado de la 3.3:
 |---|---|---|---|
 | `empresa_servicios` | 53 | Las ocho de la 3.3 más cobertura del riesgo | Suite de regresión de la línea base |
 | `agencia_inmobiliaria` | 40 | Las mismas más rama estructurada, solapamiento y escritura | Medir lo nuevo |
-| `gestoria_laboral` | 28 | Las mismas | Medir el alta de un cliente |
+| `gestoria_laboral` | 29 | Las mismas | Medir el alta de un cliente |
 
 Métricas en dos familias, y la distinción es la lección más cara de la 3.3
 y de este proyecto:
@@ -508,14 +508,15 @@ Ejecuciones del 23-09-2026, sin juez, tras el segundo corte de línea base:
 |---|---|---|---|---|
 | `empresa_quien` (53) | 48 | 0,9038 | 0,6364 | 1,0 |
 | `agencia_quien` (38) | 32 | 0,8421 | 1,0 | 0,96 |
-| `gestoria_alta_v3` (28) | 27 | 0,9615 | 1,0 | 1,0 |
+| `gestoria_agregacion_v2` (29) | 28 | 0,963 | 1,0 | 1,0 |
 
 Lo que dicen: el heredado no se ha degradado con la multi-tenencia (49 con
 la línea anterior; el que baja es `ooc-04`, el 1 de 53 que sigue variando a
 temperatura 0); la agencia sube tres casos porque la rama estructurada cita
-ahora la herramienta; la gestoría, montada en menos de seis minutos, da 27
-de 28 tras corregir dos expectativas del banco y quedarse con un fallo
-real del sistema (`ooc-04`).
+ahora la herramienta; la gestoría, montada en menos de seis minutos, da 28
+de 29 tras corregir dos expectativas del banco (§45), recuperar un caso de
+agregación real de dos documentos (§49) y quedarse con un fallo real del
+sistema (`ooc-04`).
 
 ### 4.3 Evaluar al evaluador
 
@@ -894,7 +895,7 @@ y una hipótesis que sale de los datos no se confirma con los mismos datos.
 git clone https://github.com/JuanArchidona/asistente-multitenant
 uv sync --group judge --group app
 cp .env.example .env            # claves: sistema, juez, embeddings
-uv run pytest                   # 1102 tests, sin llamadas a API
+uv run pytest                   # 1107 tests, sin llamadas a API
 uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
 uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
 uv run streamlit run app.py
@@ -924,7 +925,7 @@ dice que no la tiene.
 | 7.3 Sesgo | §34, §44 |
 | 7.4-7.5 IA responsable, RGPD | §36 |
 | 6.4, 7.6 Seguridad, incidentes, cadena de suministro | §19, §35, §46 |
-| 8.1 Alta de cliente | §43, §45 |
+| 8.1 Alta de cliente | §43, §45, §49 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
 cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la
