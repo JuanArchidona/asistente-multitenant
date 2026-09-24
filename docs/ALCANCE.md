@@ -361,13 +361,14 @@ herramienta sale cada dato. Detalle en HALLAZGOS.md §40.
 
 | Riesgo | Estado |
 |---|---|
-| No se dispone del enunciado oficial ni de la rúbrica del TFM | **Abierto** — lo citado procede del programa del máster, no de instrucciones de evaluación |
-| Reutilizar entregas propias calificadas | **Abierto** — es lo esperable en un capstone que pide integrar los módulos, pero no está verificado en ninguna normativa |
+| No se dispone del enunciado oficial ni de la rúbrica del TFM | **Abierto** — llegan con el Módulo 5, en torno al 6-13 de octubre; lo citado procede del programa del máster. Las decisiones de línea base ya están tomadas (§5.c, §5.d) |
+| Reutilizar entregas propias calificadas | **Resuelto** el 2026-09-22 — el tutor lo dio por admisible y sin declaración (`TUTORIA_2026-09-22.md`) |
 | Clave de API de Anthropic revocada | **Resuelto** el 2026-09-20 — dos claves nuevas, sistema y juez, validadas |
-| Sin tope de gasto en la cuenta de Anthropic | **Abierto** — las claves viven en el workspace por defecto, sin límite mensual. Cerrar antes de exponer el despliegue |
-| Enunciado del Módulo 4 sin publicar | **Abierto** — solo hay presentación del módulo; el encaje con el TFM se confirma al publicarse |
+| Sin tope de gasto en la cuenta de Anthropic | **Resuelto** el 2026-09-21 — prepago con recarga automática desactivada en los dos proveedores: tope duro (§16). El riesgo se invirtió: quedarse sin crédito en la defensa |
+| Enunciado del Módulo 4 sin publicar | **Resuelto** el 2026-09-22 — el material está disponible y el tutor confirmó que el análisis va dentro del TFM; la entrega del 4.x se extrae de aquí |
 | Aprobación de la API de idealista | Mitigado — el Catastro cubre la función sin depender de aprobación |
-| Verificación de negocio de WhatsApp | Mitigado — entorno de pruebas con números de test, y bloque 3 |
+| Verificación de negocio de WhatsApp | Mitigado — canal construido y probado con mensajes simulados (23-09); la prueba en vivo espera la cuenta de pruebas de Meta |
+| Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | **Decidido en contra** el 2026-09-24 — sin incidente que lo pida; queda como estimación (`INCIDENTES.md` §5) |
 
 ## 7. Lo que queda fuera del TFM
 

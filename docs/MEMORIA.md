@@ -737,8 +737,12 @@ evidencia, rotar), quién avisa a quién, y que todo incidente termina en un
 hallazgo. `scripts/simulacro_incidente.py` lo pulsa: **14,95 s** el botón
 rojo completo (fallo legible y registrado en 4,8 s, evidencia congelada
 con manifiesto en 1,65 s, vuelta en 8,47 s) (§46). La primera pulsación
-destapó que las consultas fallidas no dejaban rastro. [PENDIENTE: la mitad
-manual, revocar y rotar en las consolas, con reloj.]
+destapó que las consultas fallidas no dejaban rastro. La mitad manual del
+plan, revocar y rotar la clave en las consolas y en Render, no está
+cronometrada y se decidió no hacerlo antes de la defensa: no hay incidente
+que lo pida, y rotar credenciales en el mes de la defensa solo para medir
+es más riesgo que dato. Queda declarada como estimación, unos cinco
+minutos, no como medida.
 
 ### 6.5 Cómo se trabajó: dos superficies y un puente
 

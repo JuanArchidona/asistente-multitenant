@@ -82,6 +82,11 @@ prueba de que el formato funciona:
   La primera pulsación destapó que una consulta fallida no dejaba rastro en el
   registro; corregido. **Sigue sin simularse la mitad manual**: revocar y rotar
   la clave en las consolas y en Render, que exige navegador y la cuenta de Juan.
+  **Decidido el 24-09-2026: no se rota antes de la defensa.** No hay ningún
+  incidente que lo pida (el `.env` nunca ha estado en git y el §19 se cerró sin
+  que la clave saliera de la máquina), y rotar solo para cronometrar cambia
+  credenciales en dos consolas y en Render en el mes de la defensa. El tramo
+  queda como lo que es: una estimación de unos cinco minutos, no una medida.
 - **No hay canal para que un usuario avise.** Con dos inquilinos sintéticos no
   hay usuarios; con un despliegue, hace falta un correo o un formulario, y ese
   correo es un requisito del artículo 50 tanto como el aviso de IA.
