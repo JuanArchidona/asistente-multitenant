@@ -44,6 +44,13 @@
     },
     {
       "type": "library",
+      "name": "langgraph",
+      "version": "1.2.12",
+      "source": "https://pypi.org/simple",
+      "group": "langgraph"
+    },
+    {
+      "type": "library",
       "name": "mcp",
       "version": "2.2.0",
       "source": "https://pypi.org/simple",
@@ -395,6 +402,20 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "jsonpatch",
+      "version": "1.33",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "jsonpointer",
+      "version": "3.1.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "jsonschema",
       "version": "4.26.0",
       "source": "https://pypi.org/simple"
@@ -411,6 +432,48 @@
       "transitive": true,
       "name": "kubernetes",
       "version": "36.0.3",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langchain-core",
+      "version": "1.6.4",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langchain-protocol",
+      "version": "0.0.19",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langgraph-checkpoint",
+      "version": "4.2.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langgraph-prebuilt",
+      "version": "1.1.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langgraph-sdk",
+      "version": "0.4.5",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "langsmith",
+      "version": "0.14.0",
       "source": "https://pypi.org/simple"
     },
     {
@@ -551,6 +614,13 @@
       "transitive": true,
       "name": "orjson",
       "version": "3.11.9",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "ormsgpack",
+      "version": "1.12.2",
       "source": "https://pypi.org/simple"
     },
     {
@@ -801,6 +871,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "requests-toolbelt",
+      "version": "1.0.0",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "rich",
       "version": "14.3.4",
       "source": "https://pypi.org/simple"
@@ -934,6 +1011,13 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "uuid-utils",
+      "version": "0.17.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "uvicorn",
       "version": "0.52.1",
       "source": "https://pypi.org/simple"
@@ -990,8 +1074,22 @@
     {
       "type": "library",
       "transitive": true,
+      "name": "xxhash",
+      "version": "4.0.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
       "name": "yarl",
       "version": "1.24.5",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "zstandard",
+      "version": "0.25.0",
       "source": "https://pypi.org/simple"
     },
     {

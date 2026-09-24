@@ -443,37 +443,11 @@ class Sistema:
             else self.cfg.tenant.categorias_a_consultar(ruta.categoria)
         )
 
-        base = {
-            "consulta": consulta,
-            "tenant": self.cfg.tenant.id,
-            "usuario": usuario.id,
-            "categoria": ruta.categoria,
-            "categorias_consultadas": categorias,
-            # Escrituras propuestas y no ejecutadas. El camino documental no
-            # tiene herramientas, así que aquí siempre es vacío; las ramas con
-            # herramientas lo sobreescriben con lo que el modelo pidió.
-            "acciones_pendientes": [],
-            "justificacion_enrutador": ruta.justificacion,
-            "confianza_enrutador": ruta.confianza,
-            "fallback_enrutador": ruta.fallback,
-        }
+        base = self._cabecera_traza(consulta, usuario, ruta, categorias)
 
         # 2. Si es 'otro', no hay fuente interna: respondemos sin RAG.
         if ruta.sin_fuente:
-            t1 = time.perf_counter()
-            respuesta = self.chat.completar(
-                SYSTEM_SIN_FUENTE, consulta, self.cfg.model_generator
-            )
-            return {
-                **base,
-                "fuentes_usadas": [],
-                "contexto_recuperado": [],
-                "contexto_vacio": True,
-                "respuesta": respuesta,
-                "latencia_router_s": round(t_router, 3),
-                "latencia_retrieve_s": 0.0,
-                "latencia_generacion_s": round(time.perf_counter() - t1, 3),
-            }
+            return {**base, **self._responder_sin_fuente(consulta, t_router)}
 
         # 3. Bifurcación: duda documental al RAG, duda de estado a la API de
         #    negocio por MCP. Es el punto del flujo original donde el sistema
@@ -494,6 +468,56 @@ class Sistema:
             return {**base, **self._responder_con_datos(consulta, t_router, usuario)}
 
         fuente = self.cfg.tenant.fuente_de(ruta.categoria)
+        return {**base, **self._responder_documental(consulta, fuente, t_router, usuario)}
+
+    def _cabecera_traza(
+        self, consulta: str, usuario: Usuario, ruta: Enrutamiento, categorias: list[str]
+    ) -> dict:
+        """La parte de la traza que no depende de la rama. La comparten los dos
+        orquestadores: el formato de la traza no es orquestación."""
+        return {
+            "consulta": consulta,
+            "tenant": self.cfg.tenant.id,
+            "usuario": usuario.id,
+            "categoria": ruta.categoria,
+            "categorias_consultadas": categorias,
+            # Escrituras propuestas y no ejecutadas. El camino documental no
+            # tiene herramientas, así que aquí siempre es vacío; las ramas con
+            # herramientas lo sobreescriben con lo que el modelo pidió.
+            "acciones_pendientes": [],
+            "justificacion_enrutador": ruta.justificacion,
+            "confianza_enrutador": ruta.confianza,
+            "fallback_enrutador": ruta.fallback,
+        }
+
+    # --- Las cuatro ramas, como métodos ------------------------------------
+    #
+    # `_responder` es la orquestación: enruta y elige rama. Cada rama es un
+    # método que devuelve SU parte de la traza, y `_responder` la funde con la
+    # cabecera común. Están separadas a propósito: el prototipo de LangGraph
+    # (`src/orquestacion_langgraph.py`) llama exactamente a estos métodos, así
+    # que lo único que cambia entre los dos orquestadores es cómo se encadenan.
+    # Si una rama viviera dentro de `_responder`, la comparación no mediría
+    # la orquestación sino dos copias de la misma rama.
+
+    def _responder_sin_fuente(self, consulta: str, t_router: float) -> dict:
+        """Categoría `otro`: no hay fuente interna, se responde sin RAG."""
+        t1 = time.perf_counter()
+        respuesta = self.chat.completar(SYSTEM_SIN_FUENTE, consulta, self.cfg.model_generator)
+        return {
+            "fuentes_usadas": [],
+            "contexto_recuperado": [],
+            "contexto_vacio": True,
+            "respuesta": respuesta,
+            "latencia_router_s": round(t_router, 3),
+            "latencia_retrieve_s": 0.0,
+            "latencia_generacion_s": round(time.perf_counter() - t1, 3),
+        }
+
+    def _responder_documental(
+        self, consulta: str, fuente: str, t_router: float, usuario: Usuario
+    ) -> dict:
+        """Rama documental: recuperación con el permiso dentro del `where`."""
         t1 = time.perf_counter()
         recuperacion = self.retriever.recuperar_con_control(consulta, fuente, usuario)
         fragmentos = recuperacion.fragmentos
@@ -512,7 +536,6 @@ class Sistema:
         t_gen = time.perf_counter() - t2
 
         return {
-            **base,
             "fuentes_usadas": [
                 {"archivo": f.archivo, "distancia": round(f.distancia, 4)} for f in fragmentos
             ],
@@ -810,6 +833,20 @@ class Sistema:
             "latencia_retrieve_s": round(t_recuperacion, 3),
             "latencia_generacion_s": round(t_gen, 3),
         }
+
+
+def crear_sistema(cfg: Config, **kwargs) -> Sistema:
+    """El sistema bajo prueba con el orquestador que diga `cfg.orquestador`.
+
+    `vanilla` es `Sistema` tal cual. `langgraph` importa el prototipo aquí y
+    no arriba: LangGraph vive en un grupo de dependencias aparte, y quien no
+    lo instala no debe pagar ni el import.
+    """
+    if cfg.orquestador == "langgraph":
+        from .orquestacion_langgraph import SistemaLangGraph
+
+        return SistemaLangGraph(cfg, **kwargs)
+    return Sistema(cfg, **kwargs)
 
 
 def responder(cfg: Config, consulta: str) -> dict:

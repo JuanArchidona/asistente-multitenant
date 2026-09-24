@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 
-from src.agent import Sistema
+from src.agent import Sistema, crear_sistema
 from src.config import load_config
 from src.gobernanza import Usuario
 from src.provider import get_chat
@@ -480,7 +480,7 @@ def suite_consultas(args) -> None:
     else:
         asegurar_indice(cfg)
         chat = get_chat(cfg)
-        sistema = Sistema(cfg, chat=chat)
+        sistema = crear_sistema(cfg, chat=chat)
         print(f"[runner] Ejecutando {len(casos)} casos contra el MVP...")
         trazas = ejecutar_sut(sistema, casos, workers=args.workers)
         uso = chat.uso.resumen()

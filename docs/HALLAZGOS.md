@@ -3272,3 +3272,119 @@ se tocan: pasan hoy y corregirlos sin un rojo delante sería mover el banco
 por comodidad. Cuando uno falle, la corrección es esta y no otra. Y la
 cifra del alta (§43, §45) no cambia: el caso nuevo no existía cuando se
 cronometró.
+
+## 50. El mismo sistema encadenado por LangGraph: mismas llamadas, mismos tokens, 4,5 veces más líneas y 14 paquetes
+
+**Ejecuciones:** `langgraph_empresa` (53 casos, 0,108 USD) contra
+`empresa_quien`; `langgraph_agencia` (40 casos, 0,162 USD) contra
+`agencia_hitl_v3`; `langgraph_agencia_conf` (5 casos, 0,031 USD). Todas
+sin juez. Coste total del experimento: 0,30 USD.
+
+**Por qué.** El capítulo 3.1 de la memoria compara Python sin framework con
+LangGraph y era el único capítulo que argumentaba sin medir. `ALCANCE.md`
+punto 14 preveía un prototipo acotado: si pasa el banco heredado, la
+comparación se mide; si no, se argumenta con lo que falló.
+
+**Predicción, escrita antes de instalar nada** (copiada literal del
+fichero de trabajo; regla del §21):
+
+> Regla de corte: cuatro horas. Si el banco heredado no pasa con las mismas
+> trazas y los mismos veredictos que `empresa_quien`, se documenta dónde se
+> atascó. Alcance: solo se porta la orquestación; enrutador, recuperador,
+> cliente MCP, gobernanza y generador se importan desde `src/`. Un refactor
+> previo sin cambio de comportamiento: extraer la rama documental de
+> `_responder` a un método.
+>
+> 1. Veredictos del heredado: idénticos salvo `ooc-04` y variación del
+>    generador. Esperado 47-49 de 53.
+> 2. Latencia media: +0,00 a +0,05 s respecto a 3,28 s.
+> 3. Coste por caso: idéntico salvo ruido del generador.
+> 4. Líneas: el grafo pesará más que `_responder`, no menos.
+> 5. Dependencias: entre 8 y 20 paquetes transitivos nuevos.
+> 6. Tests: los 1.107 siguen pasando sin tocar.
+> 7. Dónde se atascará, si se atasca: en el cliente MCP (sesiones en un
+>    hilo con bucle propio) o en el formato de trazas.
+
+**Qué se construyó.** Un refactor previo de `Sistema`: la rama documental y
+el caso sin fuente pasan a métodos (`_responder_documental`,
+`_responder_sin_fuente`) y la cabecera de la traza a `_cabecera_traza`,
+para que los dos orquestadores llamen exactamente al mismo código de rama;
+cero tests cambiados. Después `src/orquestacion_langgraph.py`: un
+`StateGraph` con un nodo `enrutar`, un nodo por rama (sin fuente,
+documental, estructurada, mixta), una arista condicional que elige rama y
+un nodo `fundir` que compone la traza. `SistemaLangGraph` hereda de
+`Sistema` y sustituye solo `_responder`, así que `aprobar`, `rechazar`, el
+registro y la interfaz siguen iguales. Se activa con `ORQUESTADOR=langgraph`
+y vive en el grupo de dependencias `langgraph`, fuera del producto. La
+única lógica que existe dos veces es la elección de rama, porque eso es la
+orquestación y es lo que se compara. Diez tests nuevos comprueban que con
+el mismo proveedor falso los dos orquestadores devuelven la misma traza y
+hacen las mismas llamadas.
+
+**Inquilino heredado, 53 casos.**
+
+| | `empresa_quien` (vanilla) | `langgraph_empresa` | Predicción |
+|---|---|---|---|
+| Casos OK | 48 | **47** | 47-49: cumplida |
+| `routing` | 0,9038 | 0,9038 | |
+| Cobertura del riesgo | 0,6364 | 0,6364 | |
+| Llamadas al proveedor | 106 | **106** | |
+| Tokens de entrada | 51.559 | **51.559** | |
+| Tokens de salida | 10.708 | 11.221 | |
+| Coste | 0,1051 USD | 0,1077 USD (+2,5 %) | idéntico salvo generador: cumplida |
+| Latencia media | 3,284 s | 3,295 s (**+0,011 s**) | +0,00 a +0,05: cumplida |
+| Latencia p95 | 4,361 s | 4,652 s | |
+| Enrutar / recuperar / generar (medias) | 1,120 / 0,220 / 1,944 s | 1,069 / 0,223 / 2,002 s | |
+
+El único veredicto que cambia es `front-02`, que por el grafo no cita
+fuente: falla `cita_alguna_fuente` con el mismo prompt y el mismo contexto.
+Es el generador muestreando, no la orquestación: las 106 llamadas y los
+51.559 tokens de entrada son idénticos, y solo los tokens de salida
+difieren. Los otros cinco rojos son los mismos en las dos ejecuciones.
+
+**Agencia, 40 casos** (contra `agencia_hitl_v3`, la línea base con los dos
+casos de escritura): 31 de 40 en las dos; `routing` 0,825 en las dos;
+`accion_sin_aprobar` 40 de 40 en las dos y ningún fichero de visitas
+escrito; `cita_alguna_fuente` 0,92 en las dos; 88 llamadas frente a 89;
+coste 0,1615 frente a 0,1623 USD; latencia media 4,113 frente a 4,094 s.
+Trece casos recorrieron la rama mixta por el grafo, con sus llamadas a
+herramientas MCP, y dos produjeron una propuesta de escritura: la
+predicción 7 (el cliente MCP se atascaría) **no se cumplió**. Los dos
+veredictos que cambian son `front-02` (por el grafo acierta el enrutado que
+en la línea base falló: la deriva del §15) y `conf-01`, que terminó en
+`ERROR`: un `503 UNAVAILABLE` del proveedor de embeddings de Google en la
+recuperación, propagado tal cual y contado como fallo, que dejó la cobertura
+del riesgo en 0,9091 porque ese caso nunca llegó al control. Repetida la
+dimensión de confidencialidad por el grafo (`langgraph_agencia_conf`): 4 de
+5, cobertura 1,0, `fuga_literal` 5 de 5, y el rojo (`conf-cart-01`) es el
+mismo que en la línea base.
+
+**Lo que cuesta la orquestación en sí.**
+
+| | Python sin framework | LangGraph 1.2.12 | Predicción |
+|---|---|---|---|
+| Líneas de código de la orquestación (sin docstrings, comentarios ni vacías) | 21 (`Sistema._responder`) | **95** (`orquestacion_langgraph.py`) | más, no menos: cumplida |
+| Paquetes nuevos en `uv.lock` | 0 | **14** (`langgraph`, `-checkpoint`, `-prebuilt`, `-sdk`, `langchain-core`, `langchain-protocol`, `langsmith`, `jsonpatch`, `jsonpointer`, `ormsgpack`, `requests-toolbelt`, `uuid-utils`, `xxhash`, `zstandard`) | 8-20: cumplida |
+| Tests que hubo que tocar | 0 | 0 (10 nuevos; 1.107 a 1.117) | cumplida |
+| Tiempo de reloj, del último commit anterior (08:14) a la última medición (08:33) | | **19 min** de las 4 h de corte, con la misma salvedad que el §43: lo hizo un asistente de código con el proyecto en contexto | |
+
+Los 95 son con estado tipado, seis nodos y sus aristas; el `if` de la
+línea base cabe en 21 porque las ramas ya eran métodos. Y de los 14
+paquetes, uno (`langsmith`) es el cliente de la plataforma de observabilidad
+del proveedor del framework, que este proyecto no usa y entra igual.
+
+**Lo que la comparación dice, y lo que no.** Dice que para un flujo de un
+turno con una bifurcación, el grafo reproduce exactamente las llamadas y no
+añade latencia medible, y que a cambio cuesta 4,5 veces más líneas de
+orquestación y 14 dependencias, una de ellas un cliente de una plataforma
+ajena. No dice nada de lo que LangGraph aporta cuando hay estado entre
+turnos, interrupciones con reanudación o ramas paralelas, porque este
+sistema no tiene nada de eso; ahí la comparación habría que rehacerla, y la
+aprobación humana del §42 sería el primer candidato. La decisión de línea
+base no cambia: `ORQUESTADOR=vanilla`.
+
+**Una salvedad sobre la línea base de la agencia.** `agencia_hitl_v3` y
+`langgraph_agencia` difieren también en la fecha (23 y 24-09) y en un
+503 externo; la cobertura del riesgo de la ejecución completa por el grafo
+(0,9091) no es un dato del grafo sino del proveedor, y por eso se repitió
+la dimensión aparte en vez de tomar la cifra tal cual.

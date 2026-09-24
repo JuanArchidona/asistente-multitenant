@@ -379,24 +379,47 @@ alguien pidió lo que no le toca, y aplica la política de retención (§6.2).
 ### 3.1 Python sin framework frente a LangGraph
 
 La orquestación es Python con tool-calling nativo del SDK del proveedor.
-La comparación con LangGraph se hace aquí en términos de lo que el
-capstone puntúa, no de preferencia. [PENDIENTE: decidir con Juan si se
-construye el prototipo de media jornada que pase el banco heredado; si no,
-este capítulo se sostiene argumentado, como prevé `ALCANCE.md` punto 14.]
+La comparación con LangGraph no se argumenta: **se midió** (§50). Se
+construyó el mismo sistema encadenado por un grafo de LangGraph 1.2.12
+(`src/orquestacion_langgraph.py`, activable con `ORQUESTADOR=langgraph`),
+portando solo la orquestación: el enrutador, la recuperación con el
+permiso en el `where`, el cliente MCP, la gobernanza y el generador son los
+mismos métodos en los dos, y diez tests comprueban que con el mismo
+proveedor falso los dos devuelven la misma traza y hacen las mismas
+llamadas. Después se pasaron los dos bancos por el grafo, con predicción
+escrita antes de instalar nada.
+
+| | Python sin framework (línea base) | LangGraph |
+|---|---|---|
+| Heredado, 53 casos: casos OK | 48 | 47 (el que cambia es el generador muestreando: mismas 106 llamadas, mismos 51.559 tokens de entrada) |
+| Heredado: `routing`, cobertura del riesgo | 0,9038 / 0,6364 | 0,9038 / 0,6364 |
+| Heredado: latencia media por caso | 3,284 s | 3,295 s (+0,011 s) |
+| Heredado: coste | 0,1051 USD | 0,1077 USD (+2,5 %, tokens de salida) |
+| Agencia, 40 casos: casos OK, `routing`, escrituras sin aprobar | 31 / 0,825 / 0 de 40 | 31 / 0,825 / 0 de 40; trece casos por la rama mixta con herramientas MCP |
+| Líneas de código de la orquestación | 21 | **95** (4,5 veces) |
+| Paquetes nuevos en el lock | 0 | **14**, uno de ellos el cliente de la plataforma de observabilidad del proveedor del framework |
+| Tests tocados | | 0 (10 nuevos) |
+| Tiempo de reloj de construir y medir | | 19 min de las 4 h de corte, hechos por un asistente de código con el proyecto en contexto (misma salvedad que el alta de cliente) |
+
+Lo que la medida dice: para un flujo de un turno con una bifurcación, el
+grafo reproduce exactamente las llamadas y no añade latencia medible, y a
+cambio cuesta 4,5 veces más líneas de orquestación y 14 dependencias. De
+ahí la lectura por los cinco criterios del capstone:
 
 | Criterio | Python sin framework (elegido) | LangGraph |
 |---|---|---|
-| Calidad | El flujo es una función; cada paso tiene un test unitario sin proveedor. 1.107 tests en 11 s | El grafo aporta estructura, pero cada nodo sigue siendo la misma llamada; la calidad la deciden prompts, control de acceso y banco, que serían idénticos |
-| Coste | Cero dependencias de orquestación; el AIBOM lista 10 paquetes directos y 119 transitivos (§7.7). Ninguna capa entre el SDK y la contabilidad de tokens | Añade el framework y sus transitivas; la contabilidad de tokens pasa por sus callbacks |
+| Calidad | Idéntica: mismos veredictos, mismas llamadas, mismos tokens de entrada (§50). La calidad la deciden prompts, control de acceso y banco, que son los mismos | Idéntica, medida |
+| Coste | Cero dependencias de orquestación; ninguna capa entre el SDK y la contabilidad de tokens | +14 paquetes en el AIBOM (R-09); latencia y coste por consulta iguales |
 | Escalabilidad | Lo que escala aquí es el número de inquilinos, y eso lo resuelve el manifiesto, no el orquestador | Igual: el manifiesto es ortogonal al framework |
-| Riesgo | Superficie mínima: el control de acceso está en el `where` y en la salida de la herramienta, sitios que se leen en una pantalla. Sin fallbacks del framework que traguen errores | Riesgo de cadena de suministro (R-09): el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026. Comportamientos por defecto (reintentos, recorte) que hay que auditar |
-| Mantenimiento | Todo cambio es visible en un diff de Python. La conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Cada cambio de versión del framework es un cambio de comportamiento que hay que volver a medir con el banco, y el proyecto ya midió tres cambios no anunciados de los proveedores en cuatro semanas (§8.4) |
-| Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | |
+| Riesgo | Superficie mínima: 21 líneas que se leen en una pantalla; el control de acceso está en el `where` y en la salida de la herramienta, no en el orquestador | Cadena de suministro: el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026; `langsmith` entra sin usarse |
+| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cuatro semanas (§8.4) |
+| Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | Lo aporta, y este sistema no lo usa |
 
-Lo que se pierde no lo necesita este sistema: el flujo es de un turno, sin
-estado entre consultas, y la única bifurcación (documental, estructurada,
-ambas) es un `if` sobre el destino del manifiesto. Cuando el flujo tenga
-varios turnos con estado (capítulo 9), la comparación habrá que rehacerla.
+Lo que la medida no dice: nada sobre lo que LangGraph aporta cuando hay
+estado entre turnos, interrupciones con reanudación o ramas paralelas,
+porque este sistema no tiene nada de eso. Cuando el flujo tenga varios
+turnos (capítulo 9), la comparación habrá que rehacerla, y la aprobación
+humana del capítulo 2.7 sería el primer candidato.
 
 ### 3.2 Servidores MCP frente a herramientas cableadas
 
@@ -962,7 +985,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 49 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 50 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 23 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1010,7 +1033,7 @@ sin crédito.]
 
 ## Anexo A. Índice de hallazgos por capítulo
 
-Los 49 hallazgos de `docs/HALLAZGOS.md`, con el capítulo de esta memoria
+Los 50 hallazgos de `docs/HALLAZGOS.md`, con el capítulo de esta memoria
 que los cita. Cada uno nombra la ejecución de `reports/` que lo respalda o
 dice que no la tiene.
 
@@ -1020,6 +1043,7 @@ dice que no la tiene.
 | 2.4 Clasificador | §1, §6, §12, §15, §25, §27, §48 |
 | 2.5 Rama documental | §10, §14 |
 | 2.6 Rama estructurada | §4, §7, §42 |
+| 3.1 Orquestación, Python frente a LangGraph | §50 |
 | 2.7-2.8 Gobernanza y generación | §5, §8, §39, §40, §41, §47 |
 | 2.9, 6 Observabilidad y producción | §20, §37, §38 |
 | 4 Evaluación y juez | §2, §3, §9, §11, §23, §24, §26, §30, §31, §32, §33 |

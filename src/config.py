@@ -102,8 +102,16 @@ class Config:
     router_kind: str = "llm"
     router_umbral_otro: float = 0.55
 
+    # Quién encadena enrutador, ramas y generador: `vanilla` (el `if` de
+    # `Sistema._responder`, la línea base) o `langgraph` (el prototipo de
+    # `src/orquestacion_langgraph.py`, para la comparativa del capítulo 3.1 de
+    # la memoria). Las ramas son las mismas en los dos; solo cambia el
+    # encadenado. `langgraph` exige `uv sync --group langgraph`.
+    orquestador: str = "vanilla"
+
 
 ROUTER_KINDS = ("llm", "embeddings_descripciones", "embeddings_indice")
+ORQUESTADORES = ("vanilla", "langgraph")
 
 
 def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
@@ -229,9 +237,12 @@ def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
         gen_quien_pregunta=os.getenv("GEN_QUIEN_PREGUNTA", "1").strip() != "0",
         router_kind=os.getenv("ROUTER_KIND", "llm").strip().lower(),
         router_umbral_otro=float(os.getenv("ROUTER_UMBRAL_OTRO", "0.55")),
+        orquestador=os.getenv("ORQUESTADOR", "vanilla").strip().lower(),
     )
     if cfg.router_kind not in ROUTER_KINDS:
         sys.exit(f"[config] ROUTER_KIND inválido: {cfg.router_kind!r}. Usa uno de {ROUTER_KINDS}.")
+    if cfg.orquestador not in ORQUESTADORES:
+        sys.exit(f"[config] ORQUESTADOR inválido: {cfg.orquestador!r}. Usa uno de {ORQUESTADORES}.")
 
     # El chat (router/generador) usa Anthropic por defecto; los embeddings SIEMPRE Gemini.
     if provider == "anthropic" and not cfg.anthropic_api_key:

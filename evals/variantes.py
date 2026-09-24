@@ -207,6 +207,8 @@ def descripcion(cfg: Config) -> dict:
         "distance_threshold": cfg.distance_threshold,
         "gen_policy": cfg.gen_policy,
         "router_temperature": cfg.router_temperature,
+        "router_kind": cfg.router_kind,
+        "orquestador": cfg.orquestador,
         "judge_model": cfg.judge_model,
         "judge_provider": cfg.judge_provider,
         "independencia_del_juez": independencia_del_juez(cfg),

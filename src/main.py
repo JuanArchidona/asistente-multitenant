@@ -9,7 +9,7 @@ pruebas consume.
 import json
 import sys
 
-from .agent import Sistema
+from .agent import crear_sistema
 from .config import load_config
 from .observabilidad import desde_config
 
@@ -23,7 +23,7 @@ def main() -> None:
     # Este es el punto de entrada de produccion, asi que aqui si se registra.
     # El banco crea su `Sistema` sin registro a proposito.
     registro = desde_config(cfg)
-    sistema = Sistema(cfg, registro=registro)
+    sistema = crear_sistema(cfg, registro=registro)
     try:
         traza = sistema.responder(consulta)
     except Exception as error:  # noqa: BLE001 -- frontera de CLI: se dice y se sale

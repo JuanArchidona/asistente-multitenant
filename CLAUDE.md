@@ -68,7 +68,8 @@ servicio público desplegado. **1107 tests en verde**, `ruff` limpio.
 | Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
-| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los 48 hallazgos. Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. Quedan cuatro huecos marcados `[PENDIENTE]`, todos de Juan: prototipo LangGraph, mitad manual del simulacro, prueba en vivo de WhatsApp y formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
+| Prototipo LangGraph para la comparativa (bloque 3, punto 14) | **Hecho y medido** el 24-09 (§50): `src/orquestacion_langgraph.py`, `ORQUESTADOR=langgraph`, grupo `langgraph` aparte. Mismas 106 llamadas y mismos 51.559 tokens de entrada en el heredado, +0,011 s de latencia, 47/53 frente a 48 (generador); 95 líneas frente a 21 y 14 paquetes. Vanilla se queda |
+| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los 48 hallazgos. Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. El capítulo 3.1 pasó de argumentado a medido con el §50. Quedan tres huecos marcados `[PENDIENTE]`, todos de Juan: mitad manual del simulacro, prueba en vivo de WhatsApp y formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS **verificado contra la matriz 5.6.0**, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
@@ -142,6 +143,7 @@ src/
   mcp_cliente.py  Cliente MCP (hilo con bucle propio)
   agent.py        Orquestación y bifurcación de ramas
   router.py       Enrutador (prompt construido desde el manifiesto)
+  orquestacion_langgraph.py   El mismo sistema encadenado por LangGraph, solo para la comparativa (§50)
   retriever.py    Recuperación filtrada por fuente y por permiso
   provider.py     Abstracción de proveedor, con tool-calling
 evals/            Banco: datasets por inquilino, métricas, runner, barrido
@@ -179,6 +181,7 @@ uv run python -m evals.sesgo                            # sesgo: recuperación y
 uv run python -m evals.sesgo_generacion --repeticiones 8   # sesgo: generación, ~0,11 USD (§44)
 uv run python -m evals.comparar_enrutadores                # LLM frente a embeddings, coste cero en chat (§48)
 ROUTER_KIND=embeddings_descripciones uv run python -m src.main "..."   # enrutar sin modelo de chat
+uv sync --group langgraph && ORQUESTADOR=langgraph uv run python -m evals.runner --etiqueta X --sin-juez   # el grafo (§50)
 
 uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
 uv run python -m src.observabilidad_cli                # qué ha pasado en producción

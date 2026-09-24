@@ -28,6 +28,13 @@ judge = [
 app = [
     "streamlit>=1.60.0",
 ]
+# Prototipo de orquestación con LangGraph (src/orquestacion_langgraph.py),
+# solo para la comparativa medida del capítulo 3.1 de la memoria
+# (HALLAZGOS.md §50). Ni el producto, ni el banco ni la CI lo necesitan:
+# se activa con ORQUESTADOR=langgraph tras `uv sync --group langgraph`.
+langgraph = [
+    "langgraph>=1.2.12",
+]
 
 [tool.ruff]
 line-length = 100
