@@ -68,6 +68,7 @@ servicio público desplegado. **1102 tests en verde**, `ruff` limpio.
 | Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
+| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los 48 hallazgos. Quedan cinco huecos marcados `[PENDIENTE]`: prototipo LangGraph (decisión de Juan), ficha de coste mensual, mitad manual del simulacro, prueba en vivo de WhatsApp y formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS **verificado contra la matriz 5.6.0**, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
 El alcance completo, ordenado por prioridad y **con las líneas de corte ya
@@ -156,6 +157,7 @@ docs/
   DESPLIEGUE.md   Interfaz desplegada: usuarios, tope blando, Render
   CANAL_WHATSAPP.md  Canal de WhatsApp: número como credencial, puesta en marcha, qué se mide
   GUION_DEMO.md   La demostración de la defensa, paso a paso y con lo que debe verse
+  MEMORIA.md      Memoria técnica del TFM (borrador); cada cifra cita su hallazgo y su ejecución
 app.py            Interfaz Streamlit: entrada con credencial, un inquilino por usuario
 src/canal_whatsapp.py, src/canal_whatsapp_servidor.py   Canal de WhatsApp (lógica pura + webhook con http.server)
 render.yaml       Blueprint de Render
