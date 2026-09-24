@@ -34,7 +34,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1117 tests en verde**, `ruff` limpio.
+servicio público desplegado. **1118 tests en verde**, `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -169,7 +169,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1117 tests, sin llamadas a API
+uv run pytest                                      # 1118 tests, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -211,9 +211,11 @@ y §14).
 
 - **La memoria técnica existe y cita, no opina** (`docs/MEMORIA.md`, borrador
   desde el 24-09): cada cifra lleva su hallazgo y su ejecución, y los cortes
-  de línea base van con fecha y escotilla. Lo que le falta no es trabajo de
-  código: la prueba en vivo de WhatsApp y el formato de la defensa. La
-  rúbrica, cuando llegue, puede reordenar capítulos; las cifras no cambian.
+  de línea base van con fecha y escotilla. Pasó una lectura hostil el 24-09
+  (35 correcciones: "cuatro semanas" eran cinco días, línea base de la
+  agencia unificada, tamaños de muestra dichos, límites ampliados). Lo que le
+  falta no es trabajo de código: el formato de la defensa. La rúbrica, cuando
+  llegue, puede reordenar capítulos; las cifras no cambian.
 - **LangGraph está medido y descartado como orquestador por defecto** (§50):
   mismas llamadas y mismos tokens de entrada que la línea base, +0,011 s, y a
   cambio 95 líneas de orquestación frente a 21 y 14 paquetes. La comparación
@@ -434,9 +436,11 @@ puente. Escribir en el buzón es lo único que la app no puede hacer, y es
 deliberado: quien ejecuta los encargos no puede darse encargos a sí mismo. Y
 **la cadena termina en Claude Code**: un aviso nunca genera un encargo nuevo
 por sí solo; si la acción es volver a encargar, pasa por Juan. Desde el
-23-09-2026 el ciclo está montado y medido en simulación; lo que falta medir con
-la app son dos cosas, un encargo ejecutado desde el enlace profundo y uno
-desatendido registrado por la tarea programada. El detalle está en
+23-09-2026 el ciclo está montado y medido en simulación, y el 24-09 se usó de
+verdad: E-0009 (alta en Meta y prueba en vivo de WhatsApp) se abrió desde el
+enlace profundo, lo ejecutó la app con Juan delante en dos horas y media y lo
+registró; el aviso llegó solo al siguiente prompt. Lo que falta medir es un
+encargo desatendido registrado por la tarea programada. El detalle está en
 `docs/SINCRONIZACION_SUPERFICIES.md` §7.6 y `puente/README.md`.
 
 **El repositorio es la fuente de verdad y la app no.** Sus instrucciones de
