@@ -405,6 +405,15 @@ alguien pidió lo que no le toca, y aplica la política de retención (§6.2).
   copia), corregido el mismo día con una única `asegurar_indice`; tras el
   redespliegue, la pregunta de vacaciones respondió como en la web y la del
   salario denegó sin el dato y sin fuga, en menos de un minuto cada una.
+  El 25-09 el token temporal de 24 horas se sustituyó por uno de usuario
+  del sistema de Meta sin caducidad, comprobado en el depurador de tokens,
+  con las mismas dos preguntas respondidas igual: dieciocho minutos desde
+  el encargo hasta la respuesta verificada (§51). El mismo día se descubrió
+  que la latencia interna del canal se calculaba y se descartaba, y que el
+  registro de producción quedaba en el disco efímero de Render, sin consola
+  en el plan gratuito: desde entonces el servidor deja una línea por mensaje
+  en la salida del proceso, con huella, inquilino, respuestas y latencia,
+  nunca el teléfono (`docs/CANAL_WHATSAPP.md`).
 - **Correo**: no construido; queda fuera (capítulo 9).
 
 ## 3. Selección y justificación de modelos, patrones y herramientas
@@ -1005,9 +1014,9 @@ identificador, conmutación de proveedor verificada, AIBOM.
 - **La moderación de contenido** no existe.
 - **El coste blando es un suelo** y no hay límite por usuario ni por minuto.
 - **Los embeddings no se convierten a dólares.**
-- **WhatsApp** está probado en vivo con un número y dos preguntas; falta
-  el aislamiento con dos números y el token permanente. **Correo** no está
-  construido.
+- **WhatsApp** está probado en vivo con un número y dos preguntas, y con
+  token permanente desde el 25-09; falta el aislamiento con dos números.
+  **Correo** no está construido.
 - **Conectores a CRM comerciales**, despliegue íntegramente local y
   omnicanalidad completa quedan fuera (`ALCANCE.md` §7).
 

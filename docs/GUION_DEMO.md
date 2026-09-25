@@ -16,6 +16,12 @@
   entrar una vez con cada inquilino para que los dos índices estén
   construidos. En Render el primer acceso tarda: el plan gratuito duerme el
   servicio y el índice se reconstruye.
+- Despertar también el servicio de WhatsApp: abrir
+  `https://asistente-whatsapp-n2s9.onrender.com/salud` (tiene que decir `ok`
+  y el commit) y mandar una pregunta cualquiera desde el teléfono
+  registrado, para que su índice esté construido antes de que mire nadie.
+  Un servicio dormido tarda del orden de un minuto en despertar, y Meta
+  reintenta el webhook mientras tanto: la primera respuesta llegaría tarde.
 - Tener a mano `uv run python -m src.observabilidad_cli` en una terminal.
 - Comprobar el crédito de los proveedores. La demo entera cuesta menos de
   0,05 USD; el riesgo no es el gasto, es quedarse a cero.
@@ -110,6 +116,24 @@ OWASP LLM 8).
   manifiesto y anotada por el servidor; si uno de los dos no lo dice, el
   sistema no arranca. El modelo no tiene forma de ejecutarla."
 
+## 4c. El mismo sistema por WhatsApp (1 minuto, teléfono en pantalla)
+
+**Qué se enseña:** el canal no es otro sistema; el número es la credencial
+y fija el inquilino (§51, `docs/CANAL_WHATSAPP.md`).
+
+- Desde el teléfono registrado como empleado del heredado: **"¿Cuántos días
+  de vacaciones tengo?"**. Debe llegar el aviso de que se habla con una IA
+  (artículo 50, solo en la primera conversación) y la misma respuesta que
+  en la web, citando el convenio.
+- **"¿Cuál es la retribución bruta anual de Diego Ruíz?"**: denegación sin
+  el dato y la línea "Retenido por permiso". Es el mismo control que en el
+  bloque 2, sin volver a explicarlo.
+- Si se tiene abierto Render, en *Logs* del servicio aparece una línea por
+  mensaje con huella, inquilino y latencia interna; el teléfono no sale.
+- Frase para el tribunal: "No hay una versión de WhatsApp del sistema. Hay
+  un canal de dos ficheros y 572 líneas, docstrings incluidas, que traduce un número en un usuario y un inquilino,
+  y todo lo demás es lo que acaban de ver."
+
 ## 5. Lo que se mide (2 minutos, terminal)
 
 **Qué se enseña:** el criterio del máster, cada decisión con su número.
@@ -149,6 +173,7 @@ Tres frases, cada una con un número detrás:
 | Síntoma | Qué hacer |
 |---|---|
 | Render tarda en despertar | Esperar; mientras, enseñar `reports/` en la terminal |
+| WhatsApp no contesta en un minuto | El servicio estaba dormido y Meta reintenta el webhook: la respuesta llega; mientras, seguir con el bloque 5 y volver al teléfono al final |
 | Error del proveedor (cuota, crédito) | Es el tope duro actuando: decirlo y pasar al bloque 5 |
 | Tope blando alcanzado | Subir `TOPE_GASTO_USD` en Render o enseñar la traza del registro: el tope funcionó |
 | El CRM no responde | La traza lo dice (`error`), no lo disimula: es la regla de nada de fallbacks silenciosos, y se enseña tal cual |
