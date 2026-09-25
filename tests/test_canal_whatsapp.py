@@ -350,3 +350,70 @@ def test_el_servidor_asegura_el_indice_antes_de_crear_el_sistema(monkeypatch):
     canal = srv.construir_canal()
     canal.sistema("empresa_servicios")
     assert orden == ["indice", "sistema"]
+
+
+# --- La línea de registro del hilo del webhook (25-09-2026) -----------------
+
+
+class _EnviadorMemoria:
+    def __init__(self, falla: Exception | None = None):
+        self.enviados: list[tuple[str, str]] = []
+        self.falla = falla
+
+    def enviar_texto(self, telefono, texto):
+        if self.falla:
+            raise self.falla
+        self.enviados.append((telefono, texto))
+        return {}
+
+
+def test_el_hilo_del_webhook_deja_una_linea_con_huella_inquilino_y_latencia():
+    """Hasta el 25-09 `atender` devolvía la latencia y el hilo la tiraba: en
+    Render no quedaba nada legible por mensaje. La línea lleva huella e
+    inquilino, nunca el teléfono."""
+    import io
+
+    import src.canal_whatsapp_servidor as srv
+
+    canal = _canal({"agencia_inmobiliaria": SistemaFalso("agencia_inmobiliaria")})
+    enviador = _EnviadorMemoria()
+    salida = io.StringIO()
+    srv.atender_y_anotar(canal, enviador, _msg("¿Cuántos pisos?", telefono="+34 600 000 002"), salida=salida)
+
+    linea = salida.getvalue().strip()
+    assert linea.startswith("[whatsapp] mensaje huella=")
+    assert "tenant=agencia_inmobiliaria" in linea
+    assert "respuestas=1" in linea
+    assert " latencia=" in linea and linea.endswith(" s")
+    assert "600000002" not in linea
+    assert len(enviador.enviados) == 1
+
+
+def test_un_fallo_al_enviar_a_meta_queda_en_la_linea_y_no_muere_en_el_hilo():
+    import io
+
+    import src.canal_whatsapp_servidor as srv
+
+    canal = _canal({"empresa_servicios": SistemaFalso("empresa_servicios")})
+    enviador = _EnviadorMemoria(falla=RuntimeError("Meta devolvió 403 al enviar: (#131005) Access denied"))
+    salida = io.StringIO()
+    srv.atender_y_anotar(canal, enviador, _msg("¿Vacaciones?"), salida=salida)
+
+    linea = salida.getvalue().strip()
+    assert "tenant=empresa_servicios" in linea
+    assert "ERROR RuntimeError: Meta devolvió 403" in linea
+    assert "600000001" not in linea
+
+
+def test_un_numero_desconocido_se_anota_como_tal_en_la_linea():
+    import io
+
+    import src.canal_whatsapp_servidor as srv
+
+    canal = _canal({})
+    enviador = _EnviadorMemoria()
+    salida = io.StringIO()
+    srv.atender_y_anotar(canal, enviador, _msg("hola", telefono="34999999999"), salida=salida)
+
+    assert "tenant=desconocido respuestas=1" in salida.getvalue()
+    assert "999999999" not in salida.getvalue()

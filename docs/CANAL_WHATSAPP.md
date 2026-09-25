@@ -160,9 +160,26 @@ arranque.
 la hoja respondieron en el mismo minuto de enviarse, la de vacaciones con
 la misma respuesta que la web y la del salario con la denegación sin el
 dato; aviso de IA en el primer mensaje; la línea "Retenido por permiso" en
-las dos. Sin medir todavía: la latencia interna (en el registro del
-servicio, en el disco de Render), el aislamiento con dos números y la
-aprobación por texto en vivo.
+las dos. Sin medir todavía: la latencia interna, el aislamiento con dos
+números y la aprobación por texto en vivo.
+
+**La latencia interna no se podía leer, y desde el 25-09-2026 sí.** El
+servidor la calculaba en `atender` y el hilo del webhook la tiraba; el
+registro de producción la guarda, pero en el disco efímero de Render, que en
+el plan gratuito no tiene consola. Ahora cada mensaje deja **una línea en la
+salida del proceso**, que es lo que enseñan los *Logs* de Render:
+
+```
+[whatsapp] mensaje huella=cdbfd7222d15 tenant=empresa_servicios respuestas=1 latencia=6.53 s
+[whatsapp] mensaje huella=... tenant=agencia_inmobiliaria ERROR RuntimeError: Meta devolvió 403 al enviar: ... tras 4.10 s
+```
+
+La latencia es del webhook recibido a la última respuesta entregada a Meta:
+incluye enrutado, recuperación, generación y el envío, y excluye el tramo
+Meta-teléfono en los dos sentidos. Restada de la de extremo a extremo del
+reloj del teléfono, da lo que cuesta el canal frente a lo que cuesta el
+sistema. Lleva huella e inquilino, nunca el teléfono; un fallo al enviar
+queda con su tipo y su mensaje recortado en vez de morir en el hilo.
 
 ## Riesgos que abre, y dónde están
 

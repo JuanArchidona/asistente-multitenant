@@ -42,6 +42,7 @@ from .canal_whatsapp import (
     extraer_mensajes,
     firma_valida,
     huella,
+    normalizar_telefono,
 )
 from .config import load_config
 from .ingest import asegurar_indice
@@ -120,12 +121,39 @@ def construir_canal() -> CanalWhatsApp:
     return CanalWhatsApp(directorio, fabrica, aviso, registro_desconocidos=anotar_desconocido)
 
 
-def atender(canal: CanalWhatsApp, enviador, mensaje: MensajeEntrante) -> float:
-    """Procesa un mensaje y envía las respuestas. Devuelve la latencia total."""
+def atender(canal: CanalWhatsApp, enviador, mensaje: MensajeEntrante) -> tuple[int, float]:
+    """Procesa un mensaje y envía las respuestas. Devuelve cuántos textos se
+    enviaron y la latencia interna del canal: del webhook recibido a la última
+    respuesta entregada a Meta, sin el tramo de red hasta el teléfono."""
     t0 = time.perf_counter()
+    enviados = 0
     for texto in canal.procesar(mensaje):
         enviador.enviar_texto(mensaje.telefono, texto)
-    return time.perf_counter() - t0
+        enviados += 1
+    return enviados, time.perf_counter() - t0
+
+
+def atender_y_anotar(canal: CanalWhatsApp, enviador, mensaje: MensajeEntrante, salida=None) -> None:
+    """Lo que ejecuta el hilo del webhook: atiende y deja UNA línea en la salida
+    del proceso. En Render con disco efímero esa salida es lo único legible
+    desde fuera, y hasta el 25-09-2026 la latencia se calculaba y se tiraba.
+    Sin teléfono: huella e inquilino, textos enviados, latencia; y si falla,
+    el tipo de error y su mensaje recortado."""
+    salida = salida if salida is not None else sys.stderr
+    telefono = normalizar_telefono(mensaje.telefono)
+    contacto = canal.directorio.buscar(telefono)
+    quien = f"huella={huella(telefono)} tenant={contacto.tenant if contacto else 'desconocido'}"
+    t0 = time.perf_counter()
+    try:
+        enviados, latencia = atender(canal, enviador, mensaje)
+    except Exception as error:  # noqa: BLE001 -- frontera del hilo: sin esto el fallo muere en el hilo
+        print(
+            f"[whatsapp] mensaje {quien} ERROR {type(error).__name__}: {str(error)[:200]} "
+            f"tras {time.perf_counter() - t0:.2f} s",
+            file=salida,
+        )
+        return
+    print(f"[whatsapp] mensaje {quien} respuestas={enviados} latencia={latencia:.2f} s", file=salida)
 
 
 def crear_manejador(canal: CanalWhatsApp, enviador, verify_token: str, app_secret: str):
@@ -170,7 +198,7 @@ def crear_manejador(canal: CanalWhatsApp, enviador, verify_token: str, app_secre
             # 200 primero, trabajo después: Meta no espera a la respuesta del modelo.
             self._responder(200, "ok")
             for m in mensajes:
-                threading.Thread(target=atender, args=(canal, enviador, m), daemon=True).start()
+                threading.Thread(target=atender_y_anotar, args=(canal, enviador, m), daemon=True).start()
 
     return Manejador
 
@@ -191,8 +219,8 @@ def main() -> None:
         mensaje = MensajeEntrante(
             id=f"sim-{int(time.time())}", telefono=args.desde, tipo="text", texto=args.simular
         )
-        latencia = atender(canal, enviador, mensaje)
-        print(f"[simulado] {len(enviador.enviados)} mensaje(s) en {latencia:.2f} s")
+        enviados, latencia = atender(canal, enviador, mensaje)
+        print(f"[simulado] {enviados} mensaje(s) en {latencia:.2f} s")
         return
 
     faltan = [
