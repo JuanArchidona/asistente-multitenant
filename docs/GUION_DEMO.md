@@ -20,8 +20,9 @@
   `https://asistente-whatsapp-n2s9.onrender.com/salud` (tiene que decir `ok`
   y el commit) y mandar una pregunta cualquiera desde el teléfono
   registrado, para que su índice esté construido antes de que mire nadie.
-  Un servicio dormido tarda del orden de un minuto en despertar, y Meta
-  reintenta el webhook mientras tanto: la primera respuesta llegaría tarde.
+  Un servicio dormido tarda 42-61 s en despertar, y la interfaz 32 s
+  (§52); el webhook de Meta no se pierde mientras tanto, espera, pero la
+  primera respuesta llegaría con ese retraso encima.
 - Tener a mano `uv run python -m src.observabilidad_cli` en una terminal.
 - Comprobar el crédito de los proveedores. La demo entera cuesta menos de
   0,05 USD; el riesgo no es el gasto, es quedarse a cero.

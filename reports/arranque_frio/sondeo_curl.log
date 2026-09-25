@@ -1,0 +1,10 @@
+12:52:14 asistente-whatsapp-n2s9: 200 42.328226s | caliente: 0.145611s
+12:52:57 asistente-multitenant: 200 32.263847s | caliente: 0.137859s
+13:13:30 asistente-whatsapp-n2s9: 200 42.260062s | caliente: 0.075772s
+13:14:12 asistente-multitenant: 200 32.264560s | caliente: 0.087095s
+13:34:45 asistente-whatsapp-n2s9: 200 61.323046s | caliente: 0.077055s
+13:35:46 asistente-multitenant: 200 32.378718s | caliente: 0.176347s
+13:56:19 asistente-whatsapp-n2s9: 200 42.385777s | caliente: 0.086860s
+13:57:01 asistente-multitenant: 200 32.281179s | caliente: 0.123380s
+
+[exited with code 0]

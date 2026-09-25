@@ -743,8 +743,9 @@ Lo que la ficha no incluye, y hay que decir al presentarla:
   millón) serían tres millonésimas de dólar por consulta: no cambia la
   ficha, pero se declara.
 - **Infraestructura.** El servicio corre hoy en el plan gratuito de Render,
-  que duerme sin tráfico. Un plan de pago es un coste fijo independiente del
-  volumen y se suma aparte.
+  que duerme a los quince minutos sin tráfico y tarda entre 32 y 61 s en
+  despertar (§52). Un plan de pago lo elimina y es un coste fijo
+  independiente del volumen que se suma aparte.
 - **Evaluación.** Mantener el banco cuesta entre 0,06 y 0,14 USD por
   inquilino y pasada sin juez, y en torno a 0,40 USD las tres pasadas de
   juez de Gemini sobre dos bancos (§32). Es coste por cambio, no por
@@ -995,7 +996,10 @@ identificador, conmutación de proveedor verificada, AIBOM.
   alta de la gestoría: un banco nuevo, escrito antes de la primera pasada.
 - **No hay prueba de carga ni de concurrencia.** Las latencias son de
   ejecuciones secuenciales; Chroma es local y en Render el plan gratuito
-  duerme y reconstruye el índice al despertar. Que lo que escala sea el
+  duerme a los quince minutos y reconstruye el índice al despertar. Lo
+  único medido del plan es el despertar: 32 s la interfaz y 42-61 s el
+  servicio de WhatsApp en la primera petición tras un cuarto de hora sin
+  uso, menos de 0,2 s después, sin que ninguna petición se pierda (§52). Que lo que escala sea el
   número de inquilinos es una afirmación de diseño con una medida (el
   alta), no una de rendimiento.
 - **El generador no se comparó** con ningún otro modelo (capítulo 3.3).
@@ -1123,7 +1127,7 @@ dice que no la tiene.
 | 2.6 Rama estructurada | §4, §7, §42 |
 | 3.1 Orquestación, Python frente a LangGraph | §50 |
 | 2.7-2.8 Gobernanza y generación | §5, §8, §39, §40, §41, §47 |
-| 2.9, 6 Observabilidad y producción | §20, §37, §38 |
+| 2.9, 6 Observabilidad y producción | §20, §37, §38, §52 |
 | 4 Evaluación y juez | §2, §3, §9, §11, §23, §24, §26, §30, §31, §32, §33 |
 | 5 Coste | §16, §17, §18, §21, §28 |
 | 7.3 Sesgo | §34, §44 |

@@ -3497,3 +3497,51 @@ despliegue de 1 min 35 s, y las dos mismas preguntas respondidas igual a las
 07:32 y 07:33 sin ningún `403`; dieciocho minutos desde el encargo. El
 canal ya no depende de un token de 24 horas. Coste: cuatro consultas reales
 entre los dos días, del orden de 0,008 USD, más las dos que fallaron.
+
+## 52. El plan gratuito de Render duerme a los quince minutos y despertar cuesta entre 32 y 61 segundos, sin que ninguna petición se pierda
+
+**Ejecución:** `arranque_frio` (25-09-2026): `sondeo_curl.log` es la serie
+limpia, `sondeo_powershell.log` la de un segundo cliente que llegaba
+40-60 s después, `resumen.json` las cifras. Coste: cero; `/salud` no toca el
+sistema.
+
+**Por qué se midió.** La memoria declaraba en el capítulo 9 que "el plan
+gratuito duerme" sin decir cuánto tarda en despertar, y el guion de la demo
+pedía calentar la interfaz "porque el primer acceso tarda". Esta mañana la
+primera llamada al servicio de WhatsApp tras una noche sin tráfico tardó
+**52,3 s**. Una cifra sola no es un límite, así que se dejaron dormir los
+dos servicios y se les llamó cada 20 minutos, cuatro veces, cronometrando la
+primera petición y la siguiente.
+
+**Qué salió.**
+
+| Servicio | Primera petición tras 20 min de silencio | Siguiente, en caliente |
+|---|---|---|
+| Interfaz web (`asistente-multitenant`) | 32,3 / 32,3 / 32,4 / 32,3 s | 0,09-0,18 s |
+| WhatsApp (`asistente-whatsapp`) | 42,3 / 42,3 / 61,3 / 42,4 s (52,3 s tras la noche) | 0,08-0,15 s |
+
+- **Veinte minutos bastan.** Las ocho primeras peticiones fueron arranques en
+  frío: la suspensión llega a los quince minutos sin tráfico, o antes. Los
+  servicios que esta mañana respondían en una décima tras horas sin uso
+  estaban despiertos porque alguien los había tocado, no por Render.
+- **La web es clavada y WhatsApp no.** 32,3 s con una décima de variación en
+  cuatro medidas frente a 42 s tres veces y 61 s una. El tiempo de la web
+  parece saltar en escalones de unos 20 s (20, 42, 62 s también aparecen en
+  el segundo cliente); es una observación, no una explicación, y no se
+  investiga porque el plan gratuito no es el de un cliente.
+- **Ninguna petición se perdió.** El segundo cliente, que llegaba con el
+  despertar ya en curso, esperó y recibió `200` en el mismo instante que el
+  primero. Un webhook de Meta que entre en ese medio minuto no falla:
+  espera.
+- Despierto, cualquiera de los dos responde en menos de 0,2 s. El tiempo de
+  una consulta sigue siendo el del sistema (§20, §38): el plan añade medio
+  minuto solo a la primera de cada cuarto de hora.
+
+**Consecuencias.** Para la demo, el calentamiento del guion es obligatorio
+y tiene cifra: sin él, la primera pregunta de WhatsApp sumaría 42-61 s de
+Render más la construcción del índice (§37, unos 3.000 tokens) a su
+latencia, y la de la web, 32 s. Para la memoria, el límite se declara así:
+en el plan gratuito la primera consulta tras un cuarto de hora sin uso tarda
+entre 32 y 61 s más que las siguientes; un plan de pago lo elimina y es un
+coste fijo que la ficha de 5.4 ya suma aparte. Lo que sigue sin medir es la
+concurrencia: esto son peticiones de una en una.

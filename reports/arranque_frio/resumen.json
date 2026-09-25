@@ -1,0 +1,25 @@
+{
+  "fecha": "2026-09-25",
+  "que_mide": "Tiempo de la primera peticion HTTP a /salud de cada servicio de Render (plan gratuito) tras 20 minutos sin trafico, y de la peticion siguiente. Solo el despertar del contenedor: /salud no construye indices ni consulta al modelo.",
+  "metodo": "Dos clientes en la misma maquina. curl (sondeo_curl.log) cada 1200 s desde las 12:32, cuatro sondeos; PowerShell (sondeo_powershell.log) con el mismo periodo, arrancado 40-60 s despues, asi que sus primeras peticiones llegaron con el despertar ya en curso y miden la espera de un segundo cliente, no el arranque. Mas una medida a mano a las 07:0x tras una noche sin trafico (curl, 52,29 s).",
+  "servicios": {
+    "asistente-whatsapp-n2s9": {
+      "arranque_frio_s": [42.33, 42.26, 61.32, 42.39],
+      "arranque_frio_tras_una_noche_s": 52.29,
+      "caliente_s": [0.146, 0.076, 0.077, 0.087],
+      "segundo_cliente_durante_el_despertar_s": [20.17, 42.31, 62.36, 42.30]
+    },
+    "asistente-multitenant": {
+      "arranque_frio_s": [32.26, 32.26, 32.38, 32.28],
+      "caliente_s": [0.138, 0.087, 0.176, 0.123],
+      "segundo_cliente_durante_el_despertar_s": [32.33, 32.37, 32.34, 32.42]
+    }
+  },
+  "conclusiones": [
+    "20 minutos sin trafico bastan para que el servicio duerma: las ocho primeras peticiones fueron arranques en frio.",
+    "Web: 32,3 s con una decima de variacion en cuatro medidas. WhatsApp: 42,3 s tres veces y 61,3 s una; 52,3 s tras una noche.",
+    "Ninguna peticion fallo durante el despertar: un segundo cliente que llega en medio espera y recibe 200.",
+    "Despierto, cualquiera de los dos responde en menos de 0,2 s."
+  ],
+  "coste_usd": 0.0
+}

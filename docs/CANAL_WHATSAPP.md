@@ -115,6 +115,12 @@ de control respondidas en el mismo minuto (07:32 y 07:33): vacaciones
 citando el convenio, salario denegado con "Retenido por permiso". Dieciocho
 minutos de reloj en total, sin ningún `403`.
 
+El mismo día se midió lo que cuesta despertar el servicio en el plan
+gratuito (§52): **42-61 s** la primera petición tras 20 minutos sin tráfico
+(52 s tras una noche), menos de 0,2 s las siguientes, y ningún webhook se
+pierde mientras despierta: espera. Por eso el guion de la demo manda una
+pregunta al canal antes de empezar.
+
 ### Variables
 
 ```
