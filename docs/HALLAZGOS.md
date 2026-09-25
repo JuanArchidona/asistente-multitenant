@@ -3490,7 +3490,10 @@ antes de la defensa (§47).
 minuto por pregunta, que es lo que da un reloj con precisión de minuto; la
 latencia interna está en el registro de producción del servicio, en el
 disco efímero de Render, y no se leyó. Queda por medir con dos números de
-dos inquilinos el aislamiento por número, y por hacer el token de usuario
-del sistema para que el canal sobreviva a las 24 horas del temporal.
-Coste: dos consultas reales, del orden de 0,004 USD, más las dos que
-fallaron.
+dos inquilinos el aislamiento por número. El token de usuario del sistema
+**se hizo el 25-09-2026** (E-0010): emitido a las 07:25:25 con caducidad
+*Nunca* según el depurador de tokens de Meta, cambiado en Render con un
+despliegue de 1 min 35 s, y las dos mismas preguntas respondidas igual a las
+07:32 y 07:33 sin ningún `403`; dieciocho minutos desde el encargo. El
+canal ya no depende de un token de 24 horas. Coste: cuatro consultas reales
+entre los dos días, del orden de 0,008 USD, más las dos que fallaron.

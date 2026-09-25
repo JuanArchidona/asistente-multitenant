@@ -33,7 +33,8 @@
    verificar; si hay más de un portfolio, elegir el que tiene la app
    `asistente-multitenant-tfm`.
 2. *Usuarios > Usuarios del sistema* (en inglés *Users > System users*).
-   *Añadir*. Nombre sugerido: `asistente-tfm-sistema`. Rol: **Administrador**
+   *Añadir*. Nombre: `asistente tfm sistema`, con espacios (Meta rechazó
+   `asistente-tfm-sistema`: "demasiados guiones"). Rol: **Administrador**
    (con *Empleado* hace falta un paso más de asignación y no aporta nada aquí).
    Aceptar las condiciones si las pide.
 3. Con el usuario creado, *Asignar activos* (*Add assets*):

@@ -45,9 +45,13 @@ servicio y puede costar el número.
    un **número de pruebas** gratuito y un `Phone number ID`.
 2. En *API Setup*, añadir tu número personal como **destinatario de
    pruebas** (hasta cinco) y confirmar el código que llega por WhatsApp.
-3. Generar un **token de acceso**. El temporal caduca en 24 horas; para la
-   defensa conviene un token de **usuario del sistema** desde *Business
-   Settings*, que no caduca.
+3. Generar un **token de acceso**. El temporal caduca en 24 horas y sirve
+   para la primera prueba. El que queda es el de **usuario del sistema**
+   desde *Business Settings*: usuario con rol administrador, la app y la
+   WABA asignadas con control total, token con caducidad *Nunca* y solo los
+   permisos `whatsapp_business_messaging` y `whatsapp_business_management`.
+   Se comprueba en el depurador de tokens de Meta (*Caduca: Nunca*), y no
+   se da por permanente sin esa comprobación. Hecho el 25-09-2026 (E-0010).
 4. Anotar el **App Secret** (*App Settings > Basic*).
 5. Elegir una palabra cualquiera como `WHATSAPP_VERIFY_TOKEN`.
 6. Desplegar el servicio (abajo) y, en *Configuration > Webhook*, poner la
@@ -73,6 +77,13 @@ servicio y puede costar el número.
   con el token, desde una terminal. El panel no lo hace solo.
 - Un token temporal generado antes de publicar puede devolver `403 (#131005)
   Access denied` al enviar; se regenera después de publicar.
+- **Del usuario del sistema, el 25-09-2026:** Meta rechaza el nombre con
+  guiones ("Los nombres del perfil no pueden tener demasiados guiones"), así
+  que el usuario se llama `asistente tfm sistema`, con espacios. Pide
+  aceptar una política de no discriminación antes de crearlo. El depurador
+  de tokens **pone el token en la URL** (`?access_token=...`) y queda en el
+  historial del navegador: hay que borrar esa entrada después. El token
+  temporal anterior no se revocó a mano; caduca solo.
 - La URL del servicio la asigna Render con sufijo:
   `https://asistente-whatsapp-n2s9.onrender.com`. `/salud` responde `ok` y
   el commit desplegado.
@@ -94,6 +105,15 @@ Tiempos medidos por la app ese día (hora de Madrid): fase A (Meta) hasta las
 webhook verificado a la primera a las 10:51; primer mensaje real que llegó
 al servicio, 11:27, recibido a las 11:28:18; primera respuesta (con el
 NotFoundError) a las 11:35, en el mismo minuto que la pregunta.
+
+El 25-09-2026, el cambio al token de usuario del sistema (E-0010, también por
+la app de Claude con Juan delante): encargo abierto a las 07:15, usuario
+creado a las 07:21, activos asignados a las 07:24, token emitido a las
+07:25:25 (*Caduca: Nunca*, tipo *System User*), despliegue en Render de
+1 min 35 s con `/salud` en `ok 3fe6161` a las 07:31:25, y las dos preguntas
+de control respondidas en el mismo minuto (07:32 y 07:33): vacaciones
+citando el convenio, salario denegado con "Retenido por permiso". Dieciocho
+minutos de reloj en total, sin ningún `403`.
 
 ### Variables
 
