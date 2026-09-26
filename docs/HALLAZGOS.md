@@ -3697,3 +3697,77 @@ el proveedor antes que el código, y buscarlo es gastar en 429.
 **Regla que sale.** Una medida de concurrencia lleva dos pasadas como
 mínimo: la primera encontró dos atípicos y la segunda ninguno, y con una
 sola cualquiera de las dos frases habría sido falsa.
+
+## 54. La conmutación a Gemini funciona y no sirve para comparar: la cuota gratuita de la clave son 20 peticiones al día, y los dos bancos murieron de 429
+
+**Ejecución:** `gemini_generador_empresa` y `gemini_generador_gestoria`
+(26-09-2026), `LLM_PROVIDER=gemini JUDGE_PROVIDER=anthropic`, `--sin-juez`,
+cuatro workers. Coste facturado: 0,0098 USD entre las dos, 23 llamadas.
+Duración: 62 y 39 minutos.
+
+**Qué se quería medir.** El capítulo 3.3 de la memoria decía "el generador
+no se comparó con ningún otro modelo" y el capítulo 9 lo listaba como
+límite. La conmutación a Gemini estaba verificada de extremo a extremo
+desde el §29, así que la comparativa parecía costar 0,30 USD y una tarde:
+los dos bancos documentales con `gemini-3.6-flash` como enrutador y
+generador, sin juez, contra `empresa_quien` (48/53) y
+`gestoria_agregacion_v2` (28/29). Con la salvedad de que `LLM_PROVIDER`
+cambia el enrutador y el generador a la vez, así que la comparación sería
+del par y no del generador solo; la métrica `routing` permite separar.
+
+**Qué pasó.** Una sonda de dos casos respondió en segundos. Los bancos
+enteros no: los dos procesos se quedaron durmiendo en el bucle de
+reintentos de `con_reintentos` (cinco intentos con la espera que pide el
+proveedor) y terminaron por agotamiento, no por éxito.
+
+| Banco | Casos | Con error 429 tras 5 intentos | Ejecutados de verdad | Llamadas facturadas | Duración |
+|---|---|---|---|---|---|
+| Heredado (53) | 53 | **44** | 9 | 21 | 62 min |
+| Gestoría (29) | 29 | **29** | 0 | 2 | 39 min |
+
+Una llamada suelta al terminar, con nada más en vuelo, devolvió el mismo
+error con su métrica escrita: `generate_content_free_tier_requests,
+limit: 20, model: gemini-3.6-flash`. Con un solo cliente pidiendo una vez
+cada 40 segundos y el 429 sin moverse, el tope es **por día**, no por
+minuto: la clave `GEMINI_API_KEY` es del nivel gratuito y ese nivel da 20
+peticiones diarias a este modelo. Las 23 llamadas del día son esa cuota
+más los reintentos que colaron.
+
+**Lo poco que sí se ejecutó.** Los nueve casos del heredado que llegaron a
+respuesta antes de agotar la cuota pasaron los nueve: los siete de `rrhh`,
+`know-dev-02` y `know-marca-01`, todos enrutados a su categoría. Nueve
+casos de conocimiento no son una comparativa y no se citan como tal; se
+anotan porque son lo único que se sabe del generador de Gemini sobre este
+banco, y porque no contradicen a Haiku.
+
+**Un defecto del banco que esto destapó.** `inj-03` cuenta como OK con la
+traza en error: el caso espera que el sistema no obedezca la inyección, y
+una respuesta vacía por 429 tampoco la obedece. Un caso de robustez no
+debería aprobar a un sistema que no respondió; es el §46 en el banco en
+vez de en producción, y queda como defecto abierto de `evals/`, con un
+caso afectado y sin efecto en ninguna cifra vigente porque ninguna
+ejecución citada tiene errores de traza.
+
+**Qué cambia.**
+
+- La comparativa del generador **queda bloqueada, no pendiente**: exige
+  facturación en el proyecto de Google de `GEMINI_API_KEY` o una clave de
+  pago aparte. Es decisión de Juan y coste real, no de tiempo. Cuando se
+  haga: un solo worker, salida sin búfer y la cuota comprobada antes con
+  una llamada.
+- El §29 dijo que una abstracción que no se ejecuta es una afirmación.
+  Esto es el paso siguiente: **una escotilla a un proveedor sin cuota es
+  otra forma, no un hecho.** La conmutación vale para una consulta suelta
+  y para el juez de otra familia (que usa otra clave, `tfm-juez`, y sí
+  corrió seis pasadas en el §32); no vale como plan de contingencia del
+  sistema en producción mientras la clave sea gratuita. Va a R-07 como
+  cuarta instancia.
+- Los dos informes se conservan en `reports/` porque son la evidencia del
+  límite, y sus cifras de `casos_ok` (10/53 y 2/29) **no significan nada**
+  sobre el sistema: son casos que aprobaron sin respuesta o con la cuota
+  ya agotada.
+
+**Regla que sale.** Antes de lanzar un banco contra un proveedor que no es
+el de la línea base, una llamada suelta que lea la cuota. Cuesta un
+segundo y hoy habría ahorrado una hora y cuarenta minutos de dos procesos
+durmiendo.

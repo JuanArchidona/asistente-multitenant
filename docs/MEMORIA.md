@@ -528,8 +528,16 @@ Lo que no se comparó: el generador. `claude-haiku-4-5` genera porque la 3.3
 lo heredó con su línea base, y su barrido de configuraciones comparó
 recuperación (chunking, `top_k`, dimensiones), no modelos de generación. La
 conmutación a Gemini (§29) verifica que el camino funciona, no cuánto
-cambia la calidad; es una comparación que queda por hacer y el capítulo 9
-la lista.
+cambia la calidad. Se intentó el 26-09 con los dos bancos documentales y
+murió de cuota: la clave de Gemini es del nivel gratuito, 20 peticiones al
+día para `gemini-3.6-flash`, y 73 de los 82 casos terminaron en 429 tras
+cinco reintentos (§54). Los nueve que llegaron a responder pasaron los
+nueve, y nueve casos de conocimiento no son una comparativa. Queda
+bloqueada hasta que haya facturación en ese proyecto, y el capítulo 9 lo
+dice así. La consecuencia para la justificación pesa más que la cifra
+que falta: **la conmutación de proveedor no es un plan de contingencia
+mientras la clave sea gratuita**; vale para una consulta suelta y para el
+juez, que usa otra clave.
 
 Un prerrutado determinista por identificador (OP-2026-118 va a
 expedientes) se descartó con una cuenta de dos minutos (§25): los
@@ -1020,6 +1028,7 @@ descripciones, no código.
 | Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir antes de la defensa: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
 | Denegación explícita en el caso parcial | Decidido no hacerlo | Tras la defensa |
 | `inj-04` | Residual: arreglarlo es tocar el prompt del enrutador heredado | No se hace |
+| Comparar el generador con Gemini | Bloqueado por la cuota gratuita de la clave (§54); exige facturación en el proyecto de Google | Cuando haya clave de pago |
 | Correo como canal | No construido | Fuera |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
@@ -1059,7 +1068,10 @@ identificador, conmutación de proveedor verificada, AIBOM.
   y eso no está medido. Que lo que escala sea el número de inquilinos es
   una afirmación de diseño con una medida (el alta), no una de
   rendimiento.
-- **El generador no se comparó** con ningún otro modelo (capítulo 3.3).
+- **El generador no se comparó** con ningún otro modelo: el intento con
+  Gemini murió de cuota, 20 peticiones al día en la clave gratuita, con 73
+  de 82 casos en 429 (§54, capítulo 3.3). Bloqueado por facturación, no
+  por tiempo.
 - **La interfaz vale para una demostración, no para un cliente**, y lo dice
   en pantalla: contraseñas con SHA-256 y sal, comparación en tiempo
   constante, pero sin límite de intentos, sin caducidad de sesión y sin
@@ -1134,7 +1146,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 53 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 54 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 23 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1177,7 +1189,7 @@ sin crédito.]
 
 ## Anexo A. Índice de hallazgos por capítulo
 
-Los 53 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
+Los 54 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
 que los citan (todos los que lo hacen, no solo el principal; regenerado el
 26-09-2026 desde las citas `§N` del texto). Cada hallazgo nombra la
 ejecución de `reports/` que lo respalda o dice que no la tiene.
@@ -1196,7 +1208,7 @@ ejecución de `reports/` que lo respalda o dice que no la tiene.
 | 2.10 Interfaz y canales | §51 |
 | 3.1 Python frente a LangGraph | §29, §50 |
 | 3.2 MCP frente a herramientas cableadas | §7 |
-| 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48 |
+| 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54 |
 | 3.4 El resto de la pila | §19, §26, §38, §51, §52 |
 | 4.1-4.2 Banco y línea base | §11, §23, §30, §31, §42, §45, §47, §49 |
 | 4.3 Evaluar al evaluador | §24, §26, §30, §32, §33 |
@@ -1214,9 +1226,9 @@ ejecución de `reports/` que lo respalda o dice que no la tiene.
 | 7.5-7.6 RGPD, cadena de suministro | §35, §36, §50 |
 | 8.1 Alta de cliente | §1, §43, §45, §49 |
 | 8.2 Escalar lo que hay | §22, §36, §47 |
-| 8.3 Decisiones pendientes | §32, §33, §51 |
+| 8.3 Decisiones pendientes | §32, §33, §51, §54 |
 | 8.4 Proveedores que cambian | §21, §26, §29, §35 |
-| 9 Límites | §6, §48, §51, §52, §53 |
+| 9 Límites | §6, §48, §51, §52, §53, §54 |
 | 12.2 Método | §21, §44 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
