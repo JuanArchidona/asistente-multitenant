@@ -69,7 +69,7 @@ servicio público desplegado. **1118 tests en verde**, `ruff` limpio.
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
 | Prototipo LangGraph para la comparativa (bloque 3, punto 14) | **Hecho y medido** el 24-09 (§50): `src/orquestacion_langgraph.py`, `ORQUESTADOR=langgraph`, grupo `langgraph` aparte. Mismas 106 llamadas y mismos 51.559 tokens de entrada en el heredado, +0,011 s de latencia, 47/53 frente a 48 (generador); 95 líneas frente a 21 y 14 paquetes. Vanilla se queda |
-| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los hallazgos (53 el 26-09). Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. El capítulo 3.1 pasó de argumentado a medido con el §50. Rotar claves y cronometrar la mitad manual del simulacro: **decidido en contra** por Juan el 24-09. WhatsApp probado en vivo el 24-09 (§51). Queda un hueco marcado `[PENDIENTE]`: el formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
+| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los hallazgos (53 el 26-09). Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. El capítulo 3.1 pasó de argumentado a medido con el §50. Rotar claves y cronometrar la mitad manual del simulacro: **decidido en contra** por Juan el 24-09. WhatsApp probado en vivo el 24-09 (§51). **Borrador 2 el 26-09** tras una segunda lectura hostil (7 altas, 20 medias, 8 bajas; informe en `docs/REVISION_MEMORIA_2026-09-26.md`, aplicado salvo la lectura de la latencia interna de WhatsApp en Render): la pila justificada por criterio, la ficha de coste con el plan de pago de Render (7 USD/mes por servicio), la fuga por hora derivada del §53 y el anexo A regenerado desde las citas reales; 28 páginas. Queda un hueco marcado `[PENDIENTE]`: el formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
 | Prueba de carga y concurrencia | **Hecha y medida** el 26-09 (§53, `scripts/prueba_carga.py`, dos pasadas, 0,236 USD): 8 consultas a la vez sobre un `Sistema` compartido tardan lo que una (p50 3,2-3,3 s en todos los niveles, lote 5,7x más rápido), 0 errores, 0 cambios de enrutado, `conf-01` denegada siempre; la rama MCP paga 0-0,5 s a 4 en vuelo; la puerta HTTP de Render no se mueve con 20 clientes (216 peticiones, max 0,19 s). Atípicos: 2 de 64 por encima de 11 s en la primera pasada, 0 en la segunda, causa no vista |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS **verificado contra la matriz 5.6.0**, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
@@ -216,8 +216,14 @@ y §14).
   desde el 24-09): cada cifra lleva su hallazgo y su ejecución, y los cortes
   de línea base van con fecha y escotilla. Pasó una lectura hostil el 24-09
   (35 correcciones: "cuatro semanas" eran cinco días, línea base de la
-  agencia unificada, tamaños de muestra dichos, límites ampliados). Lo que le
-  falta no es trabajo de código: el formato de la defensa. La rúbrica, cuando
+  agencia unificada, tamaños de muestra dichos, límites ampliados) y otra el
+  26-09 (35 más: 50 hallazgos que eran 53, AIBOM 10/119 que era 12/142, una
+  fila de decisiones pendientes que §32 había cerrado cuatro días antes,
+  `fuga_literal` citado desde trazas anteriores a la gobernanza). Regla que
+  sale de las dos: **cada vez que la memoria absorbe un hallazgo nuevo, los
+  recuentos globales (hallazgos, tests, paquetes, bloques de la demo) se
+  recuentan con el comando, no se editan a mano.** Lo que le falta no es
+  trabajo de código: el formato de la defensa. La rúbrica, cuando
   llegue, puede reordenar capítulos; las cifras no cambian.
 - **LangGraph está medido y descartado como orquestador por defecto** (§50):
   mismas llamadas y mismos tokens de entrada que la línea base, +0,011 s, y a
