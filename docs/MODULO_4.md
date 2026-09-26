@@ -55,7 +55,7 @@ decir qué hay en cada una **con la ejecución que lo respalda**.
 | 6 | Divulgación de información confidencial | **Lo más fuerte que tiene.** Permiso dentro del `where` de la búsqueda, redacción al salir de la herramienta, cobertura del riesgo medida, y una fuga real medida y corregida |
 | 7 | Complementos no seguros | Parcial. Los servidores MCP son procesos aparte; la sesión hija del puente corre con `--restricted` y lista de denegación (§19), que es control de radio de impacto |
 | 8 | Agencia excesiva | **Hueco.** Human-in-the-loop pendiente |
-| 9 | Sobre-dependencia de LLM | **Medido, y es original.** Los §30, §32 y §33 son una demostración medida de sobre-dependencia **sobre el propio evaluador del proyecto**: el juez emite números que contradicen su razonamiento, y por eso ninguna decisión cuelga de él |
+| 9 | Sobredependencia de LLM | **Medido, y es original.** Los §30, §32 y §33 son una demostración medida de sobre-dependencia **sobre el propio evaluador del proyecto**: el juez emite números que contradicen su razonamiento, y por eso ninguna decisión cuelga de él |
 | 10 | Robo de modelos | No aplica: no hay modelo propio |
 
 ### Los nueve guardarrailes (4.3)

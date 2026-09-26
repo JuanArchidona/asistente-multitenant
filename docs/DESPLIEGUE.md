@@ -108,7 +108,8 @@ interfaz mostrará el error del proveedor: no se disimula.
 | Barra de gasto | Va una consulta por detrás (se pinta antes de procesar la consulta). 0,0018 USD la primera consulta, 0,0046 USD tras dos |
 
 La URL pública es `https://asistente-multitenant.onrender.com`. El servicio
-se deja suspendido fuera de las pruebas y de la defensa.
+está vivo a propósito desde el 23-09-2026 para seguir probando en él
+(`CLAUDE.md` §2); el §52 lo mide dormido y despierto.
 
 ## Riesgos que abre, y dónde están registrados
 

@@ -1,6 +1,7 @@
 # Guion de la demostración
 
-> Para la defensa, en vivo o grabada. Doce minutos si se hace entero; cada
+> Para la defensa, en vivo o grabada. Quince minutos en ocho bloques si se
+> hace entero, más dos de preparación sin público; cada
 > bloque se puede saltar sin romper el siguiente. Cada paso dice **qué se
 > enseña**, **qué se hace** y **qué tiene que verse**, para que quien lo
 > ejecute (o quien lo grabe) sepa cuándo ha salido bien. Las consultas son
@@ -145,7 +146,7 @@ y fija el inquilino (§51, `docs/CANAL_WHATSAPP.md`).
   dice (§37).
 - Abrir `reports/`: cada cifra de la memoria tiene su carpeta.
 - Si hay tiempo, `uv run python -m evals.runner --etiqueta demo --sin-juez`
-  sobre la agencia: 38 casos en menos de un minuto, sin coste de juez.
+  sobre la agencia: 40 casos en menos de un minuto, sin coste de juez.
 - Si preguntan por LangGraph (y suelen): el mismo sistema encadenado por
   un grafo existe, `ORQUESTADOR=langgraph`, y está medido (§50): mismas 106
   llamadas y mismos 51.559 tokens de entrada que la línea base en los 53

@@ -1,10 +1,10 @@
 # Canal de WhatsApp
 
 > Punto 13 del bloque 3 de `ALCANCE.md`: *canal de WhatsApp en entorno de
-> pruebas*. Construido el 23-09-2026 y **probado con mensajes simulados**;
-> la prueba en vivo está pendiente de la cuenta de pruebas de Meta, que solo
-> puede crear Juan. Este documento dice qué hace el canal, qué decide, cómo
-> se pone en marcha y qué se va a medir cuando esté conectado.
+> pruebas*. Construido el 23-09-2026 con mensajes simulados, **conectado a
+> Meta y probado en vivo el 24-09** (§51) y con token permanente desde el
+> 25-09. Este documento dice qué hace el canal, qué decide, cómo se puso en
+> marcha, qué se midió y qué se decidió no medir.
 
 ## Qué es y qué no
 

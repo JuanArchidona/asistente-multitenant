@@ -51,7 +51,7 @@ servicio público desplegado. **1118 tests en verde**, `ruff` limpio.
 | Consulta de las dos ramas ante una categoría ambigua | Hecha y medida: cobertura del riesgo 0,778 → 1,0 (§22) |
 | Verificación determinista de citas | Hecha y medida sobre las 22 ejecuciones guardadas: 0 citas inventadas (§23) |
 | Clave propia del juez, también en el camino de Gemini | Hecha: antes usaba la de los embeddings (§24) |
-| Juez de otra familia que el generador | Diseñado y no ejecutado: falta una segunda clave de Gemini (§24, §26) |
+| Juez de otra familia que el generador | Hecho el 22-09 (§32): `gemini-3.6-flash` es el juez por defecto y la mayoría de tres se decidió no automatizar (§33) |
 | Estabilidad del enrutador | Medida y **aplicada**: temperatura 0 por defecto desde el 22-09; la votación queda descartada por redundante (§27, ALCANCE §5.c) |
 | Evaluación del juez | Hecha y completada: el número contradice su propio razonamiento, temperatura 0 no lo estabiliza y sus errores van todos en el mismo sentido (§30, §32) |
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29) |
@@ -69,7 +69,7 @@ servicio público desplegado. **1118 tests en verde**, `ruff` limpio.
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
 | Derechos RGPD sobre el índice (borrado y rectificación) | **Medido** el 23-09: borrado efectivo en 1,46 s y 1,23 s, comprobado contra la colección (§36, `scripts/borrar_documento.py`); las consultas registradas no se borran (R-16) |
 | Prototipo LangGraph para la comparativa (bloque 3, punto 14) | **Hecho y medido** el 24-09 (§50): `src/orquestacion_langgraph.py`, `ORQUESTADOR=langgraph`, grupo `langgraph` aparte. Mismas 106 llamadas y mismos 51.559 tokens de entrada en el heredado, +0,011 s de latencia, 47/53 frente a 48 (generador); 95 líneas frente a 21 y 14 paquetes. Vanilla se queda |
-| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los 48 hallazgos. Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. El capítulo 3.1 pasó de argumentado a medido con el §50. Rotar claves y cronometrar la mitad manual del simulacro: **decidido en contra** por Juan el 24-09. WhatsApp probado en vivo el 24-09 (§51). Queda un hueco marcado `[PENDIENTE]`: el formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
+| Memoria técnica (bloque 4, punto 16) | **Borrador 1 escrito** el 24-09: `docs/MEMORIA.md`, estructura según las cinco características del capstone del programa, cada cifra con su hallazgo y ejecución, contrastada contra los hallazgos (53 el 26-09). Segunda pasada el mismo día: ficha de coste mensual por inquilino (5.4), capítulo de documentación y defensa (12), revisión completa; 23 páginas con `docs/entrega/construir_pdf.py --entrada docs/MEMORIA.md`. El capítulo 3.1 pasó de argumentado a medido con el §50. Rotar claves y cronometrar la mitad manual del simulacro: **decidido en contra** por Juan el 24-09. WhatsApp probado en vivo el 24-09 (§51). Queda un hueco marcado `[PENDIENTE]`: el formato de la defensa; la rúbrica puede reordenar capítulos pero no cambia las cifras |
 | Prueba de carga y concurrencia | **Hecha y medida** el 26-09 (§53, `scripts/prueba_carga.py`, dos pasadas, 0,236 USD): 8 consultas a la vez sobre un `Sistema` compartido tardan lo que una (p50 3,2-3,3 s en todos los niveles, lote 5,7x más rápido), 0 errores, 0 cambios de enrutado, `conf-01` denegada siempre; la rama MCP paga 0-0,5 s a 4 en vuelo; la puerta HTTP de Render no se mueve con 20 clientes (216 peticiones, max 0,19 s). Atípicos: 2 de 64 por encima de 11 s en la primera pasada, 0 en la segunda, causa no vista |
 | Registro de riesgos y clasificación por el AI Act | **Hecho** el 23-09: `docs/RIESGOS.md` (23 riesgos con cuadrante de Rumsfeld, OWASP, ATLAS **verificado contra la matriz 5.6.0**, AIUC-1 y evidencia, con test que impide citar hallazgos inexistentes) y bloque `ai_act` obligatorio en cada manifiesto, con la regla del artículo 6.3 codificada y el aviso del artículo 50 en la interfaz |
 
@@ -288,7 +288,8 @@ y §14).
   la misma familia, y esa es la configuración con la que está medido todo el
   banco. Desde el §24 la limitación viaja en cada `resumen.json` y en cada
   `informe.md` en vez de vivir en un docstring, y el experimento que la mide
-  está diseñado: faltan una segunda clave de Gemini y 0,22 USD.
+  se ejecutó el mismo 22-09 con la clave `tfm-juez` (§32); desde entonces el
+  juez por defecto es de otra familia.
 - **La rama estructurada no dice de qué herramienta sale cada dato.** Responde
   "según la búsqueda en el CRM" cuando el prompt pide la herramienta, y con
   cinco publicadas eso no permite volver a la llamada que produjo el número. Es

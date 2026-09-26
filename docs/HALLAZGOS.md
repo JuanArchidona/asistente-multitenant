@@ -470,7 +470,8 @@ tiene que decir cuál de las dos cosas mide.
 
 La cuenta es de **prepago**: 12,87 USD de crédito y **recarga automática
 desactivada**. Eso ya es un tope duro, y acotado: al ritmo de fuga medido
-(12,5 USD/hora, §17) el peor caso se agota solo en una hora. El riesgo se
+(12,5 USD/hora, §17; cifra sin derivación escrita entonces, el §53 la mide:
+13,7 USD/hora) el peor caso se agota solo en una hora. El riesgo se
 invierte: ya no es gastar de más, es **quedarse sin crédito durante la defensa**.
 
 ## 17. Evaluar cuesta diecisiete veces más que funcionar
@@ -3679,6 +3680,11 @@ puede irse a 11-13 s una vez de cada treinta, y no se sabe por qué**.
   que es menor que la del portátil; el código es el mismo.
 - La ficha de coste no cambia: el coste por consulta es independiente de
   la concurrencia, como debe, porque son tokens.
+- La cifra de fuga del §16 (12,5 USD por hora, que se citaba sin
+  derivación) pasa a tener una: 115 consultas por minuto con ocho en
+  vuelo a 0,00198 USD cada una son **13,7 USD por hora**, y el crédito de
+  12,66 USD se agota en 55 minutos. Es la fuga de un solo proceso; con
+  más procesos el límite lo pondría la cuota de la cuenta.
 
 **Lo que no se midió, y por qué.** Consultas reales concurrentes contra
 Render: Streamlit habla por websocket y el webhook de WhatsApp exige la
