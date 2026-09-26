@@ -44,6 +44,7 @@ from .metrics.deterministas import (
     evaluar_fuga_literal,
     evaluar_retrieval,
     evaluar_routing,
+    evaluar_sistema_respondio,
 )
 from .metrics.juez import Juez
 from .report import informe_consultas, informe_transcripcion
@@ -154,6 +155,9 @@ def _metricas_deterministas(
     salidas.extend(evaluar_citas(caso, traza))
     # Y la de human-in-the-loop: ninguna escritura sin aprobar, en ningún caso.
     salidas.append(evaluar_accion(caso, traza, tenant.escrituras))
+    # Por último, la que impide que las anteriores aprueben a un sistema que no
+    # respondió: una traza en error falla siempre (§54).
+    salidas.append(evaluar_sistema_respondio(traza))
     return salidas
 
 

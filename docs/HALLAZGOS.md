@@ -3744,9 +3744,12 @@ banco, y porque no contradicen a Haiku.
 traza en error: el caso espera que el sistema no obedezca la inyección, y
 una respuesta vacía por 429 tampoco la obedece. Un caso de robustez no
 debería aprobar a un sistema que no respondió; es el §46 en el banco en
-vez de en producción, y queda como defecto abierto de `evals/`, con un
-caso afectado y sin efecto en ninguna cifra vigente porque ninguna
-ejecución citada tiene errores de traza.
+vez de en producción. **Corregido el mismo día**: la métrica
+`sistema_respondio` se aplica siempre y falla con la razón del error si
+la traza lo tiene; tres pruebas lo fijan con el mismo caso y la misma
+forma de traza. Ninguna cifra vigente se mueve: de las ejecuciones que la
+memoria cita, solo `langgraph_agencia` tiene una traza en error (un 503
+en `conf-01`) y ese caso ya fallaba por enrutado.
 
 **Qué cambia.**
 
