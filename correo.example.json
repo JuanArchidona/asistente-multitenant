@@ -1,0 +1,38 @@
+{
+  "direcciones": [
+    {
+      "direccion": "empleado@ejemplo.es",
+      "usuario": "empleado",
+      "nombre": "Empleado sin privilegios",
+      "tenant": "empresa_servicios",
+      "roles": []
+    },
+    {
+      "direccion": "direccion@ejemplo.es",
+      "usuario": "direccion",
+      "nombre": "Direccion de RRHH",
+      "tenant": "empresa_servicios",
+      "roles": [
+        "rrhh_direccion"
+      ]
+    },
+    {
+      "direccion": "gerencia@domara.example",
+      "usuario": "gerencia",
+      "nombre": "Gerencia de la agencia",
+      "tenant": "agencia_inmobiliaria",
+      "roles": [
+        "direccion"
+      ]
+    },
+    {
+      "direccion": "socio@marinlasheras.example",
+      "usuario": "socio",
+      "nombre": "Socio del despacho",
+      "tenant": "gestoria_laboral",
+      "roles": [
+        "socio"
+      ]
+    }
+  ]
+}

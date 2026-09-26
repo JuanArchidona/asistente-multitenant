@@ -169,7 +169,16 @@ prioridad y **la línea de corte se decide ahora**, no en octubre con prisa.
    sin juez, y también da nulo; las tres capas observables están medidas.
 9. Servidor MCP del Catastro como fuente externa real.
 10. Observabilidad en producción y coste acumulado por tenant.
-11. Canal de correo, de extremo a extremo.
+11. Canal de correo, de extremo a extremo. **Construido el 26-09-2026**
+    (`src/canal_correo.py`, `docs/CANAL_CORREO.md`): la dirección del
+    remitente es la credencial con lista cerrada, se exige
+    `Authentication-Results` con DKIM o SPF en `pass` porque el remitente se
+    puede falsificar, aprobación humana en la primera línea de la respuesta,
+    34 pruebas con correos simulados y una consulta simulada contra el
+    sistema real (5,26 s). **Pendiente de conectar** a un buzón de Gmail
+    dedicado que crea Juan (`docs/ENCARGO_CORREO_2026-09-26.md`); decidido
+    el 26-09 construirlo y conectarlo, tras haber estado listado como fuera
+    de alcance por error en la memoria.
 
 ### Bloque 3 — Lo que se cae primero si falta tiempo
 

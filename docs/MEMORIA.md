@@ -438,7 +438,18 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   aprobación por texto en vivo y el aislamiento con dos números reales,
   que se decidió no medir (capítulo 8.3). La puesta en marcha y sus
   tropiezos están en `docs/CANAL_WHATSAPP.md` y en el §51.
-- **Correo**: no construido (capítulo 8.3).
+- **Correo** (`src/canal_correo.py`, sobre un buzón de Gmail dedicado): la
+  dirección del remitente es la credencial, con la misma lista cerrada; y
+  como un remitente de correo se puede falsificar, el canal exige que el
+  servidor receptor haya verificado el origen (`Authentication-Results`
+  con DKIM o SPF en `pass`, R-24), o rechaza el correo sin consultar. La
+  aprobación va en la primera línea de la respuesta, la respuesta enhebra
+  en la conversación y el sondeo del buzón es por IMAP con la librería
+  estándar, sin paquetes nuevos. Probado con 34 pruebas de correos
+  simulados y una consulta simulada contra el sistema real (5,26 s);
+  pendiente de conectar al buzón, que se decidió crear (capítulo 8.3).
+  Límite propio: en el plan gratuito de Render, dormido no sondea, y a
+  diferencia de WhatsApp nada lo despierta (capítulo 9).
 
 ## 3. Selección y justificación de modelos, patrones y herramientas
 
@@ -963,7 +974,7 @@ un profesor y el repositorio es público); se cita desde `MODULO_4.md`.
 
 ### 7.1 El registro de riesgos
 
-`RIESGOS.md` tiene 23 filas, cada una con cuadrante de la matriz de
+`RIESGOS.md` tiene 24 filas, cada una con cuadrante de la matriz de
 Rumsfeld, casilla del OWASP Top 10 para LLM, técnica de MITRE ATLAS
 (verificadas contra la matriz 5.6.0), dominio de AIUC-1, evidencia
 (hallazgo o test), control y estado. Un test comprueba que cada hallazgo
@@ -972,7 +983,7 @@ evidencia es una opinión.
 
 | Cuadrante | Contramedida del Módulo 4 | Lo que el proyecto pone |
 |---|---|---|
-| Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (13 filas) |
+| Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (14 filas) |
 | Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada y condicionada a una clave de pago (§54), AIBOM (R-07, R-09, R-15) |
 | Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Cinco filas que salieron de mirar con desconfianza (R-04, R-06, R-11, R-13, R-21); en tres de ellas el error estaba en el instrumento (capítulo 4.5) |
 | Desconocidos-desconocidos | Botón rojo y plan | Tope prepago, plan escrito y pulsado en frío (R-23) |
@@ -1138,7 +1149,8 @@ no haya que buscarlo en dos sitios:
 | Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
 | Comparar el generador con Gemini | **Abierto.** Bloqueado por la cuota gratuita de la clave (§54); exige facturación en el proyecto de Google | Cuando haya clave de pago |
 | Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la defensa: no hay incidente que lo pida (capítulo 6.4) | Tras la defensa |
-| Correo como canal; conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad completa | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
+| Conectar el canal de correo a un buzón real | **Abierto.** Construido y probado en simulación; falta la cuenta de Gmail dedicada y sus credenciales en Render (`docs/ENCARGO_CORREO_2026-09-26.md`) | Cuando exista el buzón |
+| Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
 
@@ -1196,7 +1208,9 @@ capítulo 8.3 y aquí solo se remite.
   Que lo que escala sea el número de inquilinos es una afirmación de diseño
   con una medida (el alta), no una de rendimiento.
 - **WhatsApp** está probado en vivo con un número y dos preguntas; la
-  latencia interna en producción no se ha leído (capítulo 2.9).
+  latencia interna en producción no se ha leído (capítulo 2.9). **Correo**
+  está probado solo en simulación, y su servicio, dormido en el plan
+  gratuito, no sondea el buzón hasta que algo lo despierte.
 
 **Lo que queda fuera por decisión** está en la tabla del capítulo 8.3, con
 su motivo y su fecha.
@@ -1220,7 +1234,7 @@ función que no se solapa con la de los demás:
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
 | `docs/HALLAZGOS.md` | 54 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
-| `docs/RIESGOS.md` | 23 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
+| `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
 | `reports/<etiqueta>/` | Evidencia de cada ejecución: `resumen.json`, `informe.md`, trazas | Versionados a propósito: una cifra sin carpeta no es un dato |

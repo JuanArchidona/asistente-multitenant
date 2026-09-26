@@ -52,7 +52,9 @@ SILENCIO_NUEVA_CONVERSACION_S = 24 * 3600
 # el mismo: Meta reintenta el webhook si no recibe un 200 a tiempo.
 MEMORIA_MENSAJES = 500
 
-_RE_ORDEN = re.compile(r"^\s*(aprobar|rechazar)\s+(ACC-[0-9a-f]{6})\s*$", re.IGNORECASE)
+# Pública porque el canal de correo acepta la misma orden en la primera línea.
+RE_ORDEN = re.compile(r"^\s*(aprobar|rechazar)\s+(ACC-[0-9a-f]{6})\s*$", re.IGNORECASE)
+_RE_ORDEN = RE_ORDEN
 
 TEXTO_NO_AUTORIZADO = (
     "Este número no está dado de alta en el asistente. Si crees que debería estarlo, "

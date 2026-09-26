@@ -12,6 +12,7 @@ __pycache__/
 # usuarios.example.json, que si se versiona.
 usuarios.local.json
 whatsapp.local.json
+correo.local.json
 
 # Datos locales (el indice se reconstruye desde corpus/)
 data/
