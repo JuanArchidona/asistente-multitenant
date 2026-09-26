@@ -1,0 +1,446 @@
+{
+  "fecha": "2026-09-26",
+  "que_mide": "El capítulo de límites de la memoria decía: \"no hay prueba de carga ni de\nconcurrencia; las latencias son de ejecuciones secuenciales\". Este script\ncierra esa frase con una medida, y separa a propósito dos cosas que suelen\nmezclarse bajo la palabra \"carga\":",
+  "remoto": {
+    "niveles": [
+      1,
+      5,
+      10,
+      20
+    ],
+    "rondas": 3,
+    "servicios": {
+      "asistente-multitenant": {
+        "url": "https://asistente-multitenant.onrender.com/",
+        "despertar_descartado_s": 0.1,
+        "por_nivel": {
+          "1": {
+            "n": 3,
+            "media_s": 0.084,
+            "p50_s": 0.08,
+            "p95_s": 0.097,
+            "max_s": 0.097,
+            "peticiones": 3,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.098,
+              0.08,
+              0.075
+            ]
+          },
+          "5": {
+            "n": 15,
+            "media_s": 0.101,
+            "p50_s": 0.1,
+            "p95_s": 0.108,
+            "max_s": 0.122,
+            "peticiones": 15,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.132,
+              0.131,
+              0.117
+            ]
+          },
+          "10": {
+            "n": 30,
+            "media_s": 0.117,
+            "p50_s": 0.117,
+            "p95_s": 0.14,
+            "max_s": 0.178,
+            "peticiones": 30,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.148,
+              0.228,
+              0.167
+            ]
+          },
+          "20": {
+            "n": 60,
+            "media_s": 0.134,
+            "p50_s": 0.137,
+            "p95_s": 0.166,
+            "max_s": 0.183,
+            "peticiones": 60,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.3,
+              0.257,
+              0.272
+            ]
+          }
+        }
+      },
+      "asistente-whatsapp-n2s9": {
+        "url": "https://asistente-whatsapp-n2s9.onrender.com/salud",
+        "despertar_descartado_s": 0.1,
+        "por_nivel": {
+          "1": {
+            "n": 3,
+            "media_s": 0.092,
+            "p50_s": 0.095,
+            "p95_s": 0.097,
+            "max_s": 0.097,
+            "peticiones": 3,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.084,
+              0.098,
+              0.095
+            ]
+          },
+          "5": {
+            "n": 15,
+            "media_s": 0.097,
+            "p50_s": 0.1,
+            "p95_s": 0.105,
+            "max_s": 0.108,
+            "peticiones": 15,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.129,
+              0.121,
+              0.108
+            ]
+          },
+          "10": {
+            "n": 30,
+            "media_s": 0.105,
+            "p50_s": 0.102,
+            "p95_s": 0.13,
+            "max_s": 0.134,
+            "peticiones": 30,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.145,
+              0.15,
+              0.151
+            ]
+          },
+          "20": {
+            "n": 60,
+            "media_s": 0.122,
+            "p50_s": 0.12,
+            "p95_s": 0.16,
+            "max_s": 0.168,
+            "peticiones": 60,
+            "errores": 0,
+            "errores_detalle": [],
+            "pared_por_ronda_s": [
+              0.244,
+              0.245,
+              0.251
+            ]
+          }
+        }
+      }
+    }
+  },
+  "local": {
+    "tenant": "empresa_servicios",
+    "consultas": [
+      "know-rrhh-01",
+      "know-rrhh-04",
+      "know-dev-01",
+      "know-dev-04",
+      "know-marca-01",
+      "know-act-01",
+      "ooc-01",
+      "conf-01"
+    ],
+    "niveles": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "por_nivel": {
+      "1": {
+        "concurrencia": 1,
+        "consultas": 8,
+        "errores": [],
+        "pared_lote_s": 25.735,
+        "consultas_por_minuto": 18.65,
+        "pared_por_consulta": {
+          "n": 8,
+          "media_s": 3.217,
+          "p50_s": 3.486,
+          "p95_s": 3.625,
+          "max_s": 3.625
+        },
+        "suma_tramos_por_consulta": {
+          "n": 8,
+          "media_s": 3.217,
+          "p50_s": 3.486,
+          "p95_s": 3.626,
+          "max_s": 3.626
+        },
+        "cola_media_s": -0.0,
+        "coste_usd": 0.015009,
+        "llamadas": 16,
+        "enrutado": {
+          "know-rrhh-01": "rrhh",
+          "know-rrhh-04": "rrhh",
+          "know-dev-01": "desarrollo",
+          "know-dev-04": "desarrollo",
+          "know-marca-01": "marca",
+          "know-act-01": "actas",
+          "ooc-01": "rrhh",
+          "conf-01": "rrhh"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": true,
+        "respuestas": {
+          "know-rrhh-01": "Según el **Convenio Colectivo Interno** de Soluciones Cloud Ibérica S.L., te corresponden **23 días laborables de vacaciones por año completo trabajado**.\n\nAdemás, puedes acumular hasta 5 días de carry-over al año siguiente, siempre que los disfrutes antes del 31 de marzo.\n\nPara solicitar las vacaciones, debes hacerlo con al menos 15 días de antelación a través del portal de empleado.\n\n**Fuente:**",
+          "know-rrhh-04": "Según el convenio colectivo de Soluciones Cloud Ibérica S.L., **la nómina se paga el día 28 de cada mes**.\n\nTambién te informo que las pagas extraordinarias (julio y diciembre) están prorrateadas en las 12 mensualidades.\n\n**Fuente:** Convenio Colectivo Interno — Soluciones Cloud Ibérica S.L. (archivo: convenio_colectivo.md)",
+          "know-dev-01": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería**, la versión mínima de Python que se usa en los proyectos nuevos es **Python 3.11 o superior**.\n\n**Fuente:** desarrollo | Archivo: `guia_estilo_python.md`",
+          "know-dev-04": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería** (archivo: `guia_estilo_python.md`):\n\n**Gestor de paquetes y entorno:** `uv`\n\n- Es el estándar para todos los proyectos nuevos\n- Las dependencias se definen en `pyproject.toml` como única fuente de verdad",
+          "know-marca-01": "El color primario de la marca es **azul pizarra (#2c3e50)**.\n\n**Fuente:** Guía de Marca — Soluciones Cloud Ibérica (archivo: guia_marca.md)",
+          "know-act-01": "Según el contexto recuperado, **el parche del bug de pagos se desplegó el 6 de junio de 2026 sin incidencias**.\n\nEsta información se confirma en dos actas:\n- En el **acta del Comité de Producto de 2026-06-03**, Diego Ruíz (Tech Lead) confirma que el parche se desplegaría el 6 de junio.\n- En el **acta del Comité de Producto de 2026-06-17**, se reporta en el seguimiento de tareas que \"el parche del ",
+          "ooc-01": "Basándome en el contexto recuperado, no encuentro información sobre la política de dietas y gastos de viaje.\n\nEl documento disponible es el **Convenio Colectivo Interno** (fuente: rrhh | Archivo: convenio_colectivo.md), que cubre aspectos como jornada laboral, vacaciones, permisos retribuidos y teletrabajo, pero **no incluye detalles sobre dietas ni gastos de viaje**.\n\nTe recomiendo que consultes:",
+          "conf-01": "No puedo responder a tu consulta con la información disponible.\n\nEl contexto recuperado contiene información del convenio colectivo de la empresa (jornada laboral, vacaciones, permisos, teletrabajo y política general de retribución), pero **no incluye datos salariales individuales de empleados específicos**, incluyendo los de Diego Ruíz.\n\nPara obtener esta información, deberías contactar con el de"
+        }
+      },
+      "2": {
+        "concurrencia": 2,
+        "consultas": 8,
+        "errores": [],
+        "pared_lote_s": 20.313,
+        "consultas_por_minuto": 23.63,
+        "pared_por_consulta": {
+          "n": 8,
+          "media_s": 4.732,
+          "p50_s": 3.51,
+          "p95_s": 11.583,
+          "max_s": 11.583
+        },
+        "suma_tramos_por_consulta": {
+          "n": 8,
+          "media_s": 4.732,
+          "p50_s": 3.51,
+          "p95_s": 11.583,
+          "max_s": 11.583
+        },
+        "cola_media_s": -0.0,
+        "coste_usd": 0.015464,
+        "llamadas": 16,
+        "enrutado": {
+          "know-rrhh-01": "rrhh",
+          "know-rrhh-04": "rrhh",
+          "know-dev-01": "desarrollo",
+          "know-dev-04": "desarrollo",
+          "know-marca-01": "marca",
+          "know-act-01": "actas",
+          "ooc-01": "rrhh",
+          "conf-01": "rrhh"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": true,
+        "respuestas": {
+          "know-rrhh-01": "Según el **Convenio Colectivo Interno** de Soluciones Cloud Ibérica S.L., **te corresponden 23 días laborables de vacaciones por año completo trabajado**.\n\nAdemás, puedes acumular hasta 5 días de carry-over (días no disfrutados) al año siguiente, siempre que los disfrutes antes del 31 de marzo.\n\nPara solicitar tus vacaciones, debes hacerlo con al menos 15 días de antelación a través del portal de ",
+          "know-rrhh-04": "Según el convenio colectivo, **el pago de nómina se realiza el día 28 de cada mes**.\n\n**Fuente:** Convenio Colectivo Interno — Soluciones Cloud Ibérica S.L. (Archivo: convenio_colectivo.md)",
+          "know-dev-01": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería** (archivo: `guia_estilo_python.md`), la versión mínima de Python para proyectos nuevos es **Python 3.11 o superior**.\n\nAdemás, se especifica que todos los proyectos nuevos deben usar `uv` como gestor de paquetes y entorno, con `pyproject.toml` como única fuente de dependencias.",
+          "know-dev-04": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería** ([fuente: desarrollo | Archivo: guia_estilo_python.md]):\n\n**Gestor de paquetes y entornos:** `uv`\n\nEl estándar es usar `uv` como gestor de paquetes y entorno en todo proyecto nuevo, con `pyproject.toml` como única fuente de dependencias.",
+          "know-marca-01": "Según la **Guía de Marca** (archivo: guia_marca.md), el color primario de la marca es **azul pizarra (#2c3e50)**.\n\nEl color de acento complementario es turquesa (#1abc9c).",
+          "know-act-01": "Según el contexto recuperado, **el parche del bug de pagos se desplegó el 6 de junio de 2026 sin incidencias**.\n\nEsta información se confirma en dos actas:\n\n1. **Acta del Comité de Producto (3 de junio de 2026)**: Diego Ruíz (Tech Lead) confirmó que el parche se desplegaría el 6 de junio.\n\n2. **Acta del Comité de Producto (17 de junio de 2026)**: Se reporta en el seguimiento de tareas que \"el parc",
+          "ooc-01": "Según el contexto recuperado, **no encontro información específica sobre la política de dietas y gastos de viaje** en los documentos disponibles.\n\nEl único documento que tengo es el **Convenio Colectivo Interno** (fuente: rrhh | Archivo: convenio_colectivo.md), que contiene información sobre jornada laboral, vacaciones, permisos retribuidos y teletrabajo, pero no incluye políticas sobre dietas o r",
+          "conf-01": "No puedo responder a tu pregunta con la información disponible. \n\nEl contexto recuperado contiene información del convenio colectivo de la empresa (jornada laboral, vacaciones, permisos, teletrabajo y política general de retribución), pero **no incluye datos sobre el salario específico de Diego Ruíz ni de ningún empleado individual**.\n\nPara obtener esa información, deberías contactar con el depart"
+        }
+      },
+      "4": {
+        "concurrencia": 4,
+        "consultas": 8,
+        "errores": [],
+        "pared_lote_s": 6.746,
+        "consultas_por_minuto": 71.15,
+        "pared_por_consulta": {
+          "n": 8,
+          "media_s": 3.177,
+          "p50_s": 3.114,
+          "p95_s": 3.846,
+          "max_s": 3.846
+        },
+        "suma_tramos_por_consulta": {
+          "n": 8,
+          "media_s": 3.177,
+          "p50_s": 3.113,
+          "p95_s": 3.846,
+          "max_s": 3.846
+        },
+        "cola_media_s": 0.0,
+        "coste_usd": 0.015199,
+        "llamadas": 16,
+        "enrutado": {
+          "know-rrhh-01": "rrhh",
+          "know-rrhh-04": "rrhh",
+          "know-dev-01": "desarrollo",
+          "know-dev-04": "desarrollo",
+          "know-marca-01": "marca",
+          "know-act-01": "actas",
+          "ooc-01": "rrhh",
+          "conf-01": "rrhh"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": true,
+        "respuestas": {
+          "know-rrhh-01": "Según el **Convenio Colectivo Interno** de Soluciones Cloud Ibérica S.L., te corresponden **23 días laborables de vacaciones por año completo trabajado**.\n\n**Puntos adicionales a tener en cuenta:**\n- Debes solicitar las vacaciones con al menos 15 días de antelación a través del portal de empleado\n- Puedes trasladar hasta 5 días al año siguiente, pero deben disfrutarse antes del 31 de marzo\n\n**Fuen",
+          "know-rrhh-04": "Según el **Convenio Colectivo Interno** de Soluciones Cloud Ibérica S.L., **la nómina se paga el día 28 de cada mes**.\n\nTambién se indica que las pagas extraordinarias (julio y diciembre) están prorrateadas en las 12 mensualidades.\n\n**Fuente:** rrhh | Archivo: convenio_colectivo.md",
+          "know-dev-01": "Según la **Guía de Estilo de Desarrollo** del Equipo de Ingeniería, la versión mínima de Python que se usa en los proyectos nuevos es **Python 3.11 o superior**.\n\n**Fuente:** `desarrollo | guia_estilo_python.md`",
+          "know-dev-04": "Según la **Guía de Estilo de Desarrollo** del equipo de Ingeniería, usamos:\n\n- **Gestor de paquetes y entorno:** `uv`\n- **Archivo de configuración:** `pyproject.toml` como única fuente de dependencias\n\nEsto es el estándar para todo proyecto nuevo en Python 3.11 o superior.\n\n**Fuente:** `desarrollo | guia_estilo_python.md`",
+          "know-marca-01": "El color primario de la marca es **azul pizarra (#2c3e50)**.\n\n**Fuente:** Guía de Marca — Soluciones Cloud Ibérica (archivo: guia_marca.md)",
+          "know-act-01": "Según el contexto recuperado, **el parche del bug de pagos se desplegó el 6 de junio de 2026 sin incidencias**.\n\nEsta información proviene de dos actas del Comité de Producto:\n\n1. En el acta del **3 de junio de 2026** se acordó que Diego Ruíz desplegaría el parche antes del 6/6.\n\n2. En el acta del **17 de junio de 2026** se confirmó en el seguimiento de tareas que *\"El parche del bug de pagos se d",
+          "ooc-01": "En el contexto recuperado no encontré información específica sobre la **política de dietas y gastos de viaje**.\n\nEl documento consultado es el **Convenio Colectivo Interno** (fuente: rrhh | Archivo: convenio_colectivo.md), que contiene información sobre jornada laboral, vacaciones, permisos retribuidos y teletrabajo, pero **no incluye detalles sobre dietas o reembolso de gastos de viaje**.\n\nTe rec",
+          "conf-01": "No puedo responder a tu consulta. El contexto recuperado contiene información del convenio colectivo general de la empresa (jornada laboral, vacaciones, permisos, etc.), pero **no incluye datos de salarios individuales de empleados**.\n\nPara conocer el salario de Diego Ruíz, deberías contactar con el departamento de Recursos Humanos (RRHH), que es el área responsable de esa información."
+        }
+      },
+      "8": {
+        "concurrencia": 8,
+        "consultas": 8,
+        "errores": [],
+        "pared_lote_s": 13.29,
+        "consultas_por_minuto": 36.12,
+        "pared_por_consulta": {
+          "n": 8,
+          "media_s": 4.365,
+          "p50_s": 3.243,
+          "p95_s": 13.285,
+          "max_s": 13.285
+        },
+        "suma_tramos_por_consulta": {
+          "n": 8,
+          "media_s": 4.365,
+          "p50_s": 3.243,
+          "p95_s": 13.284,
+          "max_s": 13.284
+        },
+        "cola_media_s": 0.0,
+        "coste_usd": 0.014874,
+        "llamadas": 16,
+        "enrutado": {
+          "know-rrhh-01": "rrhh",
+          "know-rrhh-04": "rrhh",
+          "know-dev-01": "desarrollo",
+          "know-dev-04": "desarrollo",
+          "know-marca-01": "marca",
+          "know-act-01": "actas",
+          "ooc-01": "rrhh",
+          "conf-01": "rrhh"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": true,
+        "respuestas": {
+          "know-rrhh-01": "Según el **Convenio Colectivo Interno** de Soluciones Cloud Ibérica S.L., **te corresponden 23 días laborables de vacaciones por año completo trabajado**.\n\nAdemás, puedes carry-over (trasladar) hasta 5 días al año siguiente, siempre que los disfrutes antes del 31 de marzo.\n\n**Recuerda:** Las vacaciones deben solicitarse con al menos 15 días de antelación a través del portal de empleado.\n\n*Fuente: ",
+          "know-rrhh-04": "Según el Convenio Colectivo Interno de Soluciones Cloud Ibérica S.L., **la nómina se paga el día 28 de cada mes**.\n\n**Fuente:** Archivo `convenio_colectivo.md` (Departamento de RRHH)",
+          "know-dev-01": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería**, la versión mínima de Python para proyectos nuevos es **Python 3.11 o superior**.\n\n**Fuente:** `guia_estilo_python.md` (Desarrollo)",
+          "know-dev-04": "Según la **Guía de Estilo de Desarrollo del Equipo de Ingeniería**, el gestor de paquetes y entornos que utilizamos es:\n\n- **`uv`**: gestor de paquetes y entorno estándar para todos los proyectos nuevos\n- **`pyproject.toml`**: archivo único que define todas las dependencias\n\n**Fuente:** `guia_estilo_python.md` (desarrollo)",
+          "know-marca-01": "Según la **Guía de Marca** de Soluciones Cloud Ibérica, el color primario de la marca es **azul pizarra (#2c3e50)**.\n\n**Fuente:** guia_marca.md (sección Identidad visual)",
+          "know-act-01": "Según el contexto recuperado, **el parche del bug de pagos se desplegó el 6 de junio de 2026 sin incidencias**.\n\nEsta información se encuentra en el acta del Comité de Producto del 17 de junio de 2026, que confirma en el seguimiento de tareas anteriores: *\"El parche del bug de pagos se desplegó el 6 de junio sin incidencias. Cerrado.\"*\n\n**Fuente:** Acta del Comité de Producto (acta_comite_producto",
+          "ooc-01": "No puedo responder a tu consulta sobre la política de dietas y gastos de viaje basándome en el contexto disponible.\n\nEl contexto recuperado contiene información del **Convenio Colectivo Interno** (fuente: rrhh | Archivo: convenio_colectivo.md), pero solo incluye secciones sobre:\n- Jornada laboral\n- Vacaciones\n- Permisos retribuidos\n- Teletrabajo\n- Retribución\n\n**La política específica de dietas y ",
+          "conf-01": "No puedo responder a esa pregunta. El contexto recuperado contiene información del convenio colectivo interno (políticas de jornada laboral, vacaciones, permisos y retribución general), pero **no incluye datos sobre el salario específico de Diego Ruíz ni de ningún empleado individual**.\n\nPara obtener esa información, necesitarías consultar con el Departamento de Recursos Humanos directamente o acc"
+        }
+      }
+    },
+    "coste_usd_total": 0.060546
+  },
+  "agencia": {
+    "tenant": "agencia_inmobiliaria",
+    "consultas": [
+      "know-cart-01",
+      "know-cart-02",
+      "know-cart-03",
+      "front-cart-01"
+    ],
+    "niveles": [
+      1,
+      4
+    ],
+    "por_nivel": {
+      "1": {
+        "concurrencia": 1,
+        "consultas": 4,
+        "errores": [],
+        "pared_lote_s": 20.693,
+        "consultas_por_minuto": 11.6,
+        "pared_por_consulta": {
+          "n": 4,
+          "media_s": 5.173,
+          "p50_s": 5.501,
+          "p95_s": 5.949,
+          "max_s": 5.949
+        },
+        "suma_tramos_por_consulta": {
+          "n": 4,
+          "media_s": 5.173,
+          "p50_s": 5.501,
+          "p95_s": 5.95,
+          "max_s": 5.95
+        },
+        "cola_media_s": 0.0,
+        "coste_usd": 0.031872,
+        "llamadas": 12,
+        "enrutado": {
+          "know-cart-01": "cartera",
+          "know-cart-02": "cartera",
+          "know-cart-03": "cartera",
+          "front-cart-01": "cartera"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": null,
+        "respuestas": {
+          "know-cart-01": "Según las estadísticas de la cartera (herramienta CRM):\n\n- **Venta**: 8 inmuebles llevan más de 90 días publicados sin ofertas\n- **Alquiler**: 1 inmueble lleva más de 90 días publicado sin ofertas\n\n**Total: 9 inmuebles** en toda la cartera llevan más de 90 días publicados sin ninguna oferta.",
+          "know-cart-02": "Según la herramienta de estadísticas de cartera, **en Delicias tenemos el metro cuadrado a una media de 1.902,40 €** en inmuebles en venta.\n\n**Datos adicionales de la zona (cartera de venta):**\n- Inmuebles en cartera: 7\n- Precio/m² mediana: 1.964,30 €\n- Rango: 1.571,40 € - 2.200,00 €\n- Antigüedad media de publicación: 28,3 días\n- Inmuebles en exclusiva: 4",
+          "know-cart-03": "La operación **OP-2026-110** está en estado de **reserva firmada** (según el CRM).\n\n**Detalles principales:**\n- **Inmueble:** INM-2026-103\n- **Importe:** 170.000 €\n- **Comercial responsable:** Iván Belsué\n\n**Nota importante:** La respuesta del sistema incluye datos personales de las partes implicadas. Aunque tengo acceso a esa información en el contexto de sistemas internos, ciertos campos están m",
+          "front-cart-01": "Según los datos del CRM (herramienta de búsqueda de inmuebles), tenemos actualmente **16 inmuebles captados en exclusiva**.\n\nEstos 16 inmuebles exclusivos se distribuyen así:\n- **Venta**: 10 inmuebles\n- **Alquiler**: 6 inmuebles\n\nLa relación completa de referencia es:\n- **Venta**: INM-2026-143, INM-2026-110, INM-2026-103, INM-2026-128, INM-2026-132, INM-2026-144, INM-2026-102, INM-2026-124, INM-20"
+        }
+      },
+      "4": {
+        "concurrencia": 4,
+        "consultas": 4,
+        "errores": [],
+        "pared_lote_s": 5.049,
+        "consultas_por_minuto": 47.54,
+        "pared_por_consulta": {
+          "n": 4,
+          "media_s": 4.603,
+          "p50_s": 4.604,
+          "p95_s": 5.046,
+          "max_s": 5.046
+        },
+        "suma_tramos_por_consulta": {
+          "n": 4,
+          "media_s": 4.603,
+          "p50_s": 4.605,
+          "p95_s": 5.046,
+          "max_s": 5.046
+        },
+        "cola_media_s": 0.0,
+        "coste_usd": 0.026111,
+        "llamadas": 11,
+        "enrutado": {
+          "know-cart-01": "cartera",
+          "know-cart-02": "cartera",
+          "know-cart-03": "cartera",
+          "front-cart-01": "cartera"
+        },
+        "cambios_enrutado_frente_a_secuencial": [],
+        "confidencial_denegada": null,
+        "respuestas": {
+          "know-cart-01": "Según los datos del CRM (herramienta `crm__estadisticas_cartera`):\n\n- **Venta**: 8 inmuebles con más de 90 días publicados sin ofertas\n- **Alquiler**: 1 inmueble con más de 90 días publicado sin ofertas\n\n**Total: 9 inmuebles** llevan más de 90 días publicados sin ninguna oferta en la cartera.",
+          "know-cart-02": "Según los datos de nuestra cartera en **Delicias** (fuente: CRM - Estadísticas de cartera):\n\n- **Precio por metro cuadrado de media: 1.902,40 €/m²**\n- Mediana: 1.964,30 €/m²\n- Rango: entre 1.571,40 €/m² (mínimo) y 2.200 €/m² (máximo)\n\nEstos datos corresponden a **7 inmuebles en venta** que tenemos actualmente en la zona, con una antigüedad media de publicación de 28,3 días.",
+          "know-cart-03": "**Estado de la operación OP-2026-110** (según CRM):\n\n- **Estado**: Reserva firmada\n- **Inmueble**: INM-2026-103\n- **Importe**: €170.000\n- **Comercial responsable**: Iván Belsué\n\nLos datos personales de las partes (comprador y vendedor) aparecen restringidos en el sistema, por lo que no puedo mostrarlos. Si necesitas acceder a esa información de contacto, tendrás que solicitarlo a quien tenga permi",
+          "front-cart-01": "Entiendo que necesitas saber cuántos inmuebles tenemos en exclusiva en este momento. Desafortunadamente, **las herramientas de búsqueda disponibles no incluyen un filtro específico para inmuebles \"en exclusiva\"**. \n\nPuedo buscar inmuebles por zona, tipo de operación (venta/alquiler), precio, habitaciones y otros criterios, pero no existe un parámetro directo para filtrar por exclusividad.\n\nAdemás,"
+        }
+      }
+    },
+    "coste_usd_total": 0.057983
+  },
+  "coste_usd_total": 0.118529
+}

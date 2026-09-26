@@ -1019,8 +1019,11 @@ identificador, conmutación de proveedor verificada, AIBOM.
 - **El coste blando es un suelo** y no hay límite por usuario ni por minuto.
 - **Los embeddings no se convierten a dólares.**
 - **WhatsApp** está probado en vivo con un número y dos preguntas, y con
-  token permanente desde el 25-09; falta el aislamiento con dos números.
-  **Correo** no está construido.
+  token permanente desde el 25-09. El aislamiento con dos números reales y
+  la aprobación por texto en vivo no se midieron, por decisión del 26-09:
+  son el mismo mecanismo que la credencial de la web, las fijan las pruebas
+  con mensajes simulados y repetirlas exige un segundo teléfono sin añadir
+  evidencia de arquitectura. **Correo** no está construido.
 - **Conectores a CRM comerciales**, despliegue íntegramente local y
   omnicanalidad completa quedan fuera (`ALCANCE.md` §7).
 

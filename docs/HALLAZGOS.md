@@ -3489,8 +3489,11 @@ antes de la defensa (§47).
 **Lo medido y lo que sigue sin medir.** Extremo a extremo: menos de un
 minuto por pregunta, que es lo que da un reloj con precisión de minuto; la
 latencia interna está en el registro de producción del servicio, en el
-disco efímero de Render, y no se leyó. Queda por medir con dos números de
-dos inquilinos el aislamiento por número. El token de usuario del sistema
+disco efímero de Render, y no se leyó. El aislamiento por número con dos
+teléfonos reales **no se medirá antes de la defensa** (decidido el
+26-09-2026): es el mismo mecanismo que la credencial de la web y lo fijan
+las pruebas con mensajes simulados; repetirlo en vivo exige un segundo
+número y no añade evidencia de arquitectura. El token de usuario del sistema
 **se hizo el 25-09-2026** (E-0010): emitido a las 07:25:25 con caducidad
 *Nunca* según el depurador de tokens de Meta, cambiado en Render con un
 despliegue de 1 min 35 s, y las dos mismas preguntas respondidas igual a las
@@ -3543,5 +3546,148 @@ Render más la construcción del índice (§37, unos 3.000 tokens) a su
 latencia, y la de la web, 32 s. Para la memoria, el límite se declara así:
 en el plan gratuito la primera consulta tras un cuarto de hora sin uso tarda
 entre 32 y 61 s más que las siguientes; un plan de pago lo elimina y es un
-coste fijo que la ficha de 5.4 ya suma aparte. Lo que sigue sin medir es la
-concurrencia: esto son peticiones de una en una.
+coste fijo que la ficha de 5.4 ya suma aparte. La concurrencia se midió al
+día siguiente (§53): esto son peticiones de una en una.
+
+## 53. Ocho consultas a la vez sobre un mismo `Sistema` tardan lo que una: el pipeline escala en hilos sin romper el enrutado ni el permiso, y la puerta HTTP de Render aguanta 20 clientes sin moverse
+
+**Ejecución:** `prueba_carga` y `prueba_carga_2` (26-09-2026), con
+`scripts/prueba_carga.py`. La primera pasada lleva los tres bloques (frente
+HTTP de Render, pipeline del heredado, rama estructurada de la agencia); la
+segunda repite los dos de pipeline y guarda además el desglose por consulta
+y por tramo, que la primera no guardaba. Coste: **0,236 USD** entre las dos
+(0,1185 y 0,1178), 80 consultas medidas más 4 de calentamiento. El frente
+HTTP no costó nada.
+
+**Por qué se midió.** El capítulo 9 de la memoria decía "no hay prueba de
+carga ni de concurrencia; las latencias son de ejecuciones secuenciales", y
+el §52 cerraba con "lo que sigue sin medir es la concurrencia". Era el
+único límite declarado que se podía cerrar desde aquí sin pedir nada a
+nadie. Y había una razón de arquitectura para medirlo: el servidor de
+WhatsApp atiende cada mensaje en un hilo sobre **un mismo `Sistema` por
+inquilino**, y la interfaz hace lo propio por sesión. Ese objeto comparte
+el cliente de Anthropic, el `Retriever` sobre Chroma, el acumulador `Uso`
+(con `threading.local` para atribuir el coste por consulta) y, en la
+agencia, el cliente MCP con su bucle de eventos en un hilo aparte. Ninguna
+de esas piezas se había visto con dos consultas en vuelo.
+
+**Qué se separó, y por qué.** "Carga" mezcla dos cosas. La puerta: cuántos
+clientes a la vez aguanta el proceso HTTP de una instancia del plan
+gratuito. Y la cocina: qué le pasa al pipeline cuando varias consultas
+corren juntas sobre los mismos objetos. Lo primero se mide contra Render
+sin coste, con `GET /` de Streamlit y `GET /salud` del servicio de WhatsApp,
+a 1, 5, 10 y 20 peticiones simultáneas, tres rondas cada nivel, tras
+descartar la petición que despierta el servicio (§52). Lo segundo se mide
+en local, porque cada consulta cuesta lo mismo aquí que allí y allí
+mediría además la red, que ya está en el §52: ocho consultas del banco
+heredado (seis de conocimiento por las cuatro categorías, una fuera de
+corpus, una confidencial) lanzadas a un `ThreadPoolExecutor` de 1, 2, 4 y 8
+hilos sobre un único `Sistema`; y cuatro de cartera de la agencia a 1 y 4.
+Con dos invariantes que la concurrencia no debe tocar: que cada consulta se
+enrute igual que en la pasada secuencial y que `conf-01` siga denegada.
+
+**Qué salió.**
+
+*La puerta.* 216 peticiones, ninguna fallida, y la latencia no se mueve con
+la concurrencia:
+
+| Servicio | 1 a la vez | 5 | 10 | 20 |
+|---|---|---|---|---|
+| Interfaz web, p50 / p95 | 0,12 / 0,15 s | 0,11 / 0,15 s | 0,11 / 0,16 s | 0,13 / 0,16 s |
+| WhatsApp `/salud`, p50 / p95 | 0,17 / 0,17 s | 0,11 / 0,17 s | 0,12 / 0,17 s | 0,12 / 0,16 s |
+
+El máximo de las 216 fue 0,19 s. Veinte clientes a la vez es el techo que se
+probó, no el del servicio; para esta prueba basta con saber que la demo con
+un tribunal delante no va a encontrar la puerta cerrada.
+
+*La cocina, heredado.* Segunda pasada, la que tiene el desglose:
+
+| Concurrencia | Lote de 8 (s) | Consultas/min | Pared p50 | Pared p95 | Pared max | Coste | Errores | Enrutado cambia | `conf-01` denegada |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | 23,7 | 20 | 3,32 s | 3,62 s | 3,62 s | 0,0155 USD | 0 | 0 | sí |
+| 2 | 12,7 | 38 | 3,16 s | 3,54 s | 3,54 s | 0,0153 USD | 0 | 0 | sí |
+| 4 | 6,8 | 71 | 3,22 s | 3,71 s | 3,71 s | 0,0157 USD | 0 | 0 | sí |
+| 8 | 4,2 | 115 | 3,18 s | 4,16 s | 4,16 s | 0,0147 USD | 0 | 0 | sí |
+
+- **La latencia por consulta no depende de cuántas haya en vuelo.** El p50
+  está entre 3,16 y 3,32 s en los cuatro niveles, y por tramos igual:
+  enrutador 0,8-1,7 s, recuperación 0,25-0,31 s, generación 1,0-2,9 s, en
+  cualquier nivel. Ocho a la vez sobre el mismo `Sistema` tardan lo que
+  una. El lote baja de 23,7 s a 4,2 s, **5,7 veces**, de 20 a 115
+  consultas por minuto. La contención, si la hubiera, aparecería dentro de
+  los tramos, porque el GIL y el cerrojo de Chroma se pagan mientras el
+  tramo corre; no aparece: el tiempo es del proveedor y se solapa.
+- **La recuperación no se resiente.** Chroma con ocho lectores
+  concurrentes sobre la misma colección: 0,25-0,31 s, lo mismo que sola.
+- **El enrutado es el mismo en los 32 pares** consulta-nivel, y en los 32
+  de la primera pasada. Con temperatura 0 el enrutador ya casi no variaba
+  (§27); con concurrencia sigue sin variar.
+- **El permiso no se cuela.** `conf-01` (el salario de Diego Ruíz, que pide
+  el empleado sin roles) sale con `denegados_por_permiso` no vacío en los
+  ocho niveles de las dos pasadas, y la respuesta dice que el contexto no
+  incluye el dato. El control está en el `where` de la búsqueda, no en un
+  estado compartido, y por eso ocho hilos no lo mueven.
+- **El coste por consulta es el de siempre**: 0,0147-0,0157 USD por lote de
+  ocho, 0,0018-0,0020 por consulta, que es la cifra de la ficha de 5.4
+  (0,00198). Dieciséis llamadas por lote en todos los niveles. Lo que la
+  suma demuestra es que no se pierde ninguna llamada con ocho en vuelo; la
+  atribución por consulta del `threading.local` no se comprueba aquí,
+  porque el total saldría igual aunque atribuyera mal.
+
+*La cocina, agencia (rama estructurada por MCP).* Cuatro consultas de
+cartera, todas con al menos una herramienta:
+
+| Concurrencia | Lote de 4 (s) | Pared p50 | Pared p95 | Generación p50 | Coste | Errores | Enrutado cambia |
+|---|---|---|---|---|---|---|---|
+| 1 | 17,9 | 4,59 s | 4,61 s | 3,1 s | 0,0283 USD | 0 | 0 |
+| 4 | 6,2 | 5,05 s | 6,21 s | 3,6 s | 0,0284 USD | 0 | 0 |
+
+- **El cliente MCP con su bucle en un hilo aparte aguanta cuatro llamadas
+  concurrentes**, sin error y con las mismas respuestas (la OP-2026-110
+  en reserva firmada, INM-2026-103, 170.000 euros, en las dos pasadas).
+- **Pero aquí sí hay un precio**: +0,46 s en el p50 y +1,6 s en el máximo
+  a cuatro a la vez, y está en el tramo de generación (3,1 → 3,6 s de
+  p50), que en la rama estructurada incluye la vuelta de herramientas. En
+  la primera pasada no: 5,50 → 4,60 s. Con cuatro consultas por nivel y dos
+  pasadas que se contradicen, lo honesto es decir que **la rama
+  estructurada a cuatro en vuelo cuesta entre 0 y medio segundo más por
+  consulta**, y que el lote se acelera 2,9 veces, no 4.
+
+*Los valores atípicos, que están en la primera pasada y no en la segunda.*
+La primera pasada tuvo **2 consultas de 64 por encima de 11 s**: 11,6 s a
+concurrencia 2 y 13,3 s a concurrencia 8, las dos en el heredado, las dos
+con la pared igual a la suma de sus tramos, o sea dentro de una llamada al
+proveedor y no en la cola de hilos. La primera pasada no guardaba el
+desglose por tramo (se añadió por esto), así que no se sabe si fue el
+enrutador o el generador, y la segunda pasada, que sí lo guarda, no tuvo
+ninguna por encima de 4,2 s. Dos de 64 bajo concurrencia y cero de 64 en
+la repetición no permiten decir si la concurrencia las provoca; el SDK
+reintenta solo ante un 429 o un 529 y eso encaja con 8-10 s de más, pero
+no se vio el reintento. Se dice como está: **el p95 bajo concurrencia
+puede irse a 11-13 s una vez de cada treinta, y no se sabe por qué**.
+
+**Qué cambia.**
+
+- El capítulo 9 deja de decir "no hay prueba de concurrencia" y dice esto:
+  ocho consultas simultáneas sobre un `Sistema` compartido no suben la
+  latencia por consulta ni cambian el enrutado ni el permiso; la rama
+  estructurada paga hasta medio segundo a cuatro en vuelo; la puerta HTTP
+  de una instancia gratuita no se mueve con 20 clientes.
+- El servidor de WhatsApp, que es quien de verdad comparte el `Sistema`
+  entre hilos, queda medido en lo que le faltaba: la concurrencia. Lo que
+  sigue sin medirse es lo mismo bajo la CPU del plan gratuito de Render,
+  que es menor que la del portátil; el código es el mismo.
+- La ficha de coste no cambia: el coste por consulta es independiente de
+  la concurrencia, como debe, porque son tokens.
+
+**Lo que no se midió, y por qué.** Consultas reales concurrentes contra
+Render: Streamlit habla por websocket y el webhook de WhatsApp exige la
+firma de Meta; las dos cosas se pueden simular, pero cada consulta costaría
+lo mismo que aquí y mediría la red del §52 otra vez. Tampoco se buscó el
+techo (a partir de cuántos hilos algo se rompe): con 8 hilos y el límite de
+peticiones por minuto de la cuenta de Anthropic sin tocar, el techo lo pone
+el proveedor antes que el código, y buscarlo es gastar en 429.
+
+**Regla que sale.** Una medida de concurrencia lleva dos pasadas como
+mínimo: la primera encontró dos atípicos y la segunda ninguno, y con una
+sola cualquiera de las dos frases habría sido falsa.

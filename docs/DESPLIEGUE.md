@@ -53,7 +53,12 @@ Tres decisiones heredadas de la 3.1 y una nueva:
   y despertar cuesta **32 s** la interfaz y **42-61 s** el servicio de
   WhatsApp, medido en cuatro sondeos cada uno el 25-09-2026 (§52,
   `reports/arranque_frio`); despierto responde en menos de 0,2 s y ninguna
-  petición se pierde durante el despertar. El disco es efímero: el índice se reconstruye desde el corpus versionado
+  petición se pierde durante el despertar. Despierto, aguanta 20 clientes a
+  la vez sin moverse: 216 peticiones concurrentes a los dos servicios el
+  26-09-2026, ninguna fallida, máximo 0,19 s (§53, `reports/prueba_carga`).
+  Lo que no se ha medido en Render es la concurrencia de consultas reales;
+  en local, ocho consultas a la vez sobre un mismo `Sistema` tardan lo que
+  una (§53). El disco es efímero: el índice se reconstruye desde el corpus versionado
   la primera vez que un usuario de cada inquilino entra. Cuesta una pasada de
   embeddings por inquilino, unos 3.000 tokens (§37).
 - **`uv sync --frozen`**: el entorno es exactamente el de `uv.lock`, el mismo

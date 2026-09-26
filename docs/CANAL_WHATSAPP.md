@@ -166,8 +166,18 @@ arranque.
 la hoja respondieron en el mismo minuto de enviarse, la de vacaciones con
 la misma respuesta que la web y la del salario con la denegación sin el
 dato; aviso de IA en el primer mensaje; la línea "Retenido por permiso" en
-las dos. Sin medir todavía: la latencia interna, el aislamiento con dos
-números y la aprobación por texto en vivo.
+las dos. Sin medir en vivo: el aislamiento con dos números y la aprobación
+por texto. **Decidido el 26-09-2026: no se miden en vivo antes de la
+defensa.** El canal ya probó lo que estaba para probar, que el mismo sistema
+sale por otra puerta con la misma gobernanza; el aislamiento por número es
+el mismo mecanismo que la credencial de la web (una lista cerrada fija
+persona, inquilino y roles, y dos números de dos clientes nunca comparten
+`Sistema`) y está cubierto por las pruebas con mensajes simulados de
+`tests/test_canal_whatsapp.py`. Repetirlo con un segundo teléfono real
+exige otro número y tiempo de Juan, y no añade evidencia de arquitectura:
+solo confirmaría en vivo lo que la prueba unitaria ya fija. Lo mismo vale
+para la aprobación por texto, medida en la web (§42) y simulada en el canal.
+Si un tribunal lo pide, el coste de hacerlo es una tarde y cero código.
 
 **La latencia interna no se podía leer, y desde el 25-09-2026 sí.** El
 servidor la calculaba en `atender` y el hilo del webhook la tiraba; el
