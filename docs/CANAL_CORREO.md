@@ -114,9 +114,8 @@ latencia interna con el aviso de IA, la cita del convenio y la línea
   web services can't send outbound network traffic on ports 25, 465, or
   587, commonly used for SMTP"*. El primer despliegue real (E-0011, §55)
   leyó el buzón a la primera y falló cada envío con `Errno 101` tras 30 s.
-  Lo arregla la instancia Starter (7 USD al mes) o cambiar el enviador a
-  HTTPS (API de Gmail con OAuth); la decisión está en la tabla 8.3 de la
-  memoria.
+  Decidido el 27-09: `asistente-correo` pasa a la instancia Starter (7 USD
+  al mes), el único servicio de pago del despliegue; el blueprint lo dice.
 - **Dormido no sondea.** En el plan gratuito de Render el servicio se duerme
   sin tráfico HTTP (§52) y el hilo de sondeo se duerme con él; a diferencia
   de WhatsApp, un correo nuevo no lo despierta. Consecuencia: un correo

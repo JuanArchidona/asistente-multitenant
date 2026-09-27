@@ -102,9 +102,15 @@ personales en claro.
 Fases A y B hechas: cuenta creada, credenciales en Render, servicio *Live*
 en 61 s, IMAP leyendo. **Fase C no hecha**: el plan gratuito de Render
 bloquea la salida por los puertos SMTP y ninguna respuesta puede salir
-(§55). Hasta que se decida la vía de salida (instancia Starter o envío por
-HTTPS), esta hoja queda en pausa en la fase C; cuando se retome, la fase C
-se hace entera tal como está escrita.
+(§55). **Decidido el 27-09: instancia Starter.** Fase B2, antes de la C: en
+el dashboard de Render, servicio `asistente-correo` > *Settings* > *Instance
+Type*, cambiar de *Free* a *Starter* (Juan confirma el cargo; anotar la hora
+y el precio que muestre Render). El blueprint ya dice `plan: starter` para
+que la siguiente sincronización no lo devuelva a gratuito. Esperar al
+redespliegue, abrir `/salud` y comprobar en los *Logs* que un correo
+automático de Google ya no intenta enviarse (`remitente automatico`) y que
+ningún envío da `Errno 101`. Después, la fase C entera tal como está
+escrita, y en la fase D el precio mensual que Render muestre.
 
 ## Lo que no se hace
 

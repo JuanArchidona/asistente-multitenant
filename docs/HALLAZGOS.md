@@ -3839,14 +3839,15 @@ hay que crearlas con *Add variable*, no rellenarlas.
 **Qué cambia.**
 
 - La conexión del canal queda **bloqueada por la salida SMTP**, no por el
-  código ni por el buzón. Dos vías, y la elige Juan: pasar `asistente-correo`
-  a la instancia Starter de Render (7 USD al mes, la misma cifra que la
-  ficha de coste ya suma para quitar el sueño, y que aquí lo quita también) o
-  enviar por HTTPS con la API de Gmail, que exige un cliente OAuth y un
-  token de actualización en la consola de Google y cambia el código del
-  enviador. Hasta que se decida, la fila de la tabla 8.3 de la memoria sigue
-  abierta y el capítulo 9 dice que el plan gratuito **no sirve para el
-  correo**, con la cita.
+  código ni por el buzón. Dos vías: pasar `asistente-correo` a la instancia
+  Starter de Render (7 USD al mes, la misma cifra que la ficha de coste ya
+  suma para quitar el sueño, y que aquí lo quita también) o enviar por
+  HTTPS con la API de Gmail, que exige un cliente OAuth y un token de
+  actualización en la consola de Google y cambia el código del enviador.
+  **Juan decidió la Starter el 27-09**, y el blueprint pasa ese servicio a
+  `plan: starter` para que una sincronización no lo devuelva a gratuito. El
+  capítulo 9 dice que el plan gratuito **no sirve para el correo**, con la
+  cita; el correo es el único servicio de pago del despliegue.
 - Los límites de `CANAL_CORREO.md` pasan de uno a dos: dormido no sondea, y
   despierto no envía.
 

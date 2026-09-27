@@ -109,7 +109,10 @@ services:
     name: asistente-correo
     runtime: python
     region: frankfurt
-    plan: free
+    # Starter y no free, decidido el 27-09-2026 (s55): el plan gratuito bloquea
+    # la salida por los puertos SMTP y el canal leia sin poder contestar. Es el
+    # unico servicio de pago del despliegue, 7 USD al mes, y de paso no duerme.
+    plan: starter
     autoDeploy: true
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_correo_servidor
