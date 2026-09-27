@@ -4054,3 +4054,60 @@ gestoría: **1,9 veces más lento**, con un worker y sin concurrencia.
   la defensa; queda como dato para el capítulo de enrutado.
 - Los informes del §54 (`gemini_generador_empresa`, `_gestoria`) siguen
   siendo evidencia del límite de cuota, no del sistema.
+
+## 58. El control de suplantación de correo (R-24) se sostiene por exigir un `pass` positivo, no porque Gmail rechace: gmail.com publica DMARC `p=none`, así que un `From` falsificado se entrega igual
+
+**Comprobación:** `nslookup -type=txt _dmarc.gmail.com` (27-09-2026) →
+`v=DMARC1; p=none; sp=quarantine; rua=mailto:mailauth-reports@google.com`.
+Código en `src/canal_correo.py:206` (`autenticacion_valida`) y
+`src/canal_correo.py:95` (`_RE_AUTENTICACION = \b(dkim|spf)\s*=\s*pass\b`);
+pruebas en `tests/test_canal_correo.py:173`. Sin coste: no llama al modelo.
+
+**Qué se quería.** Cerrar R-24 (un `From` de una dirección autorizada
+enviado desde otro servidor). La fila de `CANAL_CORREO.md` daba la prueba
+en vivo por pendiente: "enviar desde un servidor que no firme DKIM".
+Decidido el 27-09 no hacerla y cerrar en simulación, por dos razones: el
+emisor que la prueba exige es la mecánica de un envío suplantado, incómoda
+de dejar como receta en un repo público, y aporta poco sobre las cuatro
+unitarias que ya fijan el rechazo.
+
+**Lo que la comprobación destapó.** La documentación del canal daba por
+supuesto que un remitente falsificado se filtraría antes de llegar. No es
+así: `gmail.com` publica **DMARC `p=none`**, la política que dice "no
+apliques ninguna acción sobre los correos que fallan la autenticación".
+Gmail **entrega igual** un correo con `From: alguien@gmail.com` falsificado;
+no lo rechaza ni lo manda a spam por política. Lo que protege al canal no
+es Gmail: es que el canal **exige un `pass` positivo**. El servidor receptor
+(Gmail) escribe `Authentication-Results` con el resultado real de DKIM/SPF,
+y un correo falsificado que no pasa por el camino autenticado del dominio
+llega con `dkim=fail`/`spf=fail` o sin resultado. `autenticacion_valida`
+solo devuelve verdadero si encuentra `dkim=pass` o `spf=pass`; la ausencia
+de un `fail` no basta. Por eso el control funciona **por construcción**, pero
+por una razón distinta de la escrita: no confía en la decisión de entrega
+de Gmail, comprueba una cabecera y exige el positivo.
+
+**Un límite honesto del control, ahora anotado.** El regex busca
+`spf=pass` en cualquier parte de la cabecera y **no comprueba la alineación**
+del identificador autenticado con el dominio del `From`. SPF valida el
+dominio del sobre (`Return-Path`), no el `From` visible; un atacante que
+envíe desde su propio servidor con `From: victima@dominio` puede producir
+un `spf=pass` de **su** dominio. La defensa real contra eso es DKIM
+alineado y DMARC, que el canal no evalúa. En este despliegue el vector
+queda acotado por la **lista cerrada de direcciones**: aunque el correo
+autenticara, si la dirección del `From` no está en la lista no se atiende.
+La alineación DKIM/DMARC queda como mejora anotada, no como agujero abierto:
+exigiría parsear `Authentication-Results` por identificador y comparar con
+el `From`, y es trabajo de después de la defensa.
+
+**Qué cambia.**
+
+- **R-24 se cierra "por construcción, probado en simulación"**, con la razón
+  corregida: el control no se apoya en que Gmail rechace (no lo hace,
+  `p=none`), sino en exigir un `pass` positivo sobre la cabecera que escribe
+  el receptor. Cuatro unitarias lo fijan.
+- Se retira de `CANAL_CORREO.md` la prueba en vivo del remitente falsificado
+  como pendiente; se anota la decisión y el hallazgo del DMARC.
+- Queda un residual nuevo y menor: **falta comprobación de alineación**
+  DKIM/DMARC, acotado por la lista cerrada; mejora tras la defensa.
+- Residual heredado sin cambio: el control depende de que el proveedor del
+  buzón escriba `Authentication-Results`; Gmail lo hace siempre.

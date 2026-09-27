@@ -107,7 +107,7 @@ misma pregunta por correo real, 24 s de extremo a extremo y 7,82 s dentro.
 | **Coste por correo** | El de la consulta en el registro de producción, unos 0,002 USD; el buzón es gratuito y el servicio cuesta 7 USD al mes |
 | **Rechazo de una dirección desconocida** | Frase fija recibida; en los Logs, huella y `tenant=desconocido`, 0,67 s, sin dirección ni texto |
 | **Control de acceso** | La pregunta del salario denegada sin la cifra y con "Retenido por permiso", igual que en la web y en WhatsApp; aviso del artículo 50 solo en el primer correo del hilo |
-| **Rechazo de un remitente falsificado** | **No medido en vivo**: exige enviar desde un servidor que no firme DKIM. Cuatro pruebas simuladas lo fijan (R-24) |
+| **Rechazo de un remitente falsificado** | **Cerrado en simulación** (§58): la prueba en vivo, descartada el 27-09, exigía montar un envío suplantado. Cuatro pruebas simuladas fijan el rechazo. Hallazgo: `gmail.com` publica DMARC `p=none`, así que Gmail no filtra el correo falsificado; el control se sostiene por exigir un `pass` positivo, no por que Gmail rechace (R-24) |
 | **Aprobación humana por correo** | **No medida en vivo**: no hay dirección de gerencia en la lista. Probada con correos simulados |
 | **Un correo, una respuesta** | **No medido en vivo**; fijado por prueba con el mismo `Message-ID` |
 
@@ -137,6 +137,14 @@ misma pregunta por correo real, 24 s de extremo a extremo y 7,82 s dentro.
   escribiera `Authentication-Results`, todos los correos se rechazarían; con
   Gmail la escribe siempre. Un despliegue con otro proveedor tiene que
   comprobarlo antes.
+- **El control exige un `pass`, no comprueba alineación** (§58). `gmail.com`
+  publica DMARC `p=none`: Gmail entrega un `From` falsificado en vez de
+  filtrarlo, y lo que rechaza el correo es que el canal exige `dkim=pass` o
+  `spf=pass` positivo. El regex no comprueba que el identificador autenticado
+  esté alineado con el dominio del `From` (SPF valida el dominio del sobre),
+  así que el vector queda acotado por la lista cerrada de direcciones, no por
+  la autenticación. Comprobar la alineación DKIM/DMARC es mejora tras la
+  defensa.
 - **Solo texto.** Los adjuntos se ignoran; un correo solo HTML se convierte
   a texto quitando etiquetas.
 - **Un correo que no se puede responder se marca como leído igualmente**,
@@ -146,7 +154,8 @@ misma pregunta por correo real, 24 s de extremo a extremo y 7,82 s dentro.
 ## Riesgos que abre, y dónde están
 
 - **Suplantación del remitente**: R-24 en `RIESGOS.md`, control por
-  `Authentication-Results`; medido en simulación, pendiente en vivo.
+  `Authentication-Results`; cerrado en simulación (§58), prueba en vivo
+  descartada. El control exige un `pass` positivo; no comprueba alineación.
 - **Salida insegura** (R-20): la respuesta viaja por correo y puede acabar
   reenviada; sigue siendo texto para una persona, y el registro no guarda la
   respuesta.

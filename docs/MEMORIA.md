@@ -458,8 +458,13 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   contestar; y el primer correo autorizado dejó mudo al servicio porque la
   configuración se cargaba dentro del hilo y una clave ausente lo mataba
   sin rastro, así que ahora se carga al arrancar y un servicio sin claves
-  no arranca y dice cuál falta. Sin medir en vivo: el remitente
-  falsificado y la aprobación por correo (capítulo 9).
+  no arranca y dice cuál falta. El rechazo del remitente falsificado se
+  cerró en simulación y no en vivo (§58): la prueba habría exigido montar
+  un envío suplantado, y al comprobar el mecanismo se vio que Gmail no
+  filtra ese correo —publica DMARC `p=none`—, así que lo que protege al
+  canal no es Gmail sino exigir un `pass` positivo sobre la cabecera que el
+  receptor escribe. Sin medir en vivo queda la aprobación por correo
+  (capítulo 9).
 
 ## 3. Selección y justificación de modelos, patrones y herramientas
 
@@ -1238,8 +1243,9 @@ capítulo 8.3 y aquí solo se remite.
   con una medida (el alta), no una de rendimiento.
 - **WhatsApp** está probado en vivo con un número y dos preguntas; la
   latencia interna en producción no se ha leído (capítulo 2.9). **Correo**
-  está medido en vivo con una dirección y tres correos (§56); sin medir el
-  rechazo de un remitente falsificado y la aprobación por correo. El plan
+  está medido en vivo con una dirección y tres correos (§56); el rechazo
+  del remitente falsificado se cierra en simulación (§58, DMARC `p=none`) y
+  sin medir en vivo queda la aprobación por correo. El plan
   gratuito de Render no lo sostiene (dormido no sondea, despierto no envía,
   §55), y por eso es el único servicio en el plan de pago.
 
@@ -1264,7 +1270,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 57 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 58 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1342,7 +1348,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 57 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
+Los 58 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
 que los citan (todos los que lo hacen, no solo el principal; regenerado
 desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 `reports/` que lo respalda o dice que no la tiene.
@@ -1357,7 +1363,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 2.6 La rama estructurada por MCP | §4, §5, §41 |
 | 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
 | 2.8 Generación anclada | §39, §40 |
-| 2.9 Interfaz y canales | §51, §55, §56 |
+| 2.9 Interfaz y canales | §51, §55, §56, §58 |
 | 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
@@ -1383,9 +1389,9 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 7.6 Cadena de suministro | §35 |
 | 8.1 Dar de alta un cliente nuevo, cronometrado | §1, §43, §45, §49 |
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
-| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55, §57 |
+| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55, §57, §58 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
-| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57 |
+| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
 cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la
