@@ -4,6 +4,165 @@
 > El histórico de la entrega 3.3, de la que parte este repositorio, está en
 > `BITACORA_3.3.md`.
 
+
+## 2026-09-27 — Sesión 11: el correo llega a producción en tres encargos, y el vigilante deja de esperar al prompt
+
+**5 commits, 2 hallazgos (§55, §56), 1.180 tests.** Coste en modelos: dos
+consultas reales, unos 0,004 USD. Coste fijo nuevo: **7 USD al mes**, el
+servicio `asistente-correo` en el plan `0.5c-512mb` desde las 11:31.
+
+**Hecho, por orden:**
+
+- **E-0011** (mañana, app con Juan): cuenta de Gmail dedicada, contraseña de
+  aplicación, variables en Render, servicio *Live* en 61 s, IMAP leyendo a la
+  primera. **El plan gratuito de Render bloquea la salida SMTP** (puertos
+  25, 465, 587; lo documenta Render) y el canal leía sin poder contestar.
+  Los tres primeros correos del buzón eran avisos de Google: el canal
+  descarta ahora el correo automático sin contestar (`Auto-Submitted`,
+  `Precedence`, `List-Id`, `no-reply`). Juan decidió el plan de pago. §55.
+- **E-0012**: plan `0.5c-512mb` activo (Render ya no lo llama Starter; el
+  blueprint pasa a ese nombre porque `starter` dejó de ser válido). El
+  primer correo real dejó el sondeo mudo: la configuración se cargaba por
+  primera vez dentro del hilo y una clave ausente hacía `SystemExit`, que
+  el hilo no capturaba y Python silencia. Arreglado en los dos servidores:
+  configuración al arrancar (sin claves, no arranca y dice cuál falta),
+  `SystemExit` capturado, tope IMAP de 30 s, `ciclo_en_curso_s` en
+  `/salud`, `PYTHONUNBUFFERED`. Seis pruebas.
+- **E-0013** (tarde): causa confirmada, faltaban las dos claves de API; los
+  despliegues sin ellas fallaron a la vista con el mensaje. **Fase C
+  superada**: vacaciones 24 s de extremo a extremo y 7,82 s dentro (índice
+  construido en ese ciclo), salario denegado en 19 s y 4,60 s, dirección
+  desconocida rechazada en 0,67 s, ninguna dirección en los Logs. Asunto
+  con un solo `Re:` y cuerpo sin Markdown, siete pruebas. §56. Punto 11 del
+  bloque 2 de ALCANCE hecho; fila de la tabla 8.3 de la memoria cerrada.
+- **Vigilante del puente**: un monitor sondea `avisos.mjs --listar` cada
+  20 s y despierta la sesión con cada aviso nuevo, sin esperar al prompt de
+  Juan; se rearma cada 30 minutos. Funcionó con A-0012 y A-0013.
+
+**Decisiones:**
+
+- **Correo por el plan de pago de Render**, no por la API de Gmail: sin
+  cambiar código, quita también el sueño del servicio, y la ficha de coste
+  ya sumaba la cifra (Juan).
+- **Opus por defecto a partir de la próxima sesión**; Fable solo cuando la
+  tarea lo pida (revisión hostil de la memoria, diagnóstico sin traza,
+  decisión de línea base), avisando en una línea antes.
+- El correo de las 11:35 que dejó mudo al servicio no se persiguió: ya
+  estaba marcado como leído y su latencia no valía.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Facturación del proyecto de Gemini**, decidida por Juan el 26-09 y
+      sin activar: desbloquea la comparativa del generador (§54); estimación
+      0,40 USD con tres pasadas, lanzar con un worker tras comprobar la cuota.
+- [ ] **Formato de la defensa**: sigue sin saberse; preguntar a partir del
+      30-09. Único `[PENDIENTE]` de la memoria.
+- [ ] Rúbrica del TFM con el Módulo 5 (6-13 de octubre).
+- [ ] Sin medir en vivo del correo, declarado: remitente falsificado y
+      aprobación por correo (no hay dirección de gerencia en la lista).
+- [ ] Vigilar el crédito de Anthropic y el cargo mensual de Render.
+- [ ] Opcional: lectura de la latencia interna de WhatsApp en los Logs de
+      Render (única corrección del revisor no aplicada).
+
+**Notas:**
+
+- El campo `pide` de `encargar.mjs` tiene tope de 1.000 caracteres y el
+  error se pierde si se filtra la salida: así se creó un encargo vacío que
+  hubo que reescribir a mano.
+- Las hojas de puesta en marcha deben listar **todas** las variables,
+  incluidas las que ya existen en otro servicio: las cinco `sync: false`
+  del correo se crearon en tres encargos porque la hoja nombraba tres.
+- Todo lo que pueda terminar el proceso se ejecuta al arrancar, nunca por
+  primera vez dentro de un hilo: un hilo muerto deja `/salud` en verde.
+
+## 2026-09-26 — Sesión 10: dos lecturas de la memoria, la prueba de carga, la cuota de Gemini y el canal de correo en simulación
+
+**9 commits, 2 hallazgos (§53, §54), 1.158 tests**, gasto en modelos en
+torno a 0,25 USD. Sesión larga, de la mañana a la tarde.
+
+**Hecho, por orden:**
+
+- **Prueba de carga y concurrencia** (§53, `scripts/prueba_carga.py`, dos
+  pasadas, 0,236 USD): ocho consultas a la vez sobre un `Sistema`
+  compartido tardan lo que una (p50 3,2-3,3 s en todos los niveles, lote
+  5,7 veces más rápido), 0 errores, mismo enrutado, `conf-01` denegada
+  siempre; la rama MCP paga 0-0,5 s a cuatro en vuelo; la puerta HTTP de
+  Render no se mueve con 20 clientes. Dos atípicos de 64 en la primera
+  pasada, ninguno en la segunda. La fuga por hora pasa a tener derivación:
+  13,7 USD.
+- **Segunda lectura hostil de la memoria** por un revisor independiente:
+  7 altas, 20 medias, 8 bajas, aplicadas (50 hallazgos que eran 53, AIBOM
+  10/119 que era 12/142, juez de otra familia ya cerrado, demo de 15 min en
+  8 bloques, `fuga_literal` citado desde trazas anteriores a la gobernanza).
+  Informe en `docs/REVISION_MEMORIA_2026-09-26.md`.
+- **Lectura lineal** con cabeza de tribunal: caja de definiciones en 1.3,
+  once contradicciones de fondo cerradas, casos que fallan nombrados por
+  banco, WhatsApp en cinco líneas, 2.9 fusionado en 6.1, nuevo 6.6, 8.3 y 9
+  sin duplicados, capítulos reordenados para acabar en las conclusiones.
+  Informe en `docs/LECTURA_MEMORIA_2026-09-26.md`. Borrador 2, 30 páginas.
+- **Comparativa del generador con Gemini, bloqueada por cuota** (§54): la
+  clave es del nivel gratuito, 20 peticiones al día, y 73 de 82 casos
+  murieron en 429; dos procesos durmieron una hora y media. De paso, un
+  caso de robustez aprobaba con la traza en error: métrica
+  `sistema_respondio`, tres pruebas.
+- **Canal de correo construido en simulación** (`src/canal_correo.py`,
+  `docs/CANAL_CORREO.md`, 34 pruebas, 5,26 s una consulta simulada): la
+  dirección es la credencial, DKIM/SPF exigido (R-24), aprobación en la
+  primera línea, IMAP y SMTP con la librería estándar. Encargo E-0011
+  abierto en la app.
+- Decisiones repasadas una a una con Juan por pantalla (embeddings,
+  denegación parcial, `inj-04`, claves, WhatsApp, juez): todas se mantienen.
+
+**Decisiones:**
+
+- **Pruebas en vivo restantes de WhatsApp canceladas** (aislamiento con dos
+  números, aprobación por texto): mismo mecanismo que la credencial web,
+  fijado por las pruebas simuladas (Juan).
+- **Correo pasa de "fuera" a construirlo y conectarlo** (Juan); estaba en
+  el bloque 2 de ALCANCE desde el principio y la memoria lo tenía mal.
+- **Pagar la cuota de Gemini** para la comparativa del generador (Juan).
+- Nada de ensayos de demo hasta conocer el formato de la defensa: Juan no
+  sabe aún si habrá demo.
+- Recuentos globales de la memoria (hallazgos, tests, paquetes, bloques)
+  se recuentan con el comando, no se editan a mano.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] Encargo E-0011: buzón de Gmail y conexión del correo.
+- [ ] Activar la facturación del proyecto de Gemini.
+- [ ] `/cierre` atrasado: la bitácora no tenía el 25 ni el 26.
+
+**Notas:**
+
+- Un heredoc largo en el shell de Windows rompe el comando sin decir por
+  qué: los scripts de edición de más de unas decenas de líneas van a
+  fichero y se ejecutan desde él.
+- Antes de lanzar un banco contra otro proveedor, una llamada suelta que
+  lea la cuota.
+
+## 2026-09-25 — Sesión 9: token permanente de WhatsApp y el arranque en frío medido
+
+**5 commits, 1 hallazgo (§52).** Sesión corta.
+
+**Hecho, por orden:**
+
+- **E-0010** (app con Juan, 18 min desde el encargo): usuario del sistema de
+  Meta, token sin caducidad comprobado en el depurador, cambiado en Render
+  con un despliegue de 1 min 35 s, dos preguntas de control respondidas
+  igual a las 07:32 y 07:33. El canal deja de depender de un token de 24 h.
+- El hilo del webhook de WhatsApp deja **una línea por mensaje** con huella,
+  inquilino, respuestas y latencia interna: se calculaba y se tiraba, y el
+  disco efímero de Render hacía ilegible el registro de producción.
+- **Arranque en frío del plan gratuito medido** (§52,
+  `reports/arranque_frio`): duerme antes de 20 minutos, despertar cuesta
+  32 s la web y 42-61 s WhatsApp, ninguna petición se pierde. Memoria y guion
+  de la demo con las cifras.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] Prueba de carga, segunda pasada del revisor hostil, comparativa con
+      Gemini (el foco que se ejecutó el 26).
+
 ## 2026-09-24 — Sesión 8: la memoria deja de ser un hueco, LangGraph se mide en diecinueve minutos y WhatsApp llega en vivo
 
 **14 commits, 3 hallazgos (§49, §50, §51), 1.118 tests**, gasto del día en

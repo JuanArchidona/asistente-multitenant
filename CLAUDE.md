@@ -30,11 +30,11 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-24)
+## 2. Estado (2026-09-27)
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1158 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
+servicio público desplegado. **1180 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -172,7 +172,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1158 tests con el grupo langgraph, sin llamadas a API
+uv run pytest                                      # 1180 tests con el grupo langgraph, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo
@@ -215,6 +215,17 @@ y §14).
 
 ## 8. Riesgos abiertos
 
+- **El correo es el único servicio de pago del despliegue**: 7 USD al mes
+  desde el 27-09 (plan `0.5c-512mb`), porque el plan gratuito de Render
+  bloquea la salida SMTP (§55). Los otros dos servicios siguen gratuitos y
+  duermen. Vigilar el cargo mensual junto con el crédito de Anthropic.
+- **La comparativa del generador con Gemini espera la facturación del
+  proyecto de la clave** (§54), decidida por Juan el 26-09 y sin activar.
+  Cuando exista: una llamada suelta que lea la cuota, y el banco con un
+  solo worker. Unos 0,40 USD con tres pasadas.
+- **Opus por defecto desde el 27-09**; Fable solo para revisiones hostiles
+  de la memoria, diagnósticos sin traza y decisiones de línea base, y se
+  avisa antes de empezar.
 - **La memoria técnica existe y cita, no opina** (`docs/MEMORIA.md`, borrador
   desde el 24-09): cada cifra lleva su hallazgo y su ejecución, y los cortes
   de línea base van con fecha y escotilla. Pasó una lectura hostil el 24-09
@@ -441,7 +452,7 @@ un canal de vuelta.
 | Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
 | Encargos | **Los escribe**, con `node puente/encargar.mjs`, declarando el modo (`desatendido` o `supervisado`) y abriendo la app con `--abrir` si hace falta a Juan | **Los lee**, con `encargos_tfm`; los desatendidos, la tarea programada del proyecto |
 | Registro de lo hecho | **Lo lee**, en `puente/REGISTRO_APP.md` | **Lo escribe**, con `registrar_tfm` |
-| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho; los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
+| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho, y **desde el 27-09 también sin prompt**: al arrancar la sesión se arma un monitor que sondea `puente/avisos.mjs --listar` cada 20 s y despierta la sesión con cada aviso nuevo (se rearma cada 30 min); los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
 
 Los ficheros del puente **no están versionados** y por eso no los ve el
 conector de GitHub: toda lectura desde la app pasa obligatoriamente por el
