@@ -171,6 +171,29 @@ class MensajeCorreo(BaseModel):
     autenticado: bool = False
     # Message-IDs del hilo, el propio incluido, para que la respuesta enhebre.
     referencias: list[str] = Field(default_factory=list)
+    # Correo generado por una máquina (avisos de Google, listas, rebotes). No
+    # se contesta nunca: responder a un autómata es la receta del bucle de
+    # correo, y el primer buzón real trajo tres de estos antes que ninguna
+    # persona (§55).
+    automatico: bool = False
+
+
+_RE_REMITENTE_AUTOMATICO = re.compile(
+    r"^(no-?reply|noreply|do-?not-?reply|mailer-daemon|postmaster|bounce[s]?)[@+.-]", re.IGNORECASE
+)
+
+
+def es_automatico(mensaje: email.message.EmailMessage, remitente: str) -> bool:
+    """Un correo que no escribió una persona: cabeceras `Auto-Submitted`,
+    `Precedence: bulk|list|junk`, `List-Id`, o un remitente `no-reply`."""
+    auto = (mensaje.get("Auto-Submitted") or "no").strip().lower()
+    if auto and auto != "no":
+        return True
+    if (mensaje.get("Precedence") or "").strip().lower() in ("bulk", "list", "junk"):
+        return True
+    if mensaje.get("List-Id"):
+        return True
+    return bool(_RE_REMITENTE_AUTOMATICO.match(remitente or ""))
 
 
 def autenticacion_valida(cabeceras: list[str]) -> bool:
@@ -220,13 +243,15 @@ def extraer_mensaje(crudo: bytes) -> MensajeCorreo:
                 referencias.append(ref)
     if id_mensaje not in referencias:
         referencias.append(id_mensaje)
+    remitente = normalizar_direccion(mensaje.get("From") or "")
     return MensajeCorreo(
         id=id_mensaje,
-        remitente=normalizar_direccion(mensaje.get("From") or ""),
+        remitente=remitente,
         asunto=(mensaje.get("Subject") or "").strip(),
         texto=limpiar_cuerpo(_texto_de(mensaje)),
         autenticado=autenticacion_valida(mensaje.get_all("Authentication-Results") or []),
         referencias=referencias,
+        automatico=es_automatico(mensaje, remitente),
     )
 
 
@@ -312,6 +337,10 @@ class CanalCorreo:
         if self._ya_procesado(mensaje.id):
             return []
         direccion = normalizar_direccion(mensaje.remitente)
+        if mensaje.automatico:
+            # Ni frase fija: contestar a un autómata es empezar un bucle.
+            self._anotar(direccion, "automatico")
+            return []
         contacto = self.directorio.buscar(direccion)
         if contacto is None:
             self._anotar(direccion, "desconocido")

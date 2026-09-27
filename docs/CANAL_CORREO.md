@@ -1,8 +1,10 @@
 # Canal de correo
 
 > Punto 11 del bloque 2 de `ALCANCE.md`: *canal de correo, de extremo a
-> extremo*. Construido el 26-09-2026 con correos simulados y **pendiente de
-> conectar a un buzón real**, que crea Juan (hoja en
+> extremo*. Construido el 26-09-2026 con correos simulados; **desplegado el
+> 27-09 sobre un buzón de Gmail dedicado, que lee y no puede contestar**:
+> el plan gratuito de Render bloquea la salida SMTP (§55). Falta decidir la
+> vía de salida y hacer los correos de prueba (hoja en
 > `docs/ENCARGO_CORREO_2026-09-26.md`). Este documento dice qué hace el canal,
 > qué decide, en qué se diferencia de WhatsApp, cómo se pone en marcha y qué
 > se va a medir cuando esté conectado.
@@ -32,6 +34,7 @@ direcciones de una lista cerrada, que son empleados del inquilino.
 | **Artículo 50 del AI Act** en el primer correo de cada conversación, y de nuevo tras 24 horas de silencio | El mismo criterio que en WhatsApp, con el aviso que declara cada manifiesto |
 | **La dirección no se escribe en ningún registro.** Al registro de producción va el identificador de usuario de la lista; las direcciones desconocidas o sin autenticar se anotan por su huella (SHA-256 recortado) | La dirección es dato personal; la huella permite contar intentos sin guardar quién |
 | **Un correo leído dos veces no produce dos respuestas.** El canal recuerda los `Message-ID` procesados, y el servidor lee con `BODY.PEEK[]` y marca como leído solo después de responder | Un sondeo que se solape con el anterior, o un fallo a mitad, no deben duplicar |
+| **A un correo automático no se le contesta**: `Auto-Submitted`, `Precedence: bulk`, `List-Id` o remitentes `no-reply` y `mailer-daemon` se descartan y se anotan por huella | Contestar a un autómata es la receta del bucle de correo. Los tres primeros correos del buzón real eran avisos de Google (§55) |
 | **La respuesta enhebra** (`In-Reply-To`, `References`, `Re:` en el asunto) | Para que el cliente de correo la muestre debajo de la pregunta, y para que la orden de aprobación llegue con el hilo entero |
 | **La cita del correo anterior y la firma se quitan antes de consultar** | Si volvieran a entrar, el modelo respondería dos veces a lo mismo; y la orden `APROBAR` viaja siempre encima de la cita |
 | **Sin paquetes nuevos**: `imaplib`, `smtplib`, `email` y `http.server` | Un sondeo de un buzón no justifica una dependencia en el AIBOM |
@@ -107,6 +110,13 @@ latencia interna con el aviso de IA, la cita del convenio y la línea
 
 ## Límites, y dónde están declarados
 
+- **Despierto no envía, en el plan gratuito.** Render lo documenta: *"Free
+  web services can't send outbound network traffic on ports 25, 465, or
+  587, commonly used for SMTP"*. El primer despliegue real (E-0011, §55)
+  leyó el buzón a la primera y falló cada envío con `Errno 101` tras 30 s.
+  Lo arregla la instancia Starter (7 USD al mes) o cambiar el enviador a
+  HTTPS (API de Gmail con OAuth); la decisión está en la tabla 8.3 de la
+  memoria.
 - **Dormido no sondea.** En el plan gratuito de Render el servicio se duerme
   sin tráfico HTTP (§52) y el hilo de sondeo se duerme con él; a diferencia
   de WhatsApp, un correo nuevo no lo despierta. Consecuencia: un correo

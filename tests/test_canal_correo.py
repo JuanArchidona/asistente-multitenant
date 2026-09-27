@@ -26,6 +26,7 @@ from src.canal_correo import (
     autenticacion_valida,
     cargar_direcciones,
     componer_respuesta,
+    es_automatico,
     extraer_mensaje,
     huella,
     limpiar_cuerpo,
@@ -426,3 +427,45 @@ def test_la_simulacion_produce_un_correo_autenticado_del_remitente_indicado(monk
     monkeypatch.setenv("CORREO_USUARIO", "asistente@ejemplo.es")
     m = extraer_mensaje(servidor._correo_simulado("hola", "empleado@ejemplo.es"))
     assert m.remitente == "empleado@ejemplo.es" and m.autenticado and m.texto == "hola"
+
+
+# --- Correo automático: no se contesta nunca (§55) ------------------------------
+
+def _crudo_con(cabeceras: dict, desde="Empleado <empleado@ejemplo.es>"):
+    m = email.message.EmailMessage()
+    m["From"] = desde
+    m["To"] = "asistente@ejemplo.es"
+    m["Subject"] = "Aviso"
+    m["Message-ID"] = "<auto@ejemplo.es>"
+    m["Authentication-Results"] = "mx.google.com; dkim=pass; spf=pass"
+    for k, v in cabeceras.items():
+        m[k] = v
+    m.set_content("Se ha activado la verificacion en dos pasos.")
+    return m.as_bytes()
+
+
+@pytest.mark.parametrize("cabeceras,desde", [
+    ({"Auto-Submitted": "auto-generated"}, "Empleado <empleado@ejemplo.es>"),
+    ({"Precedence": "bulk"}, "Empleado <empleado@ejemplo.es>"),
+    ({"List-Id": "avisos.ejemplo.es"}, "Empleado <empleado@ejemplo.es>"),
+    ({}, "Google <no-reply@accounts.google.com>"),
+    ({}, "Mail Delivery Subsystem <mailer-daemon@googlemail.com>"),
+])
+def test_un_correo_automatico_se_detecta(cabeceras, desde):
+    assert extraer_mensaje(_crudo_con(cabeceras, desde)).automatico is True
+
+
+def test_un_correo_de_una_persona_no_es_automatico():
+    assert extraer_mensaje(_crudo("hola")).automatico is False
+    m = email.message.EmailMessage()
+    m["Auto-Submitted"] = "no"
+    assert es_automatico(m, "empleado@ejemplo.es") is False
+
+
+def test_a_un_correo_automatico_no_se_le_contesta_ni_llega_al_modelo():
+    sistema = SistemaFalso("empresa_servicios")
+    canal = _canal({"empresa_servicios": sistema})
+    # Incluso si el remitente estuviera autorizado y autenticado.
+    mensaje = MensajeCorreo(id="<auto>", remitente="empleado@ejemplo.es", texto="aviso", autenticado=True, automatico=True)
+    assert canal.procesar(mensaje) == []
+    assert sistema.consultas == [] and canal.desconocidos[0]["motivo"] == "automatico"

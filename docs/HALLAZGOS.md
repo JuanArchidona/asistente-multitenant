@@ -3774,3 +3774,83 @@ en `conf-01`) y ese caso ya fallaba por enrutado.
 el de la línea base, una llamada suelta que lea la cuota. Cuesta un
 segundo y hoy habría ahorrado una hora y cuarenta minutos de dos procesos
 durmiendo.
+
+## 55. El canal de correo llegó a Render y lee pero no puede contestar: el plan gratuito bloquea los puertos SMTP, y los tres primeros correos del buzón eran de una máquina
+
+**Ejecución:** encargo E-0011 (27-09-2026, app de Claude con Juan delante,
+`puente/REGISTRO_APP.md`); servicio `asistente-correo` de Render
+(`https://asistente-correo-iv8l.onrender.com`). Coste: cero; ninguna consulta
+llegó al modelo.
+
+**Qué se hizo.** La cuenta de Gmail dedicada se creó con verificación en dos
+pasos y contraseña de aplicación; las tres variables se pegaron en Render;
+el despliegue de `5d0b889` fue de 11:05:50 a 11:06:51, **61 s**, y `/salud`
+pasó de `sin_sondeo_todavia` a `ultimo_sondeo_hace_s=1 mensajes=3` en menos
+de dos minutos. **IMAP y la credencial funcionan**: el servicio leyó el
+buzón a la primera.
+
+**Qué salió, en el orden de los Logs de Render.**
+
+| Hora | Línea | Qué es |
+|---|---|---|
+| 11:06:42 | `remitente desconocido, huella e94b...` | Primer correo de la bandeja: un aviso de Google |
+| 11:07:12 | `mensaje huella=e94b... tenant=desconocido ERROR OSError: [Errno 101] Network is unreachable tras 30.04 s` | El intento de responder "no dada de alta" por SMTP |
+| 11:07:14 / 11:07:44 | lo mismo, huella `14c7...` | Segundo aviso de Google |
+| 11:07:45 / 11:08:15 | lo mismo, huella `e94b...` | Tercer aviso, del mismo remitente que el primero |
+
+Tres cosas medidas ahí:
+
+- **Render bloquea SMTP en el plan gratuito.** Su documentación lo dice
+  literalmente: *"Free web services can't send outbound network traffic on
+  ports 25, 465, or 587, commonly used for SMTP"* (`render.com/docs/free`,
+  consultado el 27-09-2026). El `Errno 101` tras 30,04 s es el `timeout` del
+  cliente SMTP agotándose contra un puerto que no sale. La hoja del encargo
+  no lo sabía, y `docs/CANAL_CORREO.md` había declarado como límite del plan
+  gratuito el sueño del servicio, no la salida de correo. **El canal lee y no
+  puede contestar.** Juan decidió no hacer la fase C (los correos de prueba)
+  sabiendo que la respuesta no podía salir: correcto, habría sido gastar en
+  consultas sin medida.
+- **Los tres primeros correos eran de una máquina.** Ninguna persona había
+  escrito todavía: eran los avisos de Google al crear la cuenta y activar la
+  verificación. El canal los trató como remitente desconocido y, si SMTP
+  hubiera funcionado, habría contestado "esta dirección no está dada de alta"
+  a `no-reply@accounts.google.com`. Es la receta clásica del bucle de correo
+  entre autómatas, y no estaba contemplada. **Corregido el mismo día**:
+  `es_automatico` descarta sin contestar los correos con `Auto-Submitted`
+  distinto de `no`, `Precedence: bulk|list|junk`, `List-Id` o remitentes
+  `no-reply`, `mailer-daemon`, `postmaster` y similares; se anotan por
+  huella con motivo `automatico`. Siete pruebas nuevas (41 en el canal).
+- **La observación del "bucle" era un falso positivo, y merece decirse por
+  qué.** La app vio la misma huella `e94b...` procesada dos veces y dedujo
+  que el fallo de envío no marcaba el correo como leído. El código marca
+  siempre (la excepción se captura antes), y la huella es de la **dirección**,
+  no del mensaje: eran dos avisos distintos del mismo remitente, y
+  `mensajes=3` lo confirma. La deducción era razonable con lo que se veía; lo
+  que la habría descartado es leer `ciclo` en `canal_correo_servidor.py`, y
+  eso es lo que hizo el análisis automático del puente antes de que nadie
+  tocara código.
+
+**Dos discrepancias de la hoja, corregidas.** Gmail ya no tiene el
+interruptor "Habilitar IMAP" en *Reenvío y correo POP/IMAP*: IMAP está
+siempre activo con contraseña de aplicación. Y las variables `sync: false`
+de un servicio que el blueprint creó fallando **no existen** en *Environment*:
+hay que crearlas con *Add variable*, no rellenarlas.
+
+**Qué cambia.**
+
+- La conexión del canal queda **bloqueada por la salida SMTP**, no por el
+  código ni por el buzón. Dos vías, y la elige Juan: pasar `asistente-correo`
+  a la instancia Starter de Render (7 USD al mes, la misma cifra que la
+  ficha de coste ya suma para quitar el sueño, y que aquí lo quita también) o
+  enviar por HTTPS con la API de Gmail, que exige un cliente OAuth y un
+  token de actualización en la consola de Google y cambia el código del
+  enviador. Hasta que se decida, la fila de la tabla 8.3 de la memoria sigue
+  abierta y el capítulo 9 dice que el plan gratuito **no sirve para el
+  correo**, con la cita.
+- Los límites de `CANAL_CORREO.md` pasan de uno a dos: dormido no sondea, y
+  despierto no envía.
+
+**Regla que sale.** Antes de desplegar un canal, listar qué puertos de salida
+necesita y comprobarlos contra la documentación del plan. El de WhatsApp solo
+necesitaba HTTPS y por eso nunca tropezó aquí; el de correo necesitaba el 587
+y nadie lo miró.

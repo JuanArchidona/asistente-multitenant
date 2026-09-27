@@ -34,9 +34,9 @@
    pasos > Contraseñas de aplicaciones*, o buscando "Contraseñas de
    aplicaciones" en el buscador de la cuenta). Nombre: `asistente-correo`.
    Google muestra 16 caracteres una sola vez: copiarlos para el paso B.2.
-4. Comprobar que IMAP está permitido: en Gmail, *Configuración > Ver todos
-   los ajustes > Reenvío y correo POP/IMAP > Habilitar IMAP*. En las cuentas
-   nuevas suele estar habilitado; anotar cómo estaba.
+4. IMAP: Gmail ya no tiene el interruptor "Habilitar IMAP" (comprobado el
+   27-09-2026, E-0011); está siempre activo con contraseña de aplicación.
+   No hay nada que tocar.
 5. Anotar la hora al terminar.
 
 ## Fase B: el servicio en Render (unos 10 minutos)
@@ -45,7 +45,8 @@
    sincronizarse y **falla a propósito** hasta que existan las credenciales,
    igual que hizo el de WhatsApp. En el dashboard: servicio
    `asistente-correo` > *Environment*.
-2. Rellenar (valores marcados `sync: false` en el blueprint):
+2. Crear con *Add variable* (las marcadas `sync: false` en el blueprint
+   **no existen** en un servicio que el blueprint creó fallando, E-0011):
    - `CORREO_USUARIO`: la dirección de la cuenta creada en A.1.
    - `CORREO_CONTRASENA`: la contraseña de aplicación de A.3. **La pega
      Juan.**
@@ -95,6 +96,15 @@ y C; URL del servicio; duración del despliegue; las respuestas de C.1 a C.4
 literales; las líneas de registro de C.5; lo que no salió como decía esta
 hoja, con el mensaje literal. Nunca la contraseña, nunca las direcciones
 personales en claro.
+
+## Lo que pasó el 27-09-2026 (E-0011)
+
+Fases A y B hechas: cuenta creada, credenciales en Render, servicio *Live*
+en 61 s, IMAP leyendo. **Fase C no hecha**: el plan gratuito de Render
+bloquea la salida por los puertos SMTP y ninguna respuesta puede salir
+(§55). Hasta que se decida la vía de salida (instancia Starter o envío por
+HTTPS), esta hoja queda en pausa en la fase C; cuando se retome, la fase C
+se hace entera tal como está escrita.
 
 ## Lo que no se hace
 
