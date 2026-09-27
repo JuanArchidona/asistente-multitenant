@@ -85,6 +85,13 @@ _RE_CITA = re.compile(
     re.IGNORECASE,
 )
 _RE_ETIQUETAS = re.compile(r"<[^>]+>")
+# Prefijos de respuesta y reenvío que los clientes de correo encadenan.
+_RE_PREFIJOS_ASUNTO = re.compile(r"^\s*((re|rv|fwd?|fw)\s*:\s*)+", re.IGNORECASE)
+# Énfasis y encabezados de Markdown que el generador escribe y un cliente de
+# correo en texto plano enseña tal cual (E-0013).
+_RE_MD_ENFASIS = re.compile(r"(\*\*|__)(.+?)\1", re.DOTALL)
+_RE_MD_CURSIVA = re.compile(r"(?<![\w*])(\*|_)(?!\s)(.+?)(?<!\s)\1(?![\w*])")
+_RE_MD_ENCABEZADO = re.compile(r"^#{1,6}\s+", re.MULTILINE)
 _RE_AUTENTICACION = re.compile(r"\b(dkim|spf)\s*=\s*pass\b", re.IGNORECASE)
 
 
@@ -255,18 +262,36 @@ def extraer_mensaje(crudo: bytes) -> MensajeCorreo:
     )
 
 
+def asunto_de_respuesta(asunto_original: str) -> str:
+    """Un solo `Re: ` delante, se encadenen los que se encadenen ("Re: Re: Consulta 2", E-0013)."""
+    base = _RE_PREFIJOS_ASUNTO.sub("", asunto_original or "").strip() or ASUNTO_POR_DEFECTO
+    return PREFIJO_ASUNTO + base
+
+
+def sin_markdown(texto: str) -> str:
+    """El texto del generador sin énfasis ni encabezados de Markdown.
+
+    La respuesta viaja como `text/plain` y un cliente de correo enseña los
+    asteriscos tal cual. Se quitan `**`, `__`, `*cursiva*` y los `#` de
+    encabezado; las listas con guion y los saltos de línea se dejan, que en
+    texto plano se leen bien.
+    """
+    salida = _RE_MD_ENFASIS.sub(r"\2", texto or "")
+    salida = _RE_MD_CURSIVA.sub(r"\2", salida)
+    return _RE_MD_ENCABEZADO.sub("", salida)
+
+
 def componer_respuesta(original: MensajeCorreo, texto: str, remitente_propio: str) -> email.message.EmailMessage:
     """La respuesta, enhebrada en la conversación del correo original."""
     respuesta = email.message.EmailMessage(policy=email.policy.default)
     respuesta["From"] = remitente_propio
     respuesta["To"] = original.remitente
-    asunto = original.asunto or ASUNTO_POR_DEFECTO
-    respuesta["Subject"] = asunto if asunto.lower().startswith("re:") else PREFIJO_ASUNTO + asunto
+    respuesta["Subject"] = asunto_de_respuesta(original.asunto)
     respuesta["In-Reply-To"] = original.id
     respuesta["References"] = " ".join(original.referencias)
     respuesta["Date"] = email.utils.formatdate(localtime=True)
     respuesta["Message-ID"] = email.utils.make_msgid()
-    respuesta.set_content(texto)
+    respuesta.set_content(sin_markdown(texto))
     return respuesta
 
 

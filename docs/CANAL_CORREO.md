@@ -1,11 +1,12 @@
 # Canal de correo
 
 > Punto 11 del bloque 2 de `ALCANCE.md`: *canal de correo, de extremo a
-> extremo*. Construido el 26-09-2026 con correos simulados; **desplegado el
-> 27-09 sobre un buzón de Gmail dedicado, que lee y no puede contestar**:
-> el plan gratuito de Render bloquea la salida SMTP (§55). Falta decidir la
-> vía de salida y hacer los correos de prueba (hoja en
-> `docs/ENCARGO_CORREO_2026-09-26.md`). Este documento dice qué hace el canal,
+> extremo*. Construido el 26-09-2026 con correos simulados, **desplegado y
+> medido en vivo el 27-09** sobre un buzón de Gmail dedicado (§55, §56): 24 s
+> y 19 s de extremo a extremo, 7,8 s y 4,6 s dentro. Es el único servicio de
+> pago del despliegue, porque el plan gratuito de Render bloquea la salida
+> SMTP. La puesta en marcha, con sus tropiezos, está en
+> `docs/ENCARGO_CORREO_2026-09-26.md`. Este documento dice qué hace el canal,
 > qué decide, en qué se diferencia de WhatsApp, cómo se pone en marcha y qué
 > se va a medir cuando esté conectado.
 
@@ -94,19 +95,21 @@ dirección:
 **Medido en simulación el 26-09-2026**, un correo contra el sistema real
 (`--simular`, sin buzón): la pregunta de vacaciones respondió en 5,26 s de
 latencia interna con el aviso de IA, la cita del convenio y la línea
-"Retenido por permiso" del anexo; 34 pruebas con correos simulados en
-`tests/test_canal_correo.py`.
+"Retenido por permiso" del anexo. **Medido en vivo el 27-09** (§56): la
+misma pregunta por correo real, 24 s de extremo a extremo y 7,82 s dentro.
+53 pruebas con correos simulados en `tests/test_canal_correo.py`.
 
-## Lo que se va a medir cuando esté conectado
+## Lo medido en vivo (27-09-2026, §56) y lo que no
 
-| Medida | Cómo |
+| Medida | Resultado |
 |---|---|
-| **Latencia de extremo a extremo** | Desde que se envía el correo hasta que llega la respuesta, con la hora de las cabeceras `Date`; y por dentro, la de la línea de registro |
-| **Coste por correo** | El del registro de producción; el buzón de Gmail es gratuito |
-| **Rechazo de un remitente falsificado** | Un correo con el `From` de una dirección autorizada enviado desde un servidor que no firma: tiene que llegar con `dkim=fail` o sin `pass`, recibir la frase fija y no generar consulta |
-| **Rechazo de una dirección desconocida** | Una dirección que no está en la lista escribe y recibe la frase fija; huella en la salida, nada en el registro |
-| **Aprobación humana por correo** | Proponer una visita desde la dirección de gerencia, responder `APROBAR <id>` en la primera línea, y ver la referencia `VIS-*` y las tres líneas del registro (§42) |
-| **Un correo, una respuesta** | Enviar dos veces el mismo correo (reenvío con el mismo `Message-ID`) y comprobar que solo hay una respuesta |
+| **Latencia de extremo a extremo** | 24 s la primera consulta (con el índice construido en ese ciclo) y 19 s la segunda, por las cabeceras `Date`; dentro, 7,82 s y 4,60 s. La diferencia es Gmail más la espera al sondeo de 30 s |
+| **Coste por correo** | El de la consulta en el registro de producción, unos 0,002 USD; el buzón es gratuito y el servicio cuesta 7 USD al mes |
+| **Rechazo de una dirección desconocida** | Frase fija recibida; en los Logs, huella y `tenant=desconocido`, 0,67 s, sin dirección ni texto |
+| **Control de acceso** | La pregunta del salario denegada sin la cifra y con "Retenido por permiso", igual que en la web y en WhatsApp; aviso del artículo 50 solo en el primer correo del hilo |
+| **Rechazo de un remitente falsificado** | **No medido en vivo**: exige enviar desde un servidor que no firme DKIM. Cuatro pruebas simuladas lo fijan (R-24) |
+| **Aprobación humana por correo** | **No medida en vivo**: no hay dirección de gerencia en la lista. Probada con correos simulados |
+| **Un correo, una respuesta** | **No medido en vivo**; fijado por prueba con el mismo `Message-ID` |
 
 ## Límites, y dónde están declarados
 

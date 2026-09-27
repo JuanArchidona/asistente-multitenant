@@ -447,13 +447,19 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   en la conversación y el sondeo del buzón es por IMAP con la librería
   estándar, sin paquetes nuevos. Probado con 34 pruebas de correos
   simulados y una consulta simulada contra el sistema real (5,26 s), y
-  desplegado sobre un buzón de Gmail dedicado que lee a la primera (§55).
-  No contesta todavía: el plan gratuito de Render bloquea la salida SMTP,
-  y ese servicio pasa a la instancia de pago (capítulo 8.3). Los tres
-  primeros correos del buzón real eran avisos de Google, y el canal
-  descarta ahora el correo automático sin contestar: responder a un
-  autómata es empezar un bucle. Límites propios: dormido no sondea, y en
-  el plan gratuito despierto no envía (capítulo 9).
+  **medido en vivo** sobre un buzón de Gmail dedicado (§55, §56): 24 s de
+  extremo a extremo la primera consulta, con el índice construido en ese
+  mismo ciclo, y 19 s la segunda; 7,8 s y 4,6 s dentro; la diferencia es
+  Gmail más la espera al sondeo de 30 s. La denegación del salario es la
+  misma que en la web y en WhatsApp. Es el único servicio de pago del
+  despliegue, porque el plan gratuito de Render bloquea la salida SMTP.
+  Dos cosas que el buzón real enseñó: los tres primeros correos eran
+  avisos de Google, y el canal descarta ahora el correo automático sin
+  contestar; y el primer correo autorizado dejó mudo al servicio porque la
+  configuración se cargaba dentro del hilo y una clave ausente lo mataba
+  sin rastro, así que ahora se carga al arrancar y un servicio sin claves
+  no arranca y dice cuál falta. Sin medir en vivo: el remitente
+  falsificado y la aprobación por correo (capítulo 9).
 
 ## 3. Selección y justificación de modelos, patrones y herramientas
 
@@ -1155,7 +1161,6 @@ no haya que buscarlo en dos sitios:
 | Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
 | Comparar el generador con Gemini | **Abierto.** Bloqueado por la cuota gratuita de la clave (§54); exige facturación en el proyecto de Google | Cuando haya clave de pago |
 | Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la defensa: no hay incidente que lo pida (capítulo 6.4) | Tras la defensa |
-| Que el canal de correo pueda contestar | **En curso.** Desplegado sobre un buzón real y leyendo (§55); el plan gratuito de Render bloquea la salida SMTP y el servicio pasó al plan de pago `0.5c-512mb`, 7 USD al mes, el único coste fijo del despliegue. El primer correo real destapó un hilo que moría en silencio al cargar la configuración; corregido | Fase C de la hoja, con las claves comprobadas |
 | Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
@@ -1215,11 +1220,10 @@ capítulo 8.3 y aquí solo se remite.
   con una medida (el alta), no una de rendimiento.
 - **WhatsApp** está probado en vivo con un número y dos preguntas; la
   latencia interna en producción no se ha leído (capítulo 2.9). **Correo**
-  está probado solo en simulación, y su servicio, dormido en el plan
-  gratuito, no sondea el buzón hasta que algo lo despierte, y despierto no
-  puede enviar: Render bloquea los puertos SMTP en ese plan (§55). El
-  correo es el canal que el plan gratuito no sostiene, y por eso es el
-  único servicio que pasa a la instancia de pago.
+  está medido en vivo con una dirección y tres correos (§56); sin medir el
+  rechazo de un remitente falsificado y la aprobación por correo. El plan
+  gratuito de Render no lo sostiene (dormido no sondea, despierto no envía,
+  §55), y por eso es el único servicio en el plan de pago.
 
 **Lo que queda fuera por decisión** está en la tabla del capítulo 8.3, con
 su motivo y su fecha.
@@ -1242,7 +1246,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 55 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 56 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1320,7 +1324,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 55 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
+Los 56 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
 que los citan (todos los que lo hacen, no solo el principal; regenerado
 desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 `reports/` que lo respalda o dice que no la tiene.
@@ -1335,7 +1339,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 2.6 La rama estructurada por MCP | §4, §5, §41 |
 | 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
 | 2.8 Generación anclada | §39, §40 |
-| 2.9 Interfaz y canales | §51, §55 |
+| 2.9 Interfaz y canales | §51, §55, §56 |
 | 3.1 Python sin framework frente a LangGraph | §29, §50, §54 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54 |
@@ -1363,7 +1367,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
 | 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54 |
-| 9. Límites y lo que queda fuera | §6, §48, §55 |
+| 9. Límites y lo que queda fuera | §6, §48, §55, §56 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
 cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la

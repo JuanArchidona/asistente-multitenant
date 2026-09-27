@@ -3901,3 +3901,77 @@ necesitaba HTTPS y por eso nunca tropezó aquí; el de correo necesitaba el 587
 y nadie lo miró. Y la segunda: **todo lo que pueda terminar el proceso se
 ejecuta al arrancar, nunca por primera vez dentro de un hilo**; un hilo que
 muere en silencio deja `/salud` en verde y el servicio muerto.
+
+## 56. El canal de correo contesta en vivo: 24 s de extremo a extremo la primera consulta y 19 s la segunda, con 8 s y 5 s dentro; la causa del silencio del §55 era la que se dijo
+
+**Ejecución:** encargo E-0013 (27-09-2026, app de Claude con Juan delante,
+`puente/REGISTRO_APP.md`); servicio `asistente-correo` en el plan
+`0.5c-512mb`, commit `3bd9027`. Horas de Europe/Madrid, las de extremo a
+extremo por la cabecera `Date` de Gmail (precisión de segundo), las internas
+por la línea de registro del servicio. Coste: dos consultas al modelo, del
+orden de 0,004 USD, más el plan de pago.
+
+**La causa, confirmada.** En *Environment* del servicio había 17 variables y
+**no estaban ni `ANTHROPIC_API_KEY` ni `GEMINI_API_KEY`**. Es lo que el §55
+había deducido leyendo el código: el primer correo autorizado cargaba la
+configuración dentro del hilo, `load_config` terminaba el proceso por la
+clave ausente y el hilo moría mudo. Y el arreglo se vio funcionar antes de
+que hiciera falta: los dos despliegues automáticos de `3bd9027`, lanzados
+antes de crear las claves, **fallaron a la vista** en 1 min 04 s y 1 min 03 s
+con la línea literal `[config] Falta ANTHROPIC_API_KEY en .env` en los Logs,
+que es exactamente lo que el servicio del §55 no dijo. Con las claves
+creadas, el despliegue manual tardó **59,1 s** y el servicio anunció el
+sondeo a las 15:29:36.
+
+**Qué salió.**
+
+| Prueba | Enviado | Respuesta | Extremo a extremo | Interna (línea `[correo]`) | Qué se vio |
+|---|---|---|---|---|---|
+| C.1 Vacaciones, asunto "Consulta 2" | 15:31:57 | 15:32:21 | **24 s** | **7,82 s**, con el índice construido en ese mismo ciclo (15 fragmentos, 2.724 tokens) | Aviso de IA entre corchetes, 23 días laborables y el traslado de 5 días, "Fuente: Convenio Colectivo Interno", "Retenido por permiso: 1 documento(s)" |
+| C.2 Salario de Diego Ruíz, en el mismo hilo | 15:34:12 | 15:34:31 | **19 s** | **4,60 s** | Sin aviso de IA (misma conversación), "No puedo responder a tu consulta con la información disponible", ninguna cifra, "Retenido por permiso" |
+| C.3 Dirección no autorizada | sin hora de envío | recibida | no medible | **0,67 s** | La frase fija; en los Logs `remitente desconocido, huella ab02...`, sin dirección ni texto |
+
+- **La diferencia entre fuera y dentro es el sondeo.** 24 − 7,8 = 16 s y
+  19 − 4,6 = 14 s: es lo que tarda Gmail en entregar más la espera hasta el
+  siguiente sondeo, que va cada 30 s. Es el precio de un canal que pregunta
+  en vez de recibir un webhook, y está dentro de lo previsto: hasta un
+  intervalo.
+- **La primera consulta pagó el índice.** 7,82 s frente a 4,60 s: el disco
+  del plan de pago también arranca vacío y el primer correo autorizado
+  construye la colección (2.724 tokens de embeddings, la misma cifra del §37).
+  En el §51 ese mismo coste fue un `NotFoundError`; aquí fue tres segundos.
+- **El control de acceso viaja igual por correo**: la denegación del salario
+  es la misma que en la web y en WhatsApp, sin la cifra y con la línea de
+  retenido. El aviso del artículo 50 fue en el primer correo y no en el
+  segundo, como manda la regla de las 24 horas.
+- **La dirección no aparece en ninguna línea**, ni el texto del correo. Lo
+  comprobó la app sobre los Logs.
+
+**Lo que no salió como estaba escrito, y qué se hizo.**
+
+- El correo "Consulta" de las 11:35, el que dejó mudo al servicio del §55,
+  **no se atendió**: el sondeo busca `UNSEEN` y ese correo ya estaba marcado
+  como leído en el buzón. Quién lo marcó no está verificado (el sondeo lee
+  con `BODY.PEEK[]`, que no marca). Como su latencia no valía, no se
+  persiguió.
+- El asunto de la segunda respuesta salió **"Re: Re: Consulta 2"** y el
+  cuerpo llegó con el Markdown del generador sin interpretar (`**23 días**`).
+  Corregido el mismo día: un solo `Re:` por muchos que se encadenen, y la
+  respuesta sale sin énfasis ni encabezados de Markdown; siete pruebas nuevas
+  (53 en el canal). Ninguna medida cambia.
+- No hay hora de envío de C.3, así que su extremo a extremo no existe; la
+  aprobación por correo (C.4) se omitió porque no hay dirección de gerencia
+  en la lista. Las dos quedan en `CANAL_CORREO.md` como no medidas.
+
+**Qué cambia.** El tercer canal está **medido en vivo** y la fila de la tabla
+8.3 de la memoria se cierra: correo construido, desplegado y contestando,
+con 24 y 19 s de extremo a extremo, 7,8 y 4,6 s dentro, en el único servicio
+de pago del despliegue (7 USD al mes desde las 11:31). El §55 pasa de
+hipótesis a causa confirmada, y su arreglo tiene su primera medida: un
+servicio sin claves que en vez de callarse tarda un minuto en decir cuál
+falta.
+
+**Regla que sale.** Cuando una hoja de puesta en marcha diga "variables", que
+liste **todas**, incluidas las que ya existen en otro servicio: las cinco
+`sync: false` de este servicio se crearon en tres encargos distintos porque
+la hoja nombraba tres.

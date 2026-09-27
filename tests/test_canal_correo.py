@@ -23,6 +23,7 @@ from src.canal_correo import (
     Contacto,
     DirectorioDirecciones,
     MensajeCorreo,
+    asunto_de_respuesta,
     autenticacion_valida,
     cargar_direcciones,
     componer_respuesta,
@@ -31,6 +32,7 @@ from src.canal_correo import (
     huella,
     limpiar_cuerpo,
     normalizar_direccion,
+    sin_markdown,
 )
 from src.canal_whatsapp import TEXTO_TOPE
 
@@ -321,6 +323,26 @@ def test_la_respuesta_enhebra_en_la_conversacion():
 def test_una_respuesta_a_un_re_no_duplica_el_prefijo():
     original = MensajeCorreo(id="<a>", remitente="x@ejemplo.es", asunto="Re: Consulta", referencias=["<a>"])
     assert componer_respuesta(original, "ok", "bot@ejemplo.es")["Subject"] == "Re: Consulta"
+
+
+@pytest.mark.parametrize("asunto,esperado", [
+    ("Consulta 2", "Re: Consulta 2"),
+    ("Re: Consulta 2", "Re: Consulta 2"),
+    ("Re: Re: Consulta 2", "Re: Consulta 2"),
+    ("RE: RV: Fwd: Consulta 2", "Re: Consulta 2"),
+    ("", "Re: Tu consulta al asistente"),
+    ("Re:", "Re: Tu consulta al asistente"),
+])
+def test_el_asunto_lleva_un_solo_re_se_encadenen_los_que_se_encadenen(asunto, esperado):
+    assert asunto_de_respuesta(asunto) == esperado
+
+
+def test_la_respuesta_sale_sin_markdown():
+    texto = "## Vacaciones\n\nTienes **23 días laborables** al año.\n\n*Nota:* hasta 5 días de __traslado__.\n- Punto uno\n- 2 * 3 = 6"
+    limpio = sin_markdown(texto)
+    assert limpio == "Vacaciones\n\nTienes 23 días laborables al año.\n\nNota: hasta 5 días de traslado.\n- Punto uno\n- 2 * 3 = 6"
+    original = MensajeCorreo(id="<a>", remitente="x@ejemplo.es", asunto="Consulta", referencias=["<a>"])
+    assert "**" not in componer_respuesta(original, texto, "bot@ejemplo.es").get_content()
 
 
 # --- Directorio ----------------------------------------------------------------

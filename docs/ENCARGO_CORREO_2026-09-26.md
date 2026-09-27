@@ -130,6 +130,16 @@ pasada): faltaban probablemente las claves de API en *Environment*.
    `[correo] mensaje ...` de los *Logs*.
 4. Después, la fase C entera con correos nuevos, tal como está escrita.
 
+## Lo que pasó el 27-09-2026 por la tarde (E-0013)
+
+Faltaban las dos claves de API (confirmada la causa del §55). Los
+despliegues automáticos sin ellas fallaron a la vista con `[config] Falta
+ANTHROPIC_API_KEY`; con las claves, despliegue manual en 59,1 s. Fase C:
+vacaciones 24 s de extremo a extremo (7,82 s dentro), salario denegado en
+19 s (4,60 s), dirección no autorizada rechazada en 0,67 s; ninguna
+dirección en los Logs. Cifras y lectura en el §56. El correo de las 11:35
+no se atendió porque ya estaba marcado como leído. **Hoja cerrada.**
+
 ## Lo que no se hace
 
 - No se conecta el correo personal de Juan.
