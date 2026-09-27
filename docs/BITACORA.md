@@ -5,6 +5,93 @@
 > `BITACORA_3.3.md`.
 
 
+## 2026-09-27 (tarde) — Sesión 12: Gemini empata como generador, R-24 se cierra con el DMARC de Gmail y WhatsApp se mide por dentro
+
+**7 commits, 3 hallazgos (§57, §58, §59), 1.183 tests** (contados con JUnit;
+la sesión empezó en 1.180). Coste en modelos: 0,084 USD de las dos pasadas
+de Gemini y unos 0,006 USD de tres consultas por WhatsApp. Coste fijo nuevo:
+ninguno; Google factura ya en los dos proyectos de Gemini, con tope de 5 EUR
+al mes en cada uno.
+
+**Hecho:**
+
+- **E-0014** (app con Juan): facturación activada en el proyecto de
+  `GEMINI_API_KEY` ("Master IA Generativa"), que pasa a Nivel 1 vinculado a
+  la cuenta que ya usaba `tfm-juez`; los proyectos siguen separados. El
+  control de permisos de la app bloqueó el presupuesto de la consola de
+  Cloud; Juan puso a mano el **límite de inversión mensual de 5 EUR** de AI
+  Studio en los dos proyectos, que es tope duro y sustituye al presupuesto.
+- **Comparativa del generador (§57)**: tres llamadas sueltas sin 429 y los
+  dos bancos con un worker, 5 min 34 s y 2 min 43 s. Heredado 51/53 frente a
+  48, gestoría 27/29 frente a 28. **Empate en generación: 73 de 73** en los
+  casos bien enrutados por los dos; toda la diferencia es de enrutado
+  (cobertura del riesgo del heredado 0,636 → 1,0, pierde las dos de actas y
+  una agregación). Mitad de coste por consulta y 1,9 veces la latencia.
+  Memoria (3.3, 5.4, 8.3, 8.4, 9, anexo B), R-07 y CLAUDE.md.
+- **R-24 cerrado en simulación (§58)**: al preparar la prueba en vivo se vio
+  que `gmail.com` publica DMARC `p=none` y Gmail entrega el `From`
+  falsificado; lo que protege es que el canal exige un `pass` positivo. La
+  prueba en vivo se descartó (exigía montar un envío suplantado, y el
+  clasificador de seguridad cortó la respuesta que la redactaba). Residual
+  nuevo: no se comprueba la alineación DKIM/DMARC, acotado por la lista
+  cerrada.
+- **Revisión de servicios al entregar**: registrada en CLAUDE.md §8, con el
+  inventario, y en memoria.
+- **Pasada de consistencia** de la memoria tras §57 y §58.
+- **E-0015** (app con Juan, mensajes desde WhatsApp Web): **latencia interna
+  de WhatsApp leída en los Logs de Render (§59)**, 4,19 y 4,30 s en caliente
+  y 13,90 s en frío tras 41 s de despertar (8 s de construir sistema e
+  índice). En siete días de Logs no había ninguna línea anterior; el
+  `6.53 s` de la documentación era ilustrativo. Un reintento real de Meta
+  destapó que el duplicado esperaba el lock de construcción del `Sistema` y
+  que el arranque de un inquilino bloqueaba a los demás: **corregido con un
+  lock por inquilino y una línea `duplicado` propia**, tres pruebas que
+  fallaban con el código anterior. Cierra la M5 y la M16 de la revisión del
+  26-09.
+
+**Decisiones:**
+
+- **Haiku sigue de generador y de enrutador**: el empate no paga un corte de
+  línea base y la latencia pesa; enrutar con Gemini sería otro corte (§57).
+- **No abrir una clave nueva de Gemini**: el proyecto antiguo del máster ya
+  no consume y la separación sistema/juez ya la dan dos proyectos (Juan).
+- **Límite de inversión de AI Studio en vez de presupuesto con alertas**: el
+  primero corta, el segundo solo avisa.
+- **R-24 en simulación, sin prueba en vivo** (Juan), con el hallazgo del DMARC.
+- **Al entregar el TFM, apagar lo que no se use** (Juan), el día de la
+  entrega y no antes.
+- **Sesión en Opus 5.5** desde la mitad; Fable no hacía falta para nada de
+  lo de hoy (ninguna de las tres tareas reservadas).
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Formato de la defensa**: preguntar a partir del 30-09. Único
+      `[PENDIENTE]` de la memoria.
+- [ ] Rúbrica del TFM con el Módulo 5 (6-13 de octubre).
+- [ ] **Pasada de maquetación de la memoria**: regenerar el PDF y recontar
+      páginas (el 30 es del borrador del 26-09) y limpiar las diferencias del
+      anexo B que no son de hoy (el script confunde `ALCANCE.md §5` con
+      hallazgos y no ve los capítulos de nivel `## N.`).
+- [ ] Sin medir en vivo, declarado: aprobación por correo (no hay dirección
+      de gerencia en la lista).
+- [ ] Vigilar el crédito de Anthropic, los 7 USD/mes de Render y los topes de
+      5 EUR de Gemini.
+
+**Notas:**
+
+- **El recuento de tests con la barra de progreso estaba mal**: la línea
+  "Running teardown with pytest sessionfinish..." aporta tres puntos y cinco
+  eses. `5d79180` subió la cifra a 1.183 con una explicación falsa; la
+  cuenta con `--junitxml` dio 1.180, y 1.183 desde `fab63c1`. Contar siempre
+  con JUnit.
+- Una huella SHA-256 recortada de un teléfono o una dirección se revierte por
+  fuerza bruta: es seudonimización. No se copian huellas reales al repo.
+- `LLM_PROVIDER=gemini` exige además `JUDGE_MODEL=claude-sonnet-5` con el
+  juez en Anthropic, o `Config` rechaza la colisión de modelos.
+- Cada push redespliega `asistente-whatsapp` y lo despierta: para medir en
+  frío hay que esperar sin pushes, como hizo la app (18 min).
+
+
 ## 2026-09-27 — Sesión 11: el correo llega a producción en tres encargos, y el vigilante deja de esperar al prompt
 
 **5 commits, 2 hallazgos (§55, §56), 1.180 tests.** Coste en modelos: dos
