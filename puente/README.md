@@ -23,6 +23,7 @@ encargar.mjs  ── escribe ──>  ENCARGOS_APP.md  <── lee ──    enc
                               AVISOS_CODE.md   <── crea ────── (el puente, al registrar)
                               analizar.mjs     ── sesion de solo lectura, 10-30 s
 hook UserPromptSubmit <── inyecta los avisos POR ATENDER en cada prompt
+vigilar.mjs (Monitor)  <── anuncia cada aviso nuevo sin esperar al prompt
 avisos.mjs --atendido ── cierra el aviso
 ```
 
@@ -191,6 +192,28 @@ igual para `consultar_tfm` y para el analisis: comparten banderas.
 
 `medir_tfm` sigue sin existir: es el punto 4 del §7 de
 `docs/SINCRONIZACION_SUPERFICIES.md`.
+
+### El vigilante: la sesion se entera sin que Juan escriba
+
+El hook solo actua cuando Juan manda un prompt. Si la app registra a las
+11:42 y Juan no escribe hasta las 15:00, el aviso espera tres horas. Desde el
+27-09-2026 la skill `/arranque` arma ademas un **vigilante**: la herramienta
+Monitor de Claude Code ejecuta `node puente/vigilar.mjs`, que sondea
+`avisos.mjs --listar` cada 20 s y escribe una linea por aviso nuevo; cada
+linea llega a la sesion como un evento y la despierta. El monitor caduca a los
+30 minutos y la sesion lo rearma en cada expiracion.
+
+- Estado en `puente/.vigilados` (no versionado): los identificadores ya
+  anunciados. Los avisos que ya estan pendientes al arrancar se dan por vistos
+  sin anunciar, porque el hook los inyecta en el primer prompt.
+- Los dos caminos llevan al mismo sitio: atender el aviso y marcarlo con
+  `avisos.mjs --atendido`. El vigilante no sustituye al hook; lo adelanta.
+- La regla de la cadena no cambia: el vigilante solo lee y anuncia. Un aviso
+  no genera un encargo nuevo a la app por si solo.
+
+Medido el 27-09-2026: los avisos A-0012 y A-0013 llegaron a la sesion en el
+sondeo siguiente a su registro (menos de 20 s), sin prompt de Juan.
+
 
 ## Como declararlo en la app
 

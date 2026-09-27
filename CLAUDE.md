@@ -199,6 +199,7 @@ uv run python scripts/prueba_carga.py --local --agencia --etiqueta X   # pipelin
 TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E
 node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app, con la orden en la caja
 node puente/avisos.mjs --listar                        # avisos de la app; el hook los inyecta solo
+node puente/vigilar.mjs                                # el vigilante que arma /arranque (Monitor): una línea por aviso nuevo
 ```
 
 **Tras editar `puente/servidor.mjs`, reiniciar la app de Claude**: su proceso
@@ -452,7 +453,7 @@ un canal de vuelta.
 | Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
 | Encargos | **Los escribe**, con `node puente/encargar.mjs`, declarando el modo (`desatendido` o `supervisado`) y abriendo la app con `--abrir` si hace falta a Juan | **Los lee**, con `encargos_tfm`; los desatendidos, la tarea programada del proyecto |
 | Registro de lo hecho | **Lo lee**, en `puente/REGISTRO_APP.md` | **Lo escribe**, con `registrar_tfm` |
-| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho, y **desde el 27-09 también sin prompt**: al arrancar la sesión se arma un monitor que sondea `puente/avisos.mjs --listar` cada 20 s y despierta la sesión con cada aviso nuevo (se rearma cada 30 min); los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
+| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho, y **desde el 27-09 también sin prompt**: `/arranque` arma siempre la herramienta Monitor sobre `puente/vigilar.mjs`, que sondea la lista de avisos cada 20 s y despierta la sesión con cada aviso nuevo (caduca a los 30 min y se rearma en cada expiración); los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
 
 Los ficheros del puente **no están versionados** y por eso no los ve el
 conector de GitHub: toda lectura desde la app pasa obligatoriamente por el

@@ -35,9 +35,13 @@ servicio `asistente-correo` en el plan `0.5c-512mb` desde las 11:31.
   desconocida rechazada en 0,67 s, ninguna dirección en los Logs. Asunto
   con un solo `Re:` y cuerpo sin Markdown, siete pruebas. §56. Punto 11 del
   bloque 2 de ALCANCE hecho; fila de la tabla 8.3 de la memoria cerrada.
-- **Vigilante del puente**: un monitor sondea `avisos.mjs --listar` cada
-  20 s y despierta la sesión con cada aviso nuevo, sin esperar al prompt de
-  Juan; se rearma cada 30 minutos. Funcionó con A-0012 y A-0013.
+- **Vigilante del puente**: un monitor sondea la lista de avisos cada 20 s
+  y despierta la sesión con cada aviso nuevo, sin esperar al prompt de
+  Juan; se rearma cada 30 minutos. Funcionó con A-0012 y A-0013. Tras el
+  primer cierre, Juan pidió que fuera **automático en cada arranque**: el
+  script pasa a `puente/vigilar.mjs` (estado en `puente/.vigilados`), la
+  skill `/arranque` lo arma como paso 4 y documentado en `puente/README.md`,
+  `SINCRONIZACION_SUPERFICIES.md` y CLAUDE.md §9.
 
 **Decisiones:**
 

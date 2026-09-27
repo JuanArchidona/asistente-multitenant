@@ -312,6 +312,13 @@ pagarlos:
    - **Hook de Claude Code** (`.claude/settings.json`, `UserPromptSubmit`):
      `avisos.mjs --hook` inyecta los avisos sin atender en cada prompt, y no
      escribe nada si no hay. Es la regla que no hay que acordarse de aplicar.
+   - **Vigilante** (desde el 27-09-2026): el hook espera al prompt, y un
+     registro de la app a las 11:42 esperaba a que Juan escribiera. La skill
+     `/arranque` arma la herramienta Monitor de Claude Code sobre
+     `puente/vigilar.mjs`, que sondea la lista de avisos cada 20 s y escribe
+     una linea por aviso nuevo; la linea despierta la sesion. Caduca a los
+     30 minutos y la sesion lo rearma. Solo lee y anuncia: la cadena sigue
+     terminando en Claude Code.
 
    **La cadena termina en Claude Code**, y es la regla que no se negocia. Un
    puente equivalente de este equipo la formulo el 21-09 tras tres errores en
