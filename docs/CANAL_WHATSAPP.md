@@ -186,9 +186,21 @@ el plan gratuito no tiene consola. Ahora cada mensaje deja **una línea en la
 salida del proceso**, que es lo que enseñan los *Logs* de Render:
 
 ```
-[whatsapp] mensaje huella=cdbfd7222d15 tenant=empresa_servicios respuestas=1 latencia=6.53 s
+[whatsapp] mensaje huella=... tenant=empresa_servicios respuestas=1 latencia=4.19 s
+[whatsapp] duplicado huella=... tenant=empresa_servicios (reintento de Meta) tras 0.00 s
 [whatsapp] mensaje huella=... tenant=agencia_inmobiliaria ERROR RuntimeError: Meta devolvió 403 al enviar: ... tras 4.10 s
 ```
+
+La primera línea es real (27-09-2026, 17:41:05, §59), con la huella quitada
+porque este repositorio es público y una huella de un teléfono se revierte
+por fuerza bruta. Hasta ese día aquí se mostraba un `latencia=6.53 s` que
+**era ilustrativo**, no una lectura. La segunda forma existe desde el mismo
+día: antes, un reintento de Meta salía como un mensaje con `respuestas=0` y
+su espera como si fuera una latencia. La tercera es la forma de un fallo.
+
+**Leído el 27-09-2026** (E-0015, §59): 4,19 y 4,30 s en caliente, 13,90 s
+en frío tras 41 s de despertar, y un reintento real de Meta durante el
+despertar que la deduplicación absorbió.
 
 La latencia es del webhook recibido a la última respuesta entregada a Meta:
 incluye enrutado, recuperación, generación y el envío, y excluye el tramo

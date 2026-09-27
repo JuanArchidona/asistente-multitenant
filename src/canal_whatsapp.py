@@ -230,11 +230,19 @@ class CanalWhatsApp:
         self._ultimo_contacto: dict[str, float] = {}
         self._procesados: OrderedDict[str, None] = OrderedDict()
         self._lock = threading.Lock()
+        # Un lock por inquilino para construir su `Sistema`, aparte de `_lock`.
+        # Construirlo en frío tarda unos 8 s (índice incluido), y con un solo
+        # lock un reintento de Meta esperaba esos 8 s solo para descubrir que
+        # era un duplicado, y el primer mensaje de otro inquilino también
+        # (E-0015, 27-09-2026).
+        self._locks_sistema: dict[str, threading.Lock] = {}
         self.desconocidos: list[dict] = []
         self._registro_desconocidos = registro_desconocidos
 
     def sistema(self, tenant_id: str):
         with self._lock:
+            lock = self._locks_sistema.setdefault(tenant_id, threading.Lock())
+        with lock:
             if tenant_id not in self._sistemas:
                 self._sistemas[tenant_id] = self._fabrica(tenant_id)
             return self._sistemas[tenant_id]
@@ -261,7 +269,9 @@ class CanalWhatsApp:
             self._registro_desconocidos(fila)
 
     def procesar(self, mensaje: MensajeEntrante) -> list[str]:
-        """Los textos que hay que enviar a ese número, en orden. Puede ser ninguno."""
+        """Los textos que hay que enviar a ese número, en orden. Ninguno solo si
+        el mensaje ya se atendió (reintento de Meta): cualquier otro camino
+        contesta algo, y el servidor usa eso para anotar el duplicado aparte."""
         if self._ya_procesado(mensaje.id):
             return []
         telefono = normalizar_telefono(mensaje.telefono)

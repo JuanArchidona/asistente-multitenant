@@ -4111,3 +4111,109 @@ el `From`, y es trabajo de después de la defensa.
   DKIM/DMARC, acotado por la lista cerrada; mejora tras la defensa.
 - Residual heredado sin cambio: el control depende de que el proveedor del
   buzón escriba `Authentication-Results`; Gmail lo hace siempre.
+
+## 59. La latencia interna de WhatsApp, leída por fin en producción: 4,2 y 4,3 s en caliente y 13,9 s en frío, y un reintento de Meta que esperó 8 s un lock que no necesitaba
+
+**Ejecución:** encargo E-0015 (27-09-2026, 17:38-17:42, app de Claude con
+Juan delante; aviso A-0015, `puente/REGISTRO_APP.md`). Servicio
+`asistente-whatsapp` de Render, despliegue de `8a6b4fd`, instancia
+`pqjrn`. Tres consultas reales, unos 0,006 USD. Sin carpeta en `reports/`:
+la evidencia son las líneas de los Logs de Render, copiadas literales al
+registro del puente (sin el teléfono).
+
+**Qué se quería.** La revisión hostil del 26-09 dejó una sola corrección sin
+aplicar, la M5: la memoria decía que el servidor deja una línea por mensaje
+con su latencia interna, y nadie la había leído en producción. La única
+cifra de WhatsApp era un 5,1 s de una consulta simulada, sin traza (M16).
+
+**Fase A: lo que había.** En los siete días que retiene el plan gratuito
+(14 y 30 aparecen deshabilitados) **no hay ninguna línea `[whatsapp]
+mensaje`**. Tiene sentido: la línea existe desde `39fd125` (25-09, 08:03),
+media hora después de los dos mensajes de control de E-0010, y desde
+entonces nadie había escrito al canal. Solo aparecen las dos trazas de
+error ya conocidas del 24-09 (`#131030` y `#131005`, §51). El
+`latencia=6.53 s` que `CANAL_WHATSAPP.md` mostraba como ejemplo **era
+ilustrativo**: no está en los Logs, se escribió en el mismo commit que
+añadió la línea (antes de que pudiera desplegarse) y su huella no
+corresponde a ningún número de la lista ni de las pruebas.
+
+**Fase B: tres mensajes reales.** El servicio llevaba 18 minutos sin
+tráfico ni despliegues.
+
+| Mensaje | Envío | Línea en los Logs | Latencia interna | Cumple |
+|---|---|---|---|---|
+| Vacaciones, en frío | 17:38:17 | 17:39:17 | **13,90 s** | 23 días, cita el convenio, aviso de IA |
+| Vacaciones, en caliente | 17:41:00 | 17:41:05 | **4,19 s** | 23 días, cita el convenio |
+| Retribución de Diego Ruíz | 17:42:18 | 17:42:23 | **4,30 s** | Deniega sin la cifra, "Retenido por permiso" |
+
+Las horas de envío son del reloj de la sesión que mandó los mensajes desde
+WhatsApp Web (a petición de Juan, en vez de desde el teléfono); las de los
+Logs, de Render. Las dos coinciden en la zona horaria.
+
+**Lo que se lee.**
+
+- **En caliente, el canal cuesta poco.** Entre el envío y la línea del log
+  pasan unos 5 s, de los que 4,2-4,3 son la latencia interna: del mensaje
+  a la entrada del webhook, del orden de un segundo (0,7 a 1,8 s: los
+  sellos de Render tienen resolución de segundo). La latencia interna
+  incluye la llamada que entrega la respuesta a la API de Meta; el
+  pipeline solo, en local, da 3,2-3,3 s de mediana (§53), así que el envío
+  a Meta y Render suman del orden de un segundo.
+- **En frío, casi un minuto, y ahora se sabe en qué.** 12 s desde el envío
+  hasta la primera línea de arranque (17:38:29), 29 s más hasta que el
+  servidor escucha (17:38:58): **41 s de despertar**, dentro del rango de
+  32-61 s del §52. Después, 13,90 s de latencia interna: unos 8 s en
+  construir el `Sistema` (el índice, **2 s**: 15 fragmentos y 2.724 tokens
+  de embeddings entre 17:39:03 y 17:39:05) y unos 6 s en la consulta. Es
+  la primera medida de lo que la revisión del 26-09 dio por no medido
+  (M4): el índice se reconstruye en el primer mensaje tras cada despertar,
+  porque el disco del plan gratuito es efímero, y cuesta 2 s y 2.724
+  tokens de embeddings cada vez (unos 0,0005 USD al precio del sucesor del
+  modelo, que el actual no tiene publicado, §37).
+- **Meta reintentó el webhook durante el despertar, y la deduplicación
+  aguantó**: el mensaje en frío dejó dos líneas con la misma huella y a
+  Juan le llegó una sola respuesta. Es la primera vez que se ve en vivo un
+  reintento real; hasta ahora solo lo fijaba una prueba.
+- **El aviso del artículo 50 falta en la segunda respuesta, y es el
+  diseño**: se pone tras 24 h de silencio. Como ese estado vive en memoria
+  y el servicio gratuito se duerme, en la práctica el aviso se repite tras
+  cada despertar, más a menudo de lo que dice el diseño. Peca de informar
+  de más, no de menos.
+
+**Dos defectos que el reintento destapó, corregidos el mismo día.**
+
+1. **El duplicado esperó 8 s un lock que no necesitaba.** La comprobación
+   de "¿ya atendí este mensaje?" y la construcción del `Sistema`
+   compartían `self._lock`. El reintento llegó a la vez que el original,
+   esperó a que este terminara de construir el `Sistema` y solo entonces
+   descubrió que era un duplicado: esa es la línea `respuestas=0
+   latencia=8.00 s`. Peor: mientras un inquilino arrancaba en frío, el
+   primer mensaje de **cualquier otro** inquilino también esperaba. Ahora
+   cada inquilino construye su `Sistema` bajo su propio lock y la
+   deduplicación no espera a ninguno.
+2. **El duplicado se anotaba como un mensaje más**, con su "latencia", y
+   contaminaba justo la cifra que esta medición venía a leer. Ahora sale
+   como `[whatsapp] duplicado huella=... (reintento de Meta) tras X s`,
+   sin `latencia=` ni `respuestas=`.
+
+Tres pruebas nuevas fijan las dos cosas, y las tres fallaban con el código
+anterior por lo mismo que se vio en producción: un reintento que espera a
+la construcción, un inquilino que espera al arranque de otro y un
+duplicado anotado como mensaje.
+
+**Un límite que salió al citar la línea.** La huella es un SHA-256 de 12
+caracteres hexadecimales del teléfono, y **el espacio de números de
+teléfono es tan pequeño que se puede recorrer por fuerza bruta**: es una
+seudonimización, no una anonimización. No cambia lo que se hace con ella
+(los Logs los ve solo Juan y se guardan siete días), pero la documentación
+del canal de correo decía que la huella permite contar intentos "sin
+guardar quién", y eso es más de lo que da. Por eso la huella del número de
+Juan no se copia a este repositorio, que es público.
+
+**Qué cambia.**
+
+- La M5 de la revisión se cierra con cifra y la M16 se sustituye: la
+  latencia interna de WhatsApp en producción es de **4,2-4,3 s en
+  caliente y 13,9 s en frío**, con N=3.
+- `CANAL_WHATSAPP.md` deja de mostrar el `6.53` como si fuera una lectura.
+- `CANAL_CORREO.md` rebaja la promesa de la huella a lo que da.

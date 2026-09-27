@@ -433,10 +433,17 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   Está probado con 29 pruebas de mensajes simulados y **en vivo** con un
   número y dos preguntas (§51): la de vacaciones respondió como en la web
   y la del salario denegó sin el dato y sin fuga, en menos de un minuto
-  cada una a precisión de minuto. Lo que no está medido: la latencia
-  interna en producción (una sola consulta simulada, 5,1 s, sin traza), la
-  aprobación por texto en vivo y el aislamiento con dos números reales,
-  que se decidió no medir (capítulo 8.3). La puesta en marcha y sus
+  cada una a precisión de minuto. La latencia interna en producción,
+  leída en los Logs de Render con tres mensajes reales (§59): **4,2 y
+  4,3 s en caliente**, del orden de un segundo más de Meta al webhook, y
+  **13,9 s en frío**, de los que unos 8 s son construir el sistema tras el
+  despertar (el índice, 2 s, porque el disco es efímero); sumando los 41 s
+  del despertar, el primer mensaje tras una pausa tarda casi un minuto.
+  Esa lectura destapó y corrigió un defecto de concurrencia: un reintento
+  de Meta esperaba la construcción del sistema, y el arranque en frío de
+  un inquilino bloqueaba al primer mensaje de los demás. Lo que no está
+  medido: la aprobación por texto en vivo y el aislamiento con dos números
+  reales, que se decidió no medir (capítulo 8.3). La puesta en marcha y sus
   tropiezos están en `docs/CANAL_WHATSAPP.md` y en el §51.
 - **Correo** (`src/canal_correo.py`, sobre un buzón de Gmail dedicado): la
   dirección del remitente es la credencial, con la misma lista cerrada; y
@@ -996,7 +1003,13 @@ segunda pasada no lo repitió; la causa no se vio.
 El plan gratuito duerme antes de 20 minutos sin tráfico (Render documenta
 15) y despertar cuesta 32 s la interfaz y 42-61 s el servicio de WhatsApp;
 despierto, menos de 0,2 s, y ninguna petición se pierde mientras despierta
-(§52). Lo que estas dos medidas no cubren está en el capítulo 9.
+(§52). Esas medidas eran solo del contenedor; con un mensaje real de
+WhatsApp tras 18 minutos de pausa (§59), el despertar fue de 41 s y el
+primer mensaje tardó 13,9 s más dentro del canal, 8 de ellos en construir
+el sistema y el índice, que el disco efímero obliga a rehacer tras cada
+despertar. Un reintento de Meta durante ese despertar destapó un defecto
+de concurrencia, corregido el mismo día. Lo que estas medidas no cubren
+está en el capítulo 9.
 
 ## 7. Gobernanza, seguridad e IA responsable
 
@@ -1241,8 +1254,8 @@ capítulo 8.3 y aquí solo se remite.
   CPU del plan gratuito y la reconstrucción del índice tras un reinicio.
   Que lo que escala sea el número de inquilinos es una afirmación de diseño
   con una medida (el alta), no una de rendimiento.
-- **WhatsApp** está probado en vivo con un número y dos preguntas; la
-  latencia interna en producción no se ha leído (capítulo 2.9). **Correo**
+- **WhatsApp** está probado en vivo con un número; la latencia interna en
+  producción se leyó con tres mensajes (§59), una muestra pequeña. **Correo**
   está medido en vivo con una dirección y tres correos (§56); el rechazo
   del remitente falsificado se cierra en simulación (§58, DMARC `p=none`) y
   sin medir en vivo queda la aprobación por correo. El plan
@@ -1270,7 +1283,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 58 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 59 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1348,7 +1361,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 58 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
+Los 59 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
 que los citan (todos los que lo hacen, no solo el principal; regenerado
 desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 `reports/` que lo respalda o dice que no la tiene.
@@ -1363,7 +1376,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 2.6 La rama estructurada por MCP | §4, §5, §41 |
 | 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
 | 2.8 Generación anclada | §39, §40 |
-| 2.9 Interfaz y canales | §51, §55, §56, §58 |
+| 2.9 Interfaz y canales | §51, §55, §56, §58, §59 |
 | 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
@@ -1381,7 +1394,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 6.3 Despliegue | §38, §39, §41, §42 |
 | 6.4 Plan de incidentes, pulsado en frío | §46 |
 | 6.5 Dos superficies y un puente | §19 |
-| 6.6 Carga y arranque en frío | §52, §53 |
+| 6.6 Carga y arranque en frío | §52, §53, §59 |
 | 7.1 El registro de riesgos | §54, §57 |
 | 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53 |
 | 7.3 Sesgo, medido en tres capas | §34, §44 |
@@ -1391,7 +1404,7 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
 | 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55, §57, §58 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
-| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58 |
+| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58, §59 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
 cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la

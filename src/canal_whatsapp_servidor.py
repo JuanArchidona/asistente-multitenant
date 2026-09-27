@@ -160,6 +160,13 @@ def atender_y_anotar(canal: CanalWhatsApp, enviador, mensaje: MensajeEntrante, s
             file=salida,
         )
         return
+    if enviados == 0:
+        # Un reintento de Meta de un mensaje ya atendido: no es un mensaje ni
+        # su tiempo es una latencia. Anotado como tal para no contaminar las
+        # latencias que se leen en los Logs (E-0015: un duplicado salió como
+        # "respuestas=0 latencia=8.00 s").
+        print(f"[whatsapp] duplicado {quien} (reintento de Meta) tras {latencia:.2f} s", file=salida)
+        return
     print(f"[whatsapp] mensaje {quien} respuestas={enviados} latencia={latencia:.2f} s", file=salida)
 
 

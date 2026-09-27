@@ -4,7 +4,9 @@
 > `5795882`. Se aplicaron las 7 Altas, 19 de las 20 Medias y las 8 Bajas,
 > más las seis correcciones "fuera de la memoria", el mismo día. La Media
 > no aplicada es M5 (leer una latencia interna del canal en los logs de
-> Render): la memoria dice ahora que la línea existe y no se ha leído. Los
+> Render): la memoria dice ahora que la línea existe y no se ha leído.
+> **Aplicada el 27-09-2026** (E-0015, §59): 4,19 y 4,30 s en caliente y
+> 13,90 s en frío; sustituye también la cifra de la M16. Los
 > números de línea son los del commit revisado; la memoria ha cambiado
 > desde entonces. Se guarda porque el capítulo 12.2 defiende el método, y
 > el método incluye que la memoria se lea con hostilidad antes que el

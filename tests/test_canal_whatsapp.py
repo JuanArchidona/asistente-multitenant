@@ -257,6 +257,67 @@ def test_el_sistema_de_cada_inquilino_se_construye_una_vez():
     assert creados == ["agencia_inmobiliaria", "empresa_servicios"]
 
 
+def _fabrica_que_espera(inquilino_lento):
+    """Fábrica que se queda construyendo `inquilino_lento` hasta que se la
+    suelta, como el arranque en frío en Render (unos 8 s con el índice)."""
+    import threading
+
+    dentro, soltar = threading.Event(), threading.Event()
+
+    def fabrica(t):
+        if t == inquilino_lento:
+            dentro.set()
+            assert soltar.wait(5), "la prueba no soltó la fábrica"
+        return SistemaFalso(t)
+
+    return fabrica, dentro, soltar
+
+
+def _en_hilo(funcion):
+    import threading
+
+    resultado = {}
+    hilo = threading.Thread(target=lambda: resultado.setdefault("v", funcion()), daemon=True)
+    hilo.start()
+    return hilo, resultado
+
+
+def test_un_reintento_no_espera_a_que_se_construya_el_sistema():
+    """E-0015 (27-09-2026): Meta reintentó el webhook durante el arranque en
+    frío y el duplicado esperó 8 s el mismo lock que la construcción del
+    `Sistema`, solo para descubrir que ya estaba atendido."""
+    fabrica, dentro, soltar = _fabrica_que_espera("empresa_servicios")
+    canal = CanalWhatsApp(_directorio(), fabrica, lambda t: AVISO[t], comprobar_tope=lambda: (False, 0, 2))
+
+    primero, resultado_primero = _en_hilo(lambda: canal.procesar(_msg("hola", id_="wamid.X")))
+    assert dentro.wait(2)
+    reintento, resultado_reintento = _en_hilo(lambda: canal.procesar(_msg("hola", id_="wamid.X")))
+    reintento.join(1)
+    terminado_a_tiempo = not reintento.is_alive()
+    soltar.set()
+    primero.join(2)
+
+    assert terminado_a_tiempo, "el reintento esperó a la construcción del Sistema"
+    assert resultado_reintento["v"] == []
+    assert len(resultado_primero["v"]) == 1
+
+
+def test_el_arranque_de_un_inquilino_no_bloquea_a_otro():
+    fabrica, dentro, soltar = _fabrica_que_espera("agencia_inmobiliaria")
+    canal = CanalWhatsApp(_directorio(), fabrica, lambda t: AVISO[t], comprobar_tope=lambda: (False, 0, 2))
+
+    lento, _ = _en_hilo(lambda: canal.procesar(_msg("a", "34600000002", "1")))
+    assert dentro.wait(2)
+    otro, resultado_otro = _en_hilo(lambda: canal.procesar(_msg("b", "34600000001", "2")))
+    otro.join(1)
+    terminado_a_tiempo = not otro.is_alive()
+    soltar.set()
+    lento.join(2)
+
+    assert terminado_a_tiempo, "empresa_servicios esperó al arranque de agencia_inmobiliaria"
+    assert len(resultado_otro["v"]) == 1
+
+
 # --- Troceado ---------------------------------------------------------------
 
 def test_los_mensajes_largos_se_trocean_por_parrafos():
@@ -417,6 +478,28 @@ def test_un_numero_desconocido_se_anota_como_tal_en_la_linea():
 
     assert "tenant=desconocido respuestas=1" in salida.getvalue()
     assert "999999999" not in salida.getvalue()
+
+
+def test_un_reintento_de_meta_se_anota_como_duplicado_y_no_como_mensaje():
+    """E-0015: el duplicado salía como "mensaje ... respuestas=0 latencia=8.00 s"
+    y contaba como una latencia más al leer los Logs."""
+    import io
+
+    import src.canal_whatsapp_servidor as srv
+
+    canal = _canal({"empresa_servicios": SistemaFalso("empresa_servicios")})
+    enviador = _EnviadorMemoria()
+    salida = io.StringIO()
+    srv.atender_y_anotar(canal, enviador, _msg("¿Vacaciones?", id_="wamid.X"), salida=salida)
+    srv.atender_y_anotar(canal, enviador, _msg("¿Vacaciones?", id_="wamid.X"), salida=salida)
+
+    primera, segunda = salida.getvalue().strip().splitlines()
+    assert primera.startswith("[whatsapp] mensaje ") and "respuestas=1" in primera
+    assert segunda.startswith("[whatsapp] duplicado huella=")
+    assert "tenant=empresa_servicios" in segunda and "(reintento de Meta)" in segunda
+    assert "latencia=" not in segunda and "respuestas=" not in segunda
+    assert "600000001" not in segunda
+    assert len(enviador.enviados) == 1
 
 
 def test_el_servidor_de_whatsapp_carga_la_configuracion_al_arrancar_y_no_en_el_primer_mensaje(monkeypatch):
