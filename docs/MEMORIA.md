@@ -508,7 +508,7 @@ ahí la lectura por los cinco criterios del capstone:
 | Coste | Cero dependencias de orquestación; ninguna capa entre el SDK y la contabilidad de tokens | +14 paquetes en el AIBOM (R-09); latencia y coste por consulta iguales |
 | Escalabilidad | Lo que escala aquí es el número de inquilinos, y eso lo resuelve el manifiesto, no el orquestador | Igual: el manifiesto es ortogonal al framework |
 | Riesgo | Superficie mínima: 21 líneas que se leen en una pantalla; el control de acceso está en el `where` y en la salida de la herramienta, no en el orquestador | Cadena de suministro: el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026; `langsmith` entra sin usarse |
-| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores, con la salvedad de cuota del §54 | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cinco días (capítulo 8.4) |
+| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores; con la clave gratuita no sostuvo un banco (§54) y con la de pago lo corrió entero (§57) | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cinco días (capítulo 8.4) |
 | Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | Lo aporta, y este sistema no lo usa |
 
 Lo que la medida no dice: nada sobre lo que LangGraph aporta cuando hay
@@ -549,7 +549,7 @@ declara.
 | Clasificador y generación | `claude-haiku-4-5` | Heredado de la 3.3 con su línea base medida; 0,00245 USD por caso sin juez en la ejecución del §17, y entre 0,0020 y 0,0041 por inquilino en las vigentes (capítulo 5.4) |
 | Juez | `gemini-3.6-flash`, desde el primer corte de línea base | Otra familia que el generador y 5,5 veces más barato por evaluación que `claude-sonnet-5`; admite temperatura 0, aunque eso no lo estabiliza (§24, §26, §32) |
 | Embeddings | `gemini-embedding-001`, 768 dimensiones | Heredado; en retirada con cierre anunciado el 14-05-2028 y sin precio publicado (§35). Decidido no migrar antes de la defensa: invalidaría el índice |
-| Proveedor alternativo | `gemini-3.6-flash` para chat, vía `LLM_PROVIDER=gemini` | La conmutación era una forma y no un hecho hasta que se verificó de extremo a extremo (§29); con la clave gratuita no es contingencia (§54) |
+| Proveedor alternativo | `gemini-3.6-flash` para chat, vía `LLM_PROVIDER=gemini` | La conmutación era una forma y no un hecho hasta que se verificó de extremo a extremo (§29); con la clave gratuita no era contingencia (§54) y con la de pago está medida: empate en generación (§57) |
 
 **El clasificador pequeño, medido contra Haiku** (§48). Un enrutador por
 embeddings de las descripciones de categoría, sin entrenamiento ni
@@ -572,23 +572,36 @@ inquilinos nuevos, no afinar un modelo; en el heredado eso sería tocar la
 línea base (capítulo 1.3). La cascada (embeddings y Haiku solo en duda) iguala a
 Haiku en muestra pero fuera manda al LLM el 75-88 % de las consultas.
 
-Lo que no se comparó: el generador. `claude-haiku-4-5` genera porque la 3.3
-lo heredó con su línea base, y su barrido de configuraciones comparó
-recuperación (chunking, `top_k`, dimensiones), no modelos de generación. Un
-modelo mayor de la misma familia costaría de 2 a 5 veces más por token
-(capítulo 5.4) sin que ningún fallo vigente del banco sea de generación:
-los catorce casos que fallan en el capítulo 4.2 son de enrutado o de cita.
+El generador. `claude-haiku-4-5` genera porque la 3.3 lo heredó con su
+línea base, y su barrido de configuraciones comparó recuperación
+(chunking, `top_k`, dimensiones), no modelos de generación. Un modelo mayor
+de la misma familia costaría de 2 a 5 veces más por token (capítulo 5.4)
+sin que ningún fallo vigente del banco sea de generación: los catorce
+casos que fallan en el capítulo 4.2 son de enrutado o de cita.
 
-La comparación con el generador de la otra familia se intentó con los dos
-bancos documentales y murió de cuota: la clave de Gemini es del nivel
-gratuito, 20 peticiones al día para `gemini-3.6-flash`, y 73 de los 82
-casos terminaron en 429 tras cinco reintentos (§54). Los nueve que
-llegaron a responder pasaron los nueve, y nueve casos de conocimiento no
-son una comparativa. Queda bloqueada hasta que haya facturación en ese
-proyecto (capítulo 8.3). La consecuencia para la justificación pesa más
-que la cifra que falta: **la conmutación de proveedor no es un plan de
-contingencia mientras la clave sea gratuita**; vale para una consulta
-suelta y para el juez, que usa otra clave.
+Contra la otra familia sí se comparó, en dos intentos. El primero murió de
+cuota: la clave de Gemini era del nivel gratuito, 20 peticiones al día, y
+73 de los 82 casos terminaron en 429 (§54). Con facturación y un tope de
+5 EUR al mes en cada proyecto, el segundo corrió los dos bancos
+documentales con `gemini-3.6-flash` como enrutador y generador (§57):
+
+| Banco | Haiku | Gemini | Bien enrutados por los dos | OK en esos, Haiku / Gemini |
+|---|---|---|---|---|
+| Heredado (53) | 48 | 51 | 46 | 46 / 46 |
+| Gestoría (29) | 28 | 27 | 27 | 27 / 27 |
+
+**Como generador, empate: 73 de 73 en los dos**, a la mitad de coste por
+consulta (0,00099 frente a 0,00198 USD en el heredado) y a 1,9 veces la
+latencia (6,2 s de media frente a 3,3). Es una pasada por lado, así que la
+lectura es que el banco no los distingue, no que sean iguales. Todo lo que
+se mueve es enrutado: Gemini lleva al control los cuatro casos de riesgo
+que Haiku manda a `otro` (cobertura del riesgo 0,636 → 1,0 en el heredado,
+sin fuga) y pierde las dos preguntas de actas y una agregación. Haiku se
+queda: el empate no paga un corte de línea base y la latencia pesa en un
+asistente. Lo que sí cambia es la justificación: **la conmutación de
+proveedor es contingencia medida**, no solo una forma, porque el sistema
+entero corre en la otra familia con igual o mejor resultado sin tocar
+código.
 
 Un prerrutado determinista por identificador (OP-2026-118 va a
 expedientes) se descartó con una cuenta de dos minutos (§25): los
@@ -871,7 +884,10 @@ Lo que la ficha no incluye, y hay que decir al presentarla:
   golden set, §37), sin precio
   publicado para el modelo actual. Al precio de su sucesor (0,20 USD por
   millón) serían tres millonésimas de dólar por consulta: no cambia la
-  ficha, pero se declara.
+  ficha, pero se declara. Desde el 27-09 la clave de los embeddings está
+  en un proyecto de Google con facturación y un límite de inversión de
+  5 EUR al mes, igual que la del juez en el suyo (§57): los dos gastos se
+  leen por separado y los dos tienen tope duro.
 - **Infraestructura.** En el despliegue actual el servicio corre en el
   plan gratuito de Render, que duerme antes de 20 minutos sin tráfico y
   tarda entre 32 y 61 s en despertar (capítulo 6.6). El plan de pago más
@@ -996,7 +1012,7 @@ evidencia es una opinión.
 | Cuadrante | Contramedida del Módulo 4 | Lo que el proyecto pone |
 |---|---|---|
 | Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (14 filas) |
-| Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada y condicionada a una clave de pago (§54), AIBOM (R-07, R-09, R-15) |
+| Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada, condicionada a una clave de pago (§54) y medida con ella (§57), AIBOM (R-07, R-09, R-15) |
 | Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Cinco filas que salieron de mirar con desconfianza (R-04, R-06, R-11, R-13, R-21); en tres de ellas el error estaba en el instrumento (capítulo 4.5) |
 | Desconocidos-desconocidos | Botón rojo y plan | Tope prepago, plan escrito y pulsado en frío (R-23) |
 
@@ -1159,7 +1175,7 @@ no haya que buscarlo en dos sitios:
 | Denegación explícita en el caso parcial | Decidido no hacerlo antes de la defensa: 14 casos del heredado y otro corte de línea base (§47) | Tras la defensa |
 | `inj-04` | Residual: arreglarlo es tocar el prompt del enrutador heredado, que es la línea base | No se hace |
 | Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
-| Comparar el generador con Gemini | **Abierto.** Bloqueado por la cuota gratuita de la clave (§54); exige facturación en el proyecto de Google | Cuando haya clave de pago |
+| Comparar el generador con Gemini | **Hecho** tras activar la facturación con tope de 5 EUR (§54, §57): empate en generación, 73 de 73 | Cerrado |
 | Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la defensa: no hay incidente que lo pida (capítulo 6.4) | Tras la defensa |
 | Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
 
@@ -1174,8 +1190,9 @@ tenía el de `claude-sonnet-5` un 50 % alto y todo lo derivado salía
 inflado (§21), y un modelo sin precio costaba cero hasta que el registro
 pasó a marcar `modelos_sin_precio` (§28). Las mitigaciones: tabla de
 precios viva con un test que recalcula desde tokens, modelos con fecha en
-el identificador, AIBOM, y la conmutación de proveedor verificada (§29) y
-condicionada, desde el §54, a una clave de pago.
+el identificador, AIBOM, y la conmutación de proveedor verificada (§29),
+condicionada a una clave de pago (§54) y, con ella, medida sobre los dos
+bancos documentales (§57).
 
 ## 9. Límites y lo que queda fuera
 
@@ -1197,8 +1214,9 @@ capítulo 8.3 y aquí solo se remite.
   mitigación es que el corpus es sintético, y desaparece con un cliente
   real. **El fallo del servidor MCP** tampoco: la regla lo hace visible,
   pero no se ha simulado (capítulo 3.2).
-- **El generador no se comparó** con ningún otro modelo (capítulos 3.3 y
-  8.3).
+- **El generador se comparó con una sola pasada por lado** y con el
+  enrutador cambiando a la vez (§57): el empate dice que el banco no
+  distingue a los dos modelos, no que sean iguales.
 
 **Lo que el despliegue no es todavía.**
 
@@ -1246,7 +1264,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 56 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 57 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
@@ -1324,7 +1342,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 56 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
+Los 57 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
 que los citan (todos los que lo hacen, no solo el principal; regenerado
 desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 `reports/` que lo respalda o dice que no la tiene.
@@ -1340,9 +1358,9 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
 | 2.8 Generación anclada | §39, §40 |
 | 2.9 Interfaz y canales | §51, §55, §56 |
-| 3.1 Python sin framework frente a LangGraph | §29, §50, §54 |
+| 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
-| 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54 |
+| 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
 | 3.4 El resto de la pila | §19, §26, §38, §51, §52 |
 | 4.1 El banco | §11, §23, §30, §31, §42, §47 |
 | 4.2 Resultados en la línea base vigente | §42, §45, §49 |
@@ -1351,23 +1369,23 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 5.1 Lo que cuesta funcionar y lo que cuesta medir | §17, §21, §22, §32, §34, §44 |
 | 5.2 Tope de gasto y una clave por fin | §16, §18, §24, §53 |
 | 5.3 Lo que la contabilidad no ve | §16, §35, §37 |
-| 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37 |
+| 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37, §55 |
 | 6.1 El registro de producción | §20, §46 |
 | 6.2 Retención y supresión | §37 |
 | 6.3 Despliegue | §38, §39, §41, §42 |
 | 6.4 Plan de incidentes, pulsado en frío | §46 |
 | 6.5 Dos superficies y un puente | §19 |
 | 6.6 Carga y arranque en frío | §52, §53 |
-| 7.1 El registro de riesgos | §54 |
+| 7.1 El registro de riesgos | §54, §57 |
 | 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53 |
 | 7.3 Sesgo, medido en tres capas | §34, §44 |
 | 7.5 RGPD sobre el RAG | §36 |
 | 7.6 Cadena de suministro | §35 |
 | 8.1 Dar de alta un cliente nuevo, cronometrado | §1, §43, §45, §49 |
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
-| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55 |
-| 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54 |
-| 9. Límites y lo que queda fuera | §6, §48, §55, §56 |
+| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55, §57 |
+| 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
+| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57 |
 
 Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
 cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la
