@@ -417,3 +417,15 @@ def test_un_numero_desconocido_se_anota_como_tal_en_la_linea():
 
     assert "tenant=desconocido respuestas=1" in salida.getvalue()
     assert "999999999" not in salida.getvalue()
+
+
+def test_el_servidor_de_whatsapp_carga_la_configuracion_al_arrancar_y_no_en_el_primer_mensaje(monkeypatch):
+    from src import canal_whatsapp_servidor as servidor
+
+    def sin_clave(tenant_id, con_juez):
+        raise SystemExit("[config] Falta ANTHROPIC_API_KEY en .env")
+
+    monkeypatch.setattr(servidor, "load_config", sin_clave)
+    monkeypatch.setattr(servidor, "cargar_telefonos", _directorio)
+    with pytest.raises(SystemExit, match="ANTHROPIC_API_KEY"):
+        servidor.construir_canal()

@@ -58,11 +58,14 @@ class BuzonIMAP:
     """Lee el buzón. Una conexión por sondeo: es más simple que mantenerla viva
     y Gmail las corta igualmente a los pocos minutos sin actividad."""
 
-    def __init__(self, host: str, usuario: str, contrasena: str, carpeta: str = "INBOX"):
+    def __init__(self, host: str, usuario: str, contrasena: str, carpeta: str = "INBOX", timeout_s: float = 30.0):
         self.host, self.usuario, self.contrasena, self.carpeta = host, usuario, contrasena, carpeta
+        # Sin tope, una conexión IMAP que se queda a medias bloquea el hilo de
+        # sondeo para siempre y /salud sigue diciendo ok (E-0012).
+        self.timeout_s = timeout_s
 
     def _abrir(self) -> imaplib.IMAP4_SSL:
-        conexion = imaplib.IMAP4_SSL(self.host)
+        conexion = imaplib.IMAP4_SSL(self.host, timeout=self.timeout_s)
         conexion.login(self.usuario, self.contrasena)
         conexion.select(self.carpeta)
         return conexion
@@ -128,6 +131,15 @@ def construir_canal(exigir_autenticacion: bool = True) -> CanalCorreo:
             configs[tenant_id] = load_config(tenant_id, con_juez=False)
         return configs[tenant_id]
 
+    # La configuración de cada inquilino de la lista se carga AL ARRANCAR, no
+    # en el primer correo real. `load_config` termina el proceso con un
+    # mensaje si falta una clave; dentro del hilo de sondeo ese `SystemExit`
+    # mataba el hilo en silencio, /salud seguía diciendo ok y el correo se
+    # quedaba sin leer (E-0012, §55). Aquí, en el hilo principal, el servicio
+    # no arranca y Render enseña el motivo.
+    for tenant_id in sorted({c.tenant for c in directorio.direcciones}):
+        config_de(tenant_id)
+
     def fabrica(tenant_id: str) -> Sistema:
         cfg = config_de(tenant_id)
         # El índice antes que el sistema, por lo que costó no hacerlo en
@@ -164,10 +176,11 @@ def atender_y_anotar(canal: CanalCorreo, enviador, mensaje: MensajeCorreo, remit
     direccion = normalizar_direccion(mensaje.remitente)
     contacto = canal.directorio.buscar(direccion)
     quien = f"huella={huella(direccion)} tenant={contacto.tenant if contacto else 'desconocido'}"
+    print(f"[correo] atendiendo {quien}", file=salida)
     t0 = time.perf_counter()
     try:
         enviados, latencia = atender(canal, enviador, mensaje, remitente_propio)
-    except Exception as error:  # noqa: BLE001 -- frontera del hilo de sondeo
+    except (Exception, SystemExit) as error:  # noqa: BLE001 -- frontera del hilo; SystemExit incluido, o el hilo muere mudo
         print(
             f"[correo] mensaje {quien} ERROR {type(error).__name__}: {str(error)[:200]} "
             f"tras {time.perf_counter() - t0:.2f} s",
@@ -180,7 +193,10 @@ def atender_y_anotar(canal: CanalCorreo, enviador, mensaje: MensajeCorreo, remit
 def ciclo(canal: CanalCorreo, buzon, enviador, remitente_propio: str, salida=None) -> int:
     """Un sondeo: cada correo sin leer se atiende y se marca. Devuelve cuántos."""
     atendidos = 0
-    for uid, crudo in buzon.no_leidos():
+    pendientes = buzon.no_leidos()
+    if pendientes:
+        print(f"[correo] sondeo: {len(pendientes)} correo(s) sin leer", file=salida if salida is not None else sys.stderr)
+    for uid, crudo in pendientes:
         mensaje = extraer_mensaje(crudo)
         atender_y_anotar(canal, enviador, mensaje, remitente_propio, salida)
         buzon.marcar_leido(uid)
@@ -191,14 +207,17 @@ def ciclo(canal: CanalCorreo, buzon, enviador, remitente_propio: str, salida=Non
 def bucle_sondeo(canal, buzon, enviador, remitente_propio: str, intervalo_s: float, parar: threading.Event, estado: dict, salida=None) -> None:
     salida = salida if salida is not None else sys.stderr
     while not parar.is_set():
+        estado["ciclo_inicio"] = time.time()
         try:
             n = ciclo(canal, buzon, enviador, remitente_propio, salida)
             estado["ultimo_sondeo"] = time.time()
             estado["mensajes"] = estado.get("mensajes", 0) + n
             estado["ultimo_error"] = ""
-        except Exception as error:  # noqa: BLE001 -- un sondeo que falla no para el siguiente, pero se dice
+        except (Exception, SystemExit) as error:  # noqa: BLE001 -- un sondeo que falla no para el siguiente, pero se dice
             estado["ultimo_error"] = f"{type(error).__name__}: {str(error)[:200]}"
             print(f"[correo] sondeo ERROR {estado['ultimo_error']}", file=salida)
+        finally:
+            estado["ciclo_inicio"] = None
         parar.wait(intervalo_s)
 
 
@@ -220,6 +239,8 @@ def crear_manejador(estado: dict):
                 if hace is not None
                 else f"ok {commit} sin_sondeo_todavia"
             )
+            if estado.get("ciclo_inicio"):
+                cuerpo += f" ciclo_en_curso_s={time.time() - estado['ciclo_inicio']:.0f}"
             if estado.get("ultimo_error"):
                 cuerpo += f" ultimo_error={estado['ultimo_error']}"
             datos = cuerpo.encode("utf-8")

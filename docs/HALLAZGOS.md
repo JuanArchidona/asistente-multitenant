@@ -3851,7 +3851,53 @@ hay que crearlas con *Add variable*, no rellenarlas.
 - Los límites de `CANAL_CORREO.md` pasan de uno a dos: dormido no sondea, y
   despierto no envía.
 
+**Segunda pasada, E-0012 (27-09, 11:28-11:42).** El servicio pasó al plan de
+pago, que Render ya no llama Starter sino `0.5c-512mb` (0,5 CPU, 512 MB,
+**7 USD al mes**, activo desde las 11:31 tras añadir un método de pago; el
+primer intento lo rechazó por no tenerlo). La especificación del blueprint
+confirma que `starter` ya no es un valor válido del campo `plan`, y el
+fichero pasa a `0.5c-512mb`. Redespliegue vivo a las 11:32:43 y `/salud` en
+`ok`. Juan envió el primer correo real a las 11:35:32 y **el hilo de sondeo
+se paró sin decir nada**: `ultimo_sondeo_hace_s` subió de 47 a 389 con
+`mensajes=0`, sin `ultimo_error` y sin una sola línea `[correo]` en los
+Logs. Juan paró la prueba, bien: seguir habría gastado sin medida.
+
+La causa más probable, leyendo el código con la traza delante: el primer
+correo de una dirección autorizada es la primera vez que el servicio carga
+la configuración del inquilino (`load_config`), y esa función **termina el
+proceso con `sys.exit` y un mensaje si falta una clave**. Las variables
+`ANTHROPIC_API_KEY` y `GEMINI_API_KEY` están marcadas `sync: false` en el
+blueprint, igual que las tres `CORREO_*` que hubo que crear a mano, y la
+hoja no las nombraba. Dentro del hilo de sondeo, `SystemExit` no es una
+`Exception`: el `except` no lo captura, Python lo silencia en los hilos, y
+el hilo muere con la marca de sondeo congelada y `/salud` diciendo `ok`. Los
+tres correos automáticos del día anterior no lo destaparon porque un
+remitente desconocido no carga configuración. Es una hipótesis hasta que se
+mire *Environment*, y el arreglo vale aunque la causa fuera otra:
+
+- La configuración de **cada inquilino de la lista se carga al arrancar**,
+  en el hilo principal: si falta una clave, el servicio no arranca y Render
+  enseña el motivo. Lo mismo en el servidor de WhatsApp, que tenía el
+  fallo latente y no lo sufrió porque sus claves estaban.
+- El hilo captura `SystemExit` además de `Exception`, deja la línea de error
+  y sigue; `/salud` muestra `ciclo_en_curso_s` mientras un sondeo dura, para
+  que un cuelgue se vea desde fuera; el sondeo anuncia cuántos correos sin
+  leer encontró y a quién está atendiendo, antes de llamar a nada.
+- IMAP abre con tope de 30 s, como SMTP: una conexión que se queda a medias
+  ya no bloquea el hilo para siempre.
+- `PYTHONUNBUFFERED=1` en los tres servicios: lo que va a `stdout` dejaba de
+  verse en Render hasta que el proceso moría.
+
+Cinco pruebas nuevas (46 en el canal) fijan el arranque que falla a la
+vista, el `SystemExit` capturado, el bucle que sobrevive y el tope de IMAP;
+una más en WhatsApp. Coste de la pasada: cero en modelos; el plan de pago
+se cobra desde las 11:31 aunque el canal aún no conteste. El correo
+"Consulta" sigue sin leer en el buzón: lo atenderá el primer sondeo del
+servicio arreglado, y esa latencia no vale como medida.
+
 **Regla que sale.** Antes de desplegar un canal, listar qué puertos de salida
 necesita y comprobarlos contra la documentación del plan. El de WhatsApp solo
 necesitaba HTTPS y por eso nunca tropezó aquí; el de correo necesitaba el 587
-y nadie lo miró.
+y nadie lo miró. Y la segunda: **todo lo que pueda terminar el proceso se
+ejecuta al arrancar, nunca por primera vez dentro de un hilo**; un hilo que
+muere en silencio deja `/salud` en verde y el servicio muerto.

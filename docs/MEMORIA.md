@@ -873,8 +873,9 @@ Lo que la ficha no incluye, y hay que decir al presentarla:
   de fuentes secundarias a 26-09-2026): 14 USD al mes para la interfaz y
   el canal, coste fijo independiente del volumen que se suma aparte. Es
   también lo que haría persistente el registro de producción (capítulo
-  6.1). El servicio de correo ya está en ese plan, porque el gratuito
-  bloquea la salida SMTP (§55): 7 USD al mes reales, no hipotéticos.
+  6.1). El servicio de correo ya está en ese plan, que Render llama
+  `0.5c-512mb`, porque el gratuito bloquea la salida SMTP (§55): 7 USD al
+  mes reales desde el 27-09, no hipotéticos.
 - **Evaluación.** Mantener el banco cuesta entre 0,06 y 0,16 USD por
   inquilino y pasada sin juez y, si se pasa el juez, en torno a 0,40 USD
   las tres pasadas de Gemini sobre dos bancos (§32). Es coste por cambio,
@@ -1154,7 +1155,7 @@ no haya que buscarlo en dos sitios:
 | Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
 | Comparar el generador con Gemini | **Abierto.** Bloqueado por la cuota gratuita de la clave (§54); exige facturación en el proyecto de Google | Cuando haya clave de pago |
 | Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la defensa: no hay incidente que lo pida (capítulo 6.4) | Tras la defensa |
-| Que el canal de correo pueda contestar | **En curso.** Desplegado sobre un buzón real y leyendo (§55); el plan gratuito de Render bloquea la salida SMTP y se decidió pasar ese servicio a la instancia Starter, 7 USD al mes, el único coste fijo del despliegue | Cuando el servicio esté en Starter: fase C de la hoja |
+| Que el canal de correo pueda contestar | **En curso.** Desplegado sobre un buzón real y leyendo (§55); el plan gratuito de Render bloquea la salida SMTP y el servicio pasó al plan de pago `0.5c-512mb`, 7 USD al mes, el único coste fijo del despliegue. El primer correo real destapó un hilo que moría en silencio al cargar la configuración; corregido | Fase C de la hoja, con las claves comprobadas |
 | Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos

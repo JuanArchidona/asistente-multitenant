@@ -82,8 +82,8 @@ uv run python -m src.canal_correo_servidor
 ```
 
 `/salud` devuelve el commit desplegado, cuánto hace del último sondeo, cuántos
-correos se han atendido desde el arranque y el último error de sondeo si lo
-hubo. Cada correo atendido deja **una línea** en la salida del proceso, sin la
+correos se han atendido desde el arranque, cuánto lleva el sondeo en curso
+si hay uno, y el último error de sondeo si lo hubo. Cada correo atendido deja **una línea** en la salida del proceso, sin la
 dirección:
 
 ```
@@ -114,8 +114,16 @@ latencia interna con el aviso de IA, la cita del convenio y la línea
   web services can't send outbound network traffic on ports 25, 465, or
   587, commonly used for SMTP"*. El primer despliegue real (E-0011, §55)
   leyó el buzón a la primera y falló cada envío con `Errno 101` tras 30 s.
-  Decidido el 27-09: `asistente-correo` pasa a la instancia Starter (7 USD
-  al mes), el único servicio de pago del despliegue; el blueprint lo dice.
+  Decidido el 27-09: `asistente-correo` pasa al plan de pago `0.5c-512mb`
+  (Render ya no lo llama Starter; 7 USD al mes, activo desde las 11:31),
+  el único servicio de pago del despliegue; el blueprint lo dice.
+- **Un hilo que muere en silencio deja `/salud` en verde.** Pasó el 27-09
+  con el primer correo real (§55): la configuración del inquilino se
+  cargaba por primera vez dentro del hilo y, si falta una clave,
+  `load_config` termina el proceso con `SystemExit`, que el hilo no
+  capturaba. Ahora la configuración de cada inquilino se carga al arrancar,
+  el hilo captura `SystemExit`, `/salud` muestra `ciclo_en_curso_s` y IMAP
+  tiene tope de 30 s.
 - **Dormido no sondea.** En el plan gratuito de Render el servicio se duerme
   sin tráfico HTTP (§52) y el hilo de sondeo se duerme con él; a diferencia
   de WhatsApp, un correo nuevo no lo despierta. Consecuencia: un correo

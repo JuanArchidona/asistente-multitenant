@@ -104,6 +104,13 @@ def construir_canal() -> CanalWhatsApp:
             configs[tenant_id] = load_config(tenant_id, con_juez=False)
         return configs[tenant_id]
 
+    # Al arrancar y no en el primer mensaje real: si falta una clave,
+    # `load_config` termina el proceso con su motivo a la vista. Dentro del
+    # hilo del webhook ese `SystemExit` moriría mudo (lo hizo en el canal de
+    # correo, E-0012).
+    for tenant_id in sorted({c.tenant for c in directorio.numeros}):
+        config_de(tenant_id)
+
     def fabrica(tenant_id: str) -> Sistema:
         cfg = config_de(tenant_id)
         # El índice, antes que el sistema: en Render el disco es efímero y sin
@@ -146,7 +153,7 @@ def atender_y_anotar(canal: CanalWhatsApp, enviador, mensaje: MensajeEntrante, s
     t0 = time.perf_counter()
     try:
         enviados, latencia = atender(canal, enviador, mensaje)
-    except Exception as error:  # noqa: BLE001 -- frontera del hilo: sin esto el fallo muere en el hilo
+    except (Exception, SystemExit) as error:  # noqa: BLE001 -- frontera del hilo: sin esto el fallo muere en el hilo
         print(
             f"[whatsapp] mensaje {quien} ERROR {type(error).__name__}: {str(error)[:200]} "
             f"tras {time.perf_counter() - t0:.2f} s",

@@ -22,6 +22,8 @@ services:
       uv run streamlit run app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true'
     healthCheckPath: /
     envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: LLM_PROVIDER
         value: anthropic
       - key: ANTHROPIC_API_KEY
@@ -66,6 +68,8 @@ services:
     startCommand: uv run python -m src.canal_whatsapp_servidor
     healthCheckPath: /salud
     envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: LLM_PROVIDER
         value: anthropic
       - key: ANTHROPIC_API_KEY
@@ -112,12 +116,16 @@ services:
     # Starter y no free, decidido el 27-09-2026 (s55): el plan gratuito bloquea
     # la salida por los puertos SMTP y el canal leia sin poder contestar. Es el
     # unico servicio de pago del despliegue, 7 USD al mes, y de paso no duerme.
-    plan: starter
+    # El nombre es el de la especificacion del blueprint (render.com/docs/
+    # blueprint-spec): 'starter' ya no es un valor valido, es 0.5c-512mb.
+    plan: 0.5c-512mb
     autoDeploy: true
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_correo_servidor
     healthCheckPath: /salud
     envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: LLM_PROVIDER
         value: anthropic
       - key: ANTHROPIC_API_KEY

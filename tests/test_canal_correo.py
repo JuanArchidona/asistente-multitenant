@@ -469,3 +469,108 @@ def test_a_un_correo_automatico_no_se_le_contesta_ni_llega_al_modelo():
     mensaje = MensajeCorreo(id="<auto>", remitente="empleado@ejemplo.es", texto="aviso", autenticado=True, automatico=True)
     assert canal.procesar(mensaje) == []
     assert sistema.consultas == [] and canal.desconocidos[0]["motivo"] == "automatico"
+
+
+# --- Lo que E-0012 enseñó: el hilo de sondeo no puede morir mudo -------------------
+
+def _servidor_falso(monkeypatch, load_config):
+    from src import canal_correo_servidor as servidor
+
+    cfg = type("Cfg", (), {"tenant": type("T", (), {"ai_act": type("A", (), {"aviso_usuario": "IA"})()})()})()
+    monkeypatch.setattr(servidor, "load_config", load_config if load_config is not None else (lambda tenant_id, con_juez: cfg))
+    monkeypatch.setattr(servidor, "asegurar_indice", lambda c, avisar=None: None)
+    monkeypatch.setattr(servidor, "desde_config", lambda c: None)
+    monkeypatch.setattr(servidor, "Sistema", lambda c, registro=None: SistemaFalso("empresa_servicios"))
+    monkeypatch.setattr(servidor, "cargar_direcciones", _directorio)
+    return servidor
+
+
+def test_sin_claves_el_servidor_no_arranca_en_vez_de_morir_en_el_primer_correo(monkeypatch):
+    def sin_clave(tenant_id, con_juez):
+        raise SystemExit("[config] Falta ANTHROPIC_API_KEY en .env")
+
+    servidor = _servidor_falso(monkeypatch, sin_clave)
+    with pytest.raises(SystemExit, match="ANTHROPIC_API_KEY"):
+        servidor.construir_canal()
+
+
+def test_la_configuracion_de_cada_inquilino_de_la_lista_se_carga_al_arrancar(monkeypatch):
+    cargados = []
+
+    def contando(tenant_id, con_juez):
+        cargados.append(tenant_id)
+        return type("Cfg", (), {"tenant": type("T", (), {"ai_act": type("A", (), {"aviso_usuario": "IA"})()})()})()
+
+    servidor = _servidor_falso(monkeypatch, contando)
+    servidor.construir_canal()
+    assert cargados == ["agencia_inmobiliaria", "empresa_servicios"]
+
+
+def test_un_systemexit_dentro_del_hilo_queda_en_la_linea_y_no_mata_el_sondeo():
+    import io
+
+    from src import canal_correo_servidor as servidor
+
+    class Sale(SistemaFalso):
+        def responder(self, consulta, usuario=None):
+            raise SystemExit("[config] Falta GEMINI_API_KEY")
+
+    canal = _canal({"empresa_servicios": Sale("empresa_servicios")})
+    buzon = _BuzonFalso([_crudo("hola")])
+    salida = io.StringIO()
+    n = servidor.ciclo(canal, buzon, _EnviadorMemoria(), "asistente@ejemplo.es", salida)
+    assert n == 1 and "ERROR SystemExit" in salida.getvalue() and "GEMINI_API_KEY" in salida.getvalue()
+    assert "atendiendo huella=" in salida.getvalue() and "1 correo(s) sin leer" in salida.getvalue()
+
+
+def test_el_bucle_de_sondeo_sobrevive_a_un_ciclo_que_revienta_y_lo_dice_en_salud():
+    import io
+    import threading
+
+    from src import canal_correo_servidor as servidor
+
+    class BuzonRoto:
+        def no_leidos(self):
+            raise SystemExit("[config] Falta ANTHROPIC_API_KEY")
+
+    estado = {}
+    parar = threading.Event()
+    salida = io.StringIO()
+    canal = _canal({"empresa_servicios": SistemaFalso("empresa_servicios")})
+
+    def dos_ciclos():
+        # Deja correr dos sondeos y para.
+        import time as _t
+        _t.sleep(0.15)
+        parar.set()
+
+    threading.Thread(target=dos_ciclos).start()
+    servidor.bucle_sondeo(canal, BuzonRoto(), _EnviadorMemoria(), "a@b.es", 0.05, parar, estado, salida)
+    assert "SystemExit" in estado["ultimo_error"] and estado["ciclo_inicio"] is None
+    assert salida.getvalue().count("sondeo ERROR") >= 2
+
+
+def test_el_buzon_imap_abre_con_tope_de_tiempo(monkeypatch):
+    from src import canal_correo_servidor as servidor
+
+    visto = {}
+
+    class IMAPFalso:
+        def __init__(self, host, timeout=None):
+            visto["timeout"] = timeout
+
+        def login(self, u, p):
+            return None
+
+        def select(self, carpeta):
+            return None
+
+        def uid(self, *args):
+            return "OK", [b""]
+
+        def logout(self):
+            return None
+
+    monkeypatch.setattr(servidor.imaplib, "IMAP4_SSL", IMAPFalso)
+    assert servidor.BuzonIMAP("imap.ejemplo.es", "u", "p").no_leidos() == []
+    assert visto["timeout"] == 30.0
