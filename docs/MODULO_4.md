@@ -209,11 +209,17 @@ la práctica recomendada, y eso se puede citar:
    curados a mano. `garak` o DeepTeam los generan, y el material los nombra. Es
    la diferencia entre "probé lo que se me ocurrió" y "probé una batería
    estándar".
-4. **Human-in-the-loop.** Cierra OWASP #8 y la falta de supervisión humana del
-   catálogo del 4.1, y ya estaba en el alcance.
-5. **Derechos del RGPD sobre el índice**: el camino de borrado, cronometrado.
-6. **Cadena de suministro**: un AIBOM y la constatación de que las dependencias
-   están fijadas. Baratísimo y cierra OWASP #5.
+4. ~~**Human-in-the-loop.** Cierra OWASP #8 y la falta de supervisión humana del
+   catálogo del 4.1, y ya estaba en el alcance.~~ **HECHO** el 23-09-2026:
+   la escritura del CRM de la agencia la propone el modelo y la aprueba una
+   persona, 40 de 40 casos sin escribir nada sin aprobar (`HALLAZGOS.md` §42).
+5. ~~**Derechos del RGPD sobre el índice**: el camino de borrado, cronometrado.~~
+   **HECHO** el 23-09-2026: borrado efectivo en 1,46 s y 1,23 s, comprobado
+   contra la colección (`HALLAZGOS.md` §36, `scripts/borrar_documento.py`).
+6. ~~**Cadena de suministro**: un AIBOM y la constatación de que las dependencias
+   están fijadas. Baratísimo y cierra OWASP #5.~~ **HECHO** el 23-09-2026:
+   `docs/AIBOM.md`, generado y vigilado por test, que destapó al generarse que
+   el modelo de embeddings está en retirada (`HALLAZGOS.md` §35).
 7. **Moderación**, que es el único guardarrail de los nueve que falta y
    probablemente el menos pertinente en un asistente interno. Justificar por qué
    no está vale tanto como ponerlo.
