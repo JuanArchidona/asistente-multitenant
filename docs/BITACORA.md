@@ -5,6 +5,77 @@
 > `BITACORA_3.3.md`.
 
 
+## 2026-10-10 — Sesión 13: el Módulo 4 se entrega desde el TFM y el puente pierde tres fallos
+
+**3 commits, 0 hallazgos nuevos, 1.183 tests** (JUnit). Coste en modelos:
+ninguno de las claves del proyecto; las sesiones del puente y las pruebas de
+velocidad consumen de la suscripción.
+
+**Hecho:**
+
+- **E-0016, entrega del 4.2** («Análisis de un agente»: riesgos de un agente
+  de RRHH sobre n8n, OpenRouter y BambooHR antes de abrirlo a 10.000
+  empleados). La app leyó el enunciado en el campus, redactó un informe de 4
+  páginas con cada afirmación trazada al TFM, Juan pidió una versión de 2
+  sin códigos de cita y se envió a las 12:41. Contrastado contra el repo: la
+  versión larga atribuía a "un proveedor" el descarte de `temperature` del
+  §26, que fue DeepEval; la breve ya no lo dice.
+- **E-0017, entrega del 4.3** («Ejercicio de guardarrailes» sobre el propio
+  asistente), enviada a las 16:36; Juan adjuntó el fichero porque Chrome no
+  pudo. Revisada después: dice que `otro` responde "sin llamar al modelo"
+  (falso, `agent.py:503`) y recomienda el prompt endurecido por defecto,
+  contra la decisión documentada (§40, §8). Sin arreglo una vez enviada.
+- **Tres fallos del puente corregidos y medidos.** (1) El vigilante daba por
+  visto sin anunciar lo que llegaba con el monitor caducado (A-0017); ahora
+  anuncia al rearmarse. (2) El análisis automático devolvía a POR ATENDER un
+  aviso ya atendido (A-0017, tres segundos después); ahora no lo reabre.
+  (3) `consultar_tfm` se cortó tres veces seguidas a los 50 s y la app leyó
+  de GitHub; en el log, 19 de 48 sesiones cortadas o por encima de 45 s.
+  Pasa a `--model sonnet --effort low`: 19 → 12,5 s una pregunta de una
+  sección, 43,2 → 29,7 s copiar 24 filas, mismas citas; 3,8 s por JSON-RPC
+  tras el cambio. `puente.log` guarda ya qué se preguntó. Los dos primeros
+  reproducidos en una copia del puente antes de tocar el real.
+- **Tres inconsistencias del repo que encontró la app** al redactar el 4.3:
+  R-01 citaba §20 por el residual de `inj-04` (es §27), la nota de ATLAS
+  decía ocho identificadores y la tabla cita diez, y `MODULO_4.md` daba por
+  abiertos HITL, borrado RGPD y AIBOM. `GEN_POLICY=base` era la cuarta y no
+  era error: queda explicada en `.env.example`.
+
+**Decisiones:**
+
+- **Las entregas del Módulo 4 salen del TFM por el puente**, en dos páginas y
+  sin códigos de cita (Juan, en el 4.2): es lo acordado el 20-09.
+- **`consultar_tfm` con Sonnet y el análisis automático con el modelo por
+  defecto**: la consulta la espera la app con un corte de 60 s; el análisis
+  tiene 150 s y nadie lo espera.
+- **Un aviso repetido antes que uno perdido** en el vigilante.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Juan revisa los apartados del Módulo 4 que le quedan** antes del 5;
+      avisa al terminar.
+- [ ] **Formato de la defensa**: sigue sin preguntarse con respuesta; único
+      `[PENDIENTE]` de la memoria.
+- [ ] Rúbrica del TFM con el Módulo 5 (esperada 6-13 de octubre, aún no vista).
+- [ ] **Decidir con la rúbrica qué huecos de las entregas 4.2 y 4.3 entran en
+      la memoria**: límite de consultas por usuario y red-teaming con
+      herramienta son los más probables (lista completa en CLAUDE.md §2).
+- [ ] Pasada de maquetación de la memoria (PDF, páginas, anexo B), heredada.
+- [ ] Vigilar el crédito de Anthropic, los 7 USD/mes de Render (primer ciclo
+      cobrado) y los topes de 5 EUR de Gemini.
+
+**Notas:**
+
+- La versión de 4 páginas del 4.2, con la sección de huecos, solo existe en
+  la conversación de Cowork del 10-10.
+- Tras editar `puente/servidor.mjs` hace falta reiniciar la app; comprobado
+  por la hora de arranque del proceso (13:02:10). `analizar.mjs` no lo
+  necesita: corre en un proceso nuevo cada vez.
+- El análisis automático no puede contrastar un encargo contra el buzón si la
+  app registra sin citar el encargo (A-0017 y A-0018): dice "sin encargo" y
+  tiene razón.
+
+
 ## 2026-09-27 (tarde) — Sesión 12: Gemini empata como generador, R-24 se cierra con el DMARC de Gmail y WhatsApp se mide por dentro
 
 **7 commits, 3 hallazgos (§57, §58, §59), 1.183 tests** (contados con JUnit;

@@ -30,7 +30,7 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-09-27)
+## 2. Estado (2026-10-10)
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
@@ -60,7 +60,7 @@ servicio público desplegado. **1183 tests en verde** (con el grupo `langgraph`;
 | Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). **Vivo a propósito** desde el 23-09 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan) para seguir probando ahí. **Arranque en frío medido** el 25-09 (§52): el plan gratuito duerme a los 15 min y despertar cuesta 32 s la web y 42-61 s WhatsApp, sin perder peticiones |
 | Clasificador con modelo pequeño o afinado | **Hecho y medido** el 23-09 (§48): enrutador por embeddings conmutable con `ROUTER_KIND`, umbral calibrado en el heredado y congelado; en transferencia 0,735 frente a 0,882 de Haiku, 4x más rápido, sin coste de chat y 13/13 en casos de riesgo. Haiku sigue por defecto |
 | Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43). Revisado en frío: dos de los tres rojos eran del banco, **27/28** (§45) |
-| Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09 |
+| Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09. **Entregas 4.2 y 4.3 extraídas de aquí y enviadas el 10-10** por la app (E-0016, E-0017), dos páginas cada una. Al redactarlas salieron los huecos que la rúbrica podría pedir: filtro de entrada contra jailbreak, enmascarado de datos personales en la consulta, escaneo de la salida, límite de consultas por usuario, moderación (R-21), red-teaming con herramienta y guardarraíles de gateway; del 4.2, además, base jurídica del art. 9.2 y EIPD, transferencias (R-18) y SSO/OAuth |
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
@@ -465,7 +465,7 @@ un canal de vuelta.
 | Sobre el estado | **Lo escribe** | **Lo lee**, por la conexión de GitHub al repositorio |
 | Encargos | **Los escribe**, con `node puente/encargar.mjs`, declarando el modo (`desatendido` o `supervisado`) y abriendo la app con `--abrir` si hace falta a Juan | **Los lee**, con `encargos_tfm`; los desatendidos, la tarea programada del proyecto |
 | Registro de lo hecho | **Lo lee**, en `puente/REGISTRO_APP.md` | **Lo escribe**, con `registrar_tfm` |
-| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho, y **desde el 27-09 también sin prompt**: `/arranque` arma siempre la herramienta Monitor sobre `puente/vigilar.mjs`, que sondea la lista de avisos cada 20 s y despierta la sesión con cada aviso nuevo (caduca a los 30 min y se rearma en cada expiración); los cierra con `puente/avisos.mjs --atendido` | **Los provoca** al registrar, sin hacer nada más |
+| Avisos de que algo ha vuelto | **Los recibe** en cada prompt por el hook de `.claude/settings.json`, con un análisis automático ya hecho, y **desde el 27-09 también sin prompt**: `/arranque` arma siempre la herramienta Monitor sobre `puente/vigilar.mjs`, que sondea la lista de avisos cada 20 s y despierta la sesión con cada aviso nuevo (caduca a los 30 min y se rearma en cada expiración); los cierra con `puente/avisos.mjs --atendido`. Desde el 10-10 el rearme anuncia lo que llegó con el monitor caducado y un análisis tardío no reabre un aviso atendido; `consultar_tfm` corre con Sonnet y esfuerzo bajo (antes 19 de 48 sesiones se cortaban o pasaban de 45 s) | **Los provoca** al registrar, sin hacer nada más |
 
 Los ficheros del puente **no están versionados** y por eso no los ve el
 conector de GitHub: toda lectura desde la app pasa obligatoriamente por el
