@@ -204,8 +204,14 @@ linea llega a la sesion como un evento y la despierta. El monitor caduca a los
 30 minutos y la sesion lo rearma en cada expiracion.
 
 - Estado en `puente/.vigilados` (no versionado): los identificadores ya
-  anunciados. Los avisos que ya estan pendientes al arrancar se dan por vistos
-  sin anunciar, porque el hook los inyecta en el primer prompt.
+  anunciados, que sobreviven a cada rearme. Al arrancar, el vigilante anuncia
+  en el acto todo aviso pendiente que no este en esa lista. Hasta el
+  10-10-2026 los daba por vistos sin anunciar, confiando en el hook, y A-0017
+  cayo en ese hueco: llego mientras el monitor caducaba y solo lo trajo el hook.
+- Un aviso ATENDIDO no vuelve atras: si el analisis automatico termina despues
+  de que Claude Code lo haya atendido (el vigilante le gana por 10-30 s), el
+  analisis se anade al aviso pero el estado no cambia. El 10-10-2026 el
+  analisis devolvio A-0017 a POR ATENDER tres segundos despues de marcarlo.
 - Los dos caminos llevan al mismo sitio: atender el aviso y marcarlo con
   `avisos.mjs --atendido`. El vigilante no sustituye al hook; lo adelanta.
 - La regla de la cadena no cambia: el vigilante solo lee y anuncia. Un aviso

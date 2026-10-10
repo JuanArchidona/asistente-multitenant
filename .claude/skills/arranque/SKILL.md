@@ -37,8 +37,9 @@ esperar a su siguiente prompt**. Para eso se arma un monitor al arrancar:
 - Llama a `Monitor` con `command: node puente/vigilar.mjs`,
   `description: avisos nuevos del puente con la app de Claude` y
   `timeout_ms: 1800000` (el máximo). El script sondea `avisos.mjs --listar`
-  cada 20 s y escribe una línea por aviso nuevo; los que ya estén pendientes
-  al arrancar no los anuncia, porque el hook los inyecta en el primer prompt.
+  cada 20 s y escribe una línea por aviso nuevo; al arrancar anuncia en el
+  acto los pendientes que aún no haya anunciado (`puente/.vigilados`), así
+  que un rearme recupera lo que llegó mientras el monitor estaba caducado.
 - **Rearma el monitor en cada notificación de expiración**, durante toda la
   sesión, con la misma llamada. Si expira sin eventos, es lo normal.
 - Cuando llegue un evento: lee el aviso y el registro en

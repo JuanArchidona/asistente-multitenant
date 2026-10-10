@@ -797,11 +797,21 @@ function anadirAviso({ titular, encargo, selloRegistro, donde, abierto }) {
  * Cambia el estado de un aviso y, si se pasa, le anade un bloque de texto al
  * final de su entrada. Reescribe el fichero entero porque el aviso no es
  * necesariamente el ultimo: pueden llegar dos registros seguidos.
+ *
+ * Un aviso ATENDIDO no vuelve atras. El analisis tarda 10-30 s y Claude Code
+ * puede atender antes, avisado por el vigilante: el 10-10-2026 A-0017 se marco
+ * a las 12:35:54, el analisis termino a las 12:35:57 y lo devolvio a POR
+ * ATENDER, y el hook lo reinyecto como si nadie lo hubiera visto. Ahora el
+ * bloque se anade igual (el analisis sigue siendo revisable) y el estado se
+ * queda como estaba.
  */
 function actualizarAviso(id, nuevoEstado, bloque) {
   const contenido = leerAvisos();
   const aviso = parsearAvisos(contenido).find((a) => a.id === id);
   if (!aviso) throw new Error(`El aviso ${id} no existe en ${AVISOS}.`);
+  if (aviso.estado.startsWith("ATENDIDO") && !nuevoEstado.startsWith("ATENDIDO")) {
+    nuevoEstado = aviso.estado;
+  }
   const cabecera = aviso.texto.split("\n")[0];
   const nuevaCabecera = cabecera.replace(/ \[[^\]]+\]$/, ` [${nuevoEstado}]`);
   let nuevoTexto = aviso.texto.replace(cabecera, nuevaCabecera);

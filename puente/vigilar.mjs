@@ -15,9 +15,12 @@
  * al mismo sitio, atender el aviso y marcarlo con `avisos.mjs --atendido`.
  *
  * Estado: `puente/.vigilados`, la lista de identificadores ya anunciados. No se
- * versiona. Al arrancar, los avisos que ya esten pendientes se dan por vistos
- * sin anunciarlos: el hook los inyecta en el primer prompt y anunciarlos dos
- * veces es ruido.
+ * versiona y sobrevive a cada rearme. Al arrancar se anuncia en el acto todo
+ * aviso pendiente que no este en esa lista. Antes se daban por vistos sin
+ * anunciar, confiando en el hook, y el 10-10-2026 A-0017 cayo en el hueco:
+ * llego mientras el monitor caducaba, el rearme lo marco como visto y solo lo
+ * trajo el hook, que depende de que haya un prompt. Un aviso repetido es
+ * ruido; uno perdido es el fallback silencioso que el proyecto prohibe.
  *
  * Regla que este fichero no puede romper: un aviso NO genera un encargo nuevo
  * a la app por si solo. Este proceso solo lee y anuncia.
@@ -72,19 +75,16 @@ function parsear(argv) {
 const { intervalo } = parsear(process.argv.slice(2));
 const vistos = leerVistos();
 
-// Lo que ya esta pendiente al arrancar se da por visto sin anunciar.
-for (const a of pendientes()) {
-  if (!vistos.has(a.id)) {
-    vistos.add(a.id);
-    appendFileSync(VISTOS, `${a.id}\n`);
-  }
-}
-
-setInterval(() => {
+function sondear() {
   for (const a of pendientes()) {
     if (vistos.has(a.id)) continue;
     vistos.add(a.id);
     appendFileSync(VISTOS, `${a.id}\n`);
     process.stdout.write(`NUEVO AVISO DEL PUENTE: ${a.linea}\n`);
   }
-}, intervalo * 1000);
+}
+
+// El primer sondeo va al arrancar: cubre lo que llego entre la caducidad del
+// monitor anterior y este rearme.
+sondear();
+setInterval(sondear, intervalo * 1000);
