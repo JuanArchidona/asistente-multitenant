@@ -304,6 +304,20 @@ lectura deja una linea con su duracion en `puente/puente.log`, porque sin eso
 la proxima desviacion solo se puede suponer. El encargo se cerro desde Claude
 Code con un registro que dice exactamente eso.
 
+**10-10-2026, `consultar_tfm` pasa a Sonnet con esfuerzo bajo (E-0016):** tres
+consultas seguidas de la app se cortaron en los 50 s y tuvo que leer de
+GitHub, sin ver lo no pusheado. En `puente.log`, 19 de 48 sesiones se habian
+cortado (13) o pasado de 45 s (6), y no se podia saber que se habia
+preguntado. Con las mismas banderas y preguntas, la sesion hija heredaba el
+modelo por defecto del usuario: 19 s una pregunta de una seccion y 43,2 s
+copiar literal las 24 filas de `docs/RIESGOS.md`, frente a 12,5-12,9 s y
+29,7 s con `--model sonnet --effort low`, citando las mismas lineas y cifras.
+Solo cambia `consultar_tfm`; el analisis automatico tiene 150 s y conserva el
+modelo por defecto. `puente.log` gana una ultima columna con la pregunta (o
+`analisis A-NNNN`). Por JSON-RPC contra el servidor, una consulta sobre el
+estado de git volvio en 3,8 s. **Hace falta reiniciar la app de Claude** para
+que su proceso del puente cargue el cambio.
+
 **23-09-2026, primer encargo real registrado por la app (E-0003):** la app lo
 atendio desde un chat de Cowork abierto por el enlace, busco en la web y
 registro por si misma. El proceso del puente que usaba era anterior a los

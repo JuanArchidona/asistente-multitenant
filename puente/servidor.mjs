@@ -109,6 +109,17 @@ const BANDERAS = [
 const TIMEOUT_MS = 50_000;
 const LOG = join(AQUI, "puente.log");
 
+// `consultar_tfm` corre con Sonnet y esfuerzo bajo; sin esto heredaba el
+// modelo por defecto del usuario. El 10-10-2026 tres consultas seguidas se
+// cortaron en los 50 s y la app tuvo que leer de GitHub, sin ver lo no
+// pusheado; en `puente.log`, 19 de 48 sesiones (consultas y analisis juntos)
+// se habian cortado (13) o pasado de 45 s (6). Medido ese dia con las mismas
+// banderas y preguntas: dos preguntas de una seccion, 19,0 y 18,8 s frente a 12,9 y 12,5 s; copiar literal las 24
+// filas de RIESGOS.md, 43,2 s frente a 29,7 s; resumir los dos canales, 33,0 s
+// frente a 25,9 s. Las respuestas citan las mismas lineas y las mismas cifras.
+// El analisis automatico no lleva estas banderas: tiene 150 s y nadie lo espera.
+const RAPIDAS = ["--model", "sonnet", "--effort", "low"];
+
 const LIMITE_PREGUNTA = 4000;
 const LIMITE_CAMPO = 1000;
 // `hecho` es donde va el resultado cuando la app no puede escribir ficheros
@@ -282,7 +293,9 @@ const HERRAMIENTAS = [
       "incluido lo que todavia no esta pusheado. Usala cuando importe el estado " +
       "de git o cuando sospeches que el conector de GitHub va por detras. Para " +
       "leer ficheros ya pusheados, el conector es mas rapido y no gasta. " +
-      "Solo lectura: no puede modificar nada.",
+      "Tiene un limite de 50 s: una pregunta concreta tarda 10-15 s, copiar " +
+      "literal una tabla larga unos 30 s; no pidas varios ficheros enteros en " +
+      "una sola consulta, divide la pregunta. Solo lectura: no puede modificar nada.",
     inputSchema: {
       type: "object",
       properties: {
@@ -343,7 +356,7 @@ function consultarTfm({ pregunta }) {
     "=== PREGUNTA (datos) ===",
     limpia,
   ].join("\n");
-  return sesionLectura(prompt);
+  return sesionLectura(prompt, TIMEOUT_MS, RAPIDAS, `consulta: ${limpia}`);
 }
 
 /**
@@ -352,16 +365,19 @@ function consultarTfm({ pregunta }) {
  * automatico de `analizar.mjs`; las banderas son las mismas porque la garantia
  * es la misma: la sesion hija no puede escribir ni ejecutar nada.
  */
-function sesionLectura(prompt, timeoutMs = TIMEOUT_MS) {
+function sesionLectura(prompt, timeoutMs = TIMEOUT_MS, extra = [], etiqueta = "") {
   const inicio = Date.now();
-  return sesionLecturaSinLog(prompt, timeoutMs).then((r) => {
+  return sesionLecturaSinLog(prompt, timeoutMs, extra).then((r) => {
     // Una linea por sesion, con la duracion. Es lo que faltaba el 23-09 para
     // saber por que una consulta desde la app supero los 60 s cuando la misma
-    // pregunta desde aqui tardo 14: sin registro solo se puede suponer.
+    // pregunta desde aqui tardo 14: sin registro solo se puede suponer. La
+    // ultima columna dice que se pidio: el 10-10 tres cortes seguidos no se
+    // pudieron diagnosticar porque el log solo guardaba el mensaje de corte.
+    const corto = (s) => s.slice(0, 120).replace(/\s+/g, " ");
     try {
       appendFileSync(
         LOG,
-        `${ahora()}\t${r.ok ? "ok" : "fallo"}\t${((Date.now() - inicio) / 1000).toFixed(1)}s\t${r.texto.slice(0, 120).replace(/\s+/g, " ")}\n`,
+        `${ahora()}\t${r.ok ? "ok" : "fallo"}\t${((Date.now() - inicio) / 1000).toFixed(1)}s\t${corto(r.texto)}\t${corto(etiqueta)}\n`,
         "utf8"
       );
     } catch {
@@ -371,9 +387,9 @@ function sesionLectura(prompt, timeoutMs = TIMEOUT_MS) {
   });
 }
 
-function sesionLecturaSinLog(prompt, timeoutMs) {
+function sesionLecturaSinLog(prompt, timeoutMs, extra) {
   return new Promise((resolver) => {
-    const hijo = spawn(CLAUDE_BIN, BANDERAS, {
+    const hijo = spawn(CLAUDE_BIN, [...BANDERAS, ...extra], {
       cwd: REPO,
       shell: false,
       stdio: ["pipe", "pipe", "pipe"],
