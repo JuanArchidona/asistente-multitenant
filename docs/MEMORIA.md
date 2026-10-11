@@ -1038,6 +1038,35 @@ por millón de tokens):
 | 2.000 | 4,0 USD | 8,1 USD |
 | 10.000 | 19,8 USD | 40,6 USD |
 
+**Modelo abierto autoalojado frente a API.** El Módulo 1 plantea la
+alternativa de servir un modelo de pesos abiertos en máquina propia. Con
+una GPU L4 bajo demanda en la nube, la opción mínima para un modelo de unos
+8.000 millones de parámetros cuantizado, el coste es fijo: unos 0,70 USD la
+hora según tres catálogos de precios consultados el 11-10-2026, 511 USD al
+mes encendida siempre; con precios de región barata o instancia
+interrumpible, en torno a 0,15 USD la hora, 110 USD al mes. Frente a la
+API:
+
+| Coste fijo de la GPU | Equilibrio, inquilino documental (0,00198 USD) | Equilibrio, con rama estructurada (0,00406 USD) |
+|---|---|---|
+| 511 USD/mes (0,70 USD/h) | 258.000 consultas al mes | 126.000 consultas al mes |
+| 110 USD/mes (0,15 USD/h) | 56.000 consultas al mes | 27.000 consultas al mes |
+
+A los volúmenes de la ficha (de 500 a 10.000 consultas al mes) la API es
+entre 3 y 500 veces más barata, y eso sin contar lo que la tabla no
+incluye: operar el servidor, y que la calidad de un modelo de 8.000
+millones en este enrutado y esta generación está sin medir. El argumento a
+favor de autoalojar no es el coste sino la transferencia de datos (R-18):
+un modelo en una máquina europea propia no manda nada a un tercero. Es la
+razón por la que un cliente con datos de salud o de empleo podría pedirlo,
+y la ficha dice lo que costaría.
+
+**Afinar un modelo, tampoco.** No hay datos de entrenamiento fuera del
+banco, y entrenar con él lo invalidaría como medida; los catorce fallos
+vigentes son de enrutado o de cita, y ninguno de generación (capítulo 4.2).
+El enrutador por embeddings del capítulo 3.3 ya mide hasta dónde llega un
+clasificador sin modelo de chat (0,735 frente a 0,882 de Haiku).
+
 Lo que la ficha no incluye, y hay que decir al presentarla:
 
 - **Embeddings.** Unos 14 tokens de media por consulta (91 consultas del
@@ -1398,6 +1427,12 @@ no haya que buscarlo en dos sitios:
 | Comparar el generador con Gemini | **Hecho** tras activar la facturación con tope de 5 EUR (§54, §57): empate en generación, 73 de 73 | Cerrado |
 | Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la entrega: no hay incidente que lo pida (capítulo 6.4) | Tras la entrega |
 | Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
+| Multiagente (planificador y especialistas) o A2A | Decidido en contra: el flujo es un enrutador y dos ramas, y un paso de planificación sería otra llamada al modelo antes de buscar, como mínimo del tamaño de la del enrutador (unos 180 tokens de entrada y 60 de salida en el heredado): +0,0005 USD (+25 % sobre 0,00198) y +1,1 s (la latencia medida del enrutador, §48) por consulta, sin un solo fallo del banco que lo pida. LangGraph, medido, tampoco aportó (§50) | Si aparecen tareas de varios pasos |
+| Optimizar prompts con DSPy | Decidido en contra: optimizaría contra el banco, que no tiene un conjunto reservado, y el número subiría sin decir nada fuera de él (capítulo 9) | Con un conjunto reservado |
+| Caché de prompts | No aplicable: el mínimo cacheable de `claude-haiku-4-5` son 4.096 tokens y una consulta usa entre 973 y 2.671 de entrada en total (5.4) | Si el contexto crece |
+| Entorno de preproducción | No montado: la puerta es la CI (que el despliegue espera, §60) y el banco; un segundo juego de servicios duplicaría credenciales y la superficie expuesta | Con más de un desarrollador |
+| Moderación de contenido | No montada: asistente interno, usuarios autenticados en listas cerradas, sin contenido generado por terceros más allá del corpus del cliente; el red-teaming del capítulo 7.2 no la pidió | Si se abre a clientes externos |
+| KPI de negocio de un piloto | Sin medir: no hay usuarios reales. El que se mediría es la fracción de consultas resueltas sin acudir al contacto alternativo, frente al tiempo que hoy cuesta la misma consulta por correo interno | En el piloto |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
 
