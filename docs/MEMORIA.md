@@ -14,9 +14,10 @@ lang: es
 > cifras tomadas de `HALLAZGOS.md`, `ALCANCE.md` y `RIESGOS.md`; cada cifra
 > lleva el hallazgo (§N) que la respalda y, cuando existe, la ejecución de
 > `reports/`. Lo que está entre corchetes y en mayúsculas es un hueco que hay
-> que cerrar antes de entregar. La rúbrica del TFM no se conoce todavía
-> (llega con el Módulo 5, en torno al 6-13 de octubre); la estructura sigue
-> las cinco características del proyecto que fija el programa del máster.
+> que cerrar antes de entregar. El enunciado y los criterios llegaron con el
+> Módulo 5 el 11-10-2026 (`docs/MODULO_5.md`): no hay defensa oral, se evalúa
+> este documento con el repositorio, módulo a módulo. La guía de lectura que
+> sigue al resumen dice dónde está cada cosa que el enunciado pide.
 
 **Repositorio:** <https://github.com/JuanArchidona/asistente-multitenant>
 **Servicio desplegado:** <https://asistente-multitenant.onrender.com>
@@ -50,6 +51,30 @@ Tres cifras que resumen lo que se defiende:
 | Dar de alta un cliente nuevo no exige código | **5 min 42 s**, cero ficheros `.py`, 25 de 28 casos de su banco en dos iteraciones; 27 de 28 tras revisar dos expectativas del banco | §43, §45 |
 | El control de acceso está en la búsqueda, no en el prompt | Cobertura del riesgo **1,0** en la agencia; `fuga_literal` **10 de 10** en la línea base vigente; una fuga real encontrada y cerrada | §5, §8, §22, §40 |
 | El evaluador también se evaluó | **4 de 24** veredictos del juez LLM eran falsos, y los cuatro en el mismo sentido; ninguna decisión del proyecto cuelga de él | §30, §32 |
+
+## Guía de lectura: lo que pide el enunciado y dónde está
+
+El enunciado del proyecto final pide cubrir los cuatro módulos del máster.
+Esta tabla lo recorre en su orden y dice en qué capítulo está cada cosa; lo
+que no está, o está a medias, lo dice el capítulo 9.
+
+| Módulo | Lo que pide el enunciado | Dónde |
+|---|---|---|
+| 1 | Qué modelos se emplean y por qué | 3.3 |
+| 1 | Configuración, forma de consumo, parámetros y prompts, incluidos los candidatos | 2.4, 2.8, 3.3, 4.4 |
+| 1 | Costes anticipados según niveles de uso | 5.1, 5.4 |
+| 2 | Flujo de acciones, niveles de autonomía e intervención humana | 2.1, 2.6, 2.7 |
+| 2 | Por qué el framework, y los controles intermedios | 3.1, 3.2, 2.7 |
+| 2 | Cómo se usaron los copilotos y cómo se controló su salida | **3.5** |
+| 2 | Cómo un proceso de negocio se aterriza en un proceso técnico | 1.1, 1.4, 2.2 |
+| 3 | Despliegue | 2.9, 6.3 |
+| 3 | Cómo se evalúa ahora: tests, LLM como juez, evaluadores no subjetivos | 4 |
+| 3 | Cómo se sabe cómo va en producción | 6.1, 6.6 |
+| 3 | Gestión del código y pases a producción automatizados | 3.4, 6.3 |
+| 4 | Análisis de riesgos | 7.1, 7.2 |
+| 4 | Controles de seguridad implementados | 2.3, 2.7, 7.2 |
+| 4 | Regulación aplicable (AI Act, RGPD) | 7.4, 7.5 |
+| 4 | Sesgo y cadena de suministro | 7.3, 7.6 |
 
 ## 1. Definición del problema y contexto de uso real
 
@@ -132,22 +157,15 @@ Cinco reglas que se derivan y que el repositorio hace cumplir con tests:
   escrito con fecha y con la escotilla que reproduce el comportamiento
   anterior. Hubo dos cortes, y el capítulo 4.4 los recoge.
 
-**Cómo se trabajó, y cuánto es del autor.** El programa del máster
-incorpora el uso profesional de la IA como herramienta de productividad, y
-el tutor confirmó el 22-09-2026 que su uso en el TFM es libre. Este
-proyecto lo usa sin reservas: el código, los tests, los documentos, la
-búsqueda de las citas normativas del capítulo 7.4 y esta memoria se
-escribieron con Claude Code, dirigido por el autor desde dos superficies
-(capítulo 6.5). Lo que es del autor sin intermediario: las decisiones de
-arquitectura y de línea base, las expectativas de los 122 casos del banco
-y cada corrección de una expectativa, la aprobación de cada escritura, y
-las decisiones que esta memoria fecha con nombre. El trabajo se cuenta en
-sesiones, no en horas: cinco días de construcción y dos de medidas de
-operación. Las cifras de tiempo de trabajo que la memoria da (5 min 42 s
-el alta de un cliente, 19 min el prototipo de LangGraph) son tiempo del
-asistente con el proyecto en contexto, y lo dicen donde aparecen. Un
-tribunal que quiera saber qué habría costado a mano no encontrará aquí ese
-número, porque no se midió.
+**Cómo se trabajó.** El código, los tests, los documentos y esta memoria
+se escribieron con un copiloto, Claude Code, dirigido por el autor; el
+capítulo 3.5 cuenta cómo, qué decidió el autor y con qué mecanismos se
+controló lo que el copiloto producía. El trabajo se cuenta en sesiones, no
+en horas: cinco días de construcción y dos de medidas de operación. Las
+cifras de tiempo de trabajo que la memoria da (5 min 42 s el alta de un
+cliente, 19 min el prototipo de LangGraph) son tiempo del asistente con el
+proyecto en contexto, y lo dicen donde aparecen. Quien quiera saber qué
+habría costado a mano no encontrará aquí ese número, porque no se midió.
 
 **Cómo leer las cifras de esta memoria.** Siete convenciones que se usan
 desde el Resumen:
@@ -560,7 +578,7 @@ declara.
 |---|---|---|
 | Clasificador y generación | `claude-haiku-4-5` | Heredado de la 3.3 con su línea base medida; 0,00245 USD por caso sin juez en la ejecución del §17, y entre 0,0020 y 0,0041 por inquilino en las vigentes (capítulo 5.4) |
 | Juez | `gemini-3.6-flash`, desde el primer corte de línea base | Otra familia que el generador y 5,5 veces más barato por evaluación que `claude-sonnet-5`; admite temperatura 0, aunque eso no lo estabiliza (§24, §26, §32) |
-| Embeddings | `gemini-embedding-001`, 768 dimensiones | Heredado; en retirada con cierre anunciado el 14-05-2028 y sin precio publicado (§35). Decidido no migrar antes de la defensa: invalidaría el índice |
+| Embeddings | `gemini-embedding-001`, 768 dimensiones | Heredado; en retirada con cierre anunciado el 14-05-2028 y sin precio publicado (§35). Decidido no migrar antes de la entrega: invalidaría el índice |
 | Proveedor alternativo | `gemini-3.6-flash` para chat, vía `LLM_PROVIDER=gemini` | La conmutación era una forma y no un hecho hasta que se verificó de extremo a extremo (§29); con la clave gratuita no era contingencia (§54) y con la de pago está medida: empate en generación (§57) |
 
 **El clasificador pequeño, medido contra Haiku** (§48). Un enrutador por
@@ -652,6 +670,113 @@ alternativa medida, y por eso cada una dice qué se mediría si se cambiara:
 - **Node sin dependencias** para el puente MCP con la app de Claude
   (capítulo 6.5). Riesgo: cero paquetes que inventariar en el único
   componente que lee el `.env` del autor (§19).
+- **Sin afinado de modelos ni plataforma de seguimiento de experimentos**
+  (Unsloth, Comet, MLflow, del Módulo 3). No hay datos de entrenamiento
+  fuera del banco, y entrenar con el banco lo invalidaría como medida; los
+  fallos vigentes son de enrutado y de cita, no de generación (capítulo
+  4.2). El seguimiento de experimentos lo hace `reports/`: cada ejecución
+  con su configuración, sus trazas y su resumen, versionada en git.
+- **CI en GitHub Actions** (`ruff` y `pytest` sin llamadas de pago en cada
+  push) y, desde el 11-10-2026, **Render solo despliega un commit cuando la
+  CI lo da en verde** (`autoDeployTrigger: checksPass` en los tres
+  servicios, vigilado por `tests/test_despliegue.py`): un test roto no llega
+  a producción. Es lo que el Módulo 3 llama automatizar los pases a
+  producción.
+
+### 3.5 Desarrollo con un copiloto: reparto, método y control
+
+El enunciado pide explicar cómo se usaron los copilotos y cómo se integraron
+las instrucciones y la cadena de desarrollo para controlar su salida. Este
+proyecto se escribió entero con uno, Claude Code, y con la app de Claude
+para las tareas de navegador; el tutor confirmó el 22-09-2026 que su uso es
+libre. Lo que sigue no oculta el reparto: lo explica, porque el control es
+la parte que no hace el copiloto.
+
+**El reparto.** El copiloto escribió el código, los tests, los documentos y
+esta memoria, ejecutó las mediciones y redactó los hallazgos; la bitácora y
+`HALLAZGOS.md` están escritos en su primera persona. El autor puso el
+producto, que sale de su documento de concepto de la entrega 1.4 del
+máster; las reglas de trabajo; las decisiones con coste, riesgo o alcance;
+las acciones con credenciales y facturación, que hizo a mano; y la revisión
+de lo que el copiloto proponía. Algunas de las decisiones del autor, con la
+fecha y el sitio donde quedaron escritas:
+
+| Fecha | Decisión del autor | Fuente |
+|---|---|---|
+| 23-09 | Que el generador sepa el rol de quien pregunta, la variante que pasa 5 de 5 (segundo corte de línea base) | `ALCANCE.md` §5.d, §39 |
+| 24-09 | Hacer el alta de Meta por la app con él delante, **contra la recomendación del copiloto**, que proponía hacerla a mano; salió bien | Bitácora, sesión 8 |
+| 24-09 | No rotar las claves de API antes de la entrega: no hay incidente que lo pida | Capítulo 6.4 |
+| 26-09 | Construir el canal de correo, que estaba fuera del alcance | Bitácora, sesión 10 |
+| 27-09 | Plan de pago de Render para el correo; límite de 5 EUR al mes en Gemini, puesto a mano; no abrir otra clave de Gemini | Bitácora, sesiones 11 y 12 |
+| 27-09 | Cerrar R-24 en simulación y no montar un envío suplantado en vivo | §58 |
+| 11-10 | Evaluar la calidad en producción con el juez, aceptando la transferencia a Gemini; límite de 10 USD al mes para la clave desplegada | `PLAN_ENTREGA.md` |
+
+**El método: la especificación manda sobre la conversación.** `CLAUDE.md`
+es la fuente única de verdad del proyecto y lo dice en su primera línea: si
+algo de una conversación lo contradice, gana el documento. El copiloto lo
+carga al empezar cada sesión; `docs/ALCANCE.md` fija el alcance por bloques
+con las líneas de corte decididas de antemano. Dos *skills* propias
+estructuran cada jornada: `/arranque` lee la bitácora, el estado del
+repositorio y el entorno y termina con una pregunta al autor; `/cierre`
+escribe la bitácora, actualiza `CLAUDE.md` y publica, y solo la invoca el
+autor (la única vez que el copiloto la ejecutó por su cuenta, el 24-09,
+quedó escrito y se convirtió en regla). Es *spec-driven development* en el
+sentido del Módulo 2: el contexto que el copiloto necesita está en ficheros
+versionados, no en la memoria de una conversación.
+
+**El control: reglas que el copiloto no puede saltarse.** Una regla escrita
+en un prompt se olvida; una regla con test falla en la CI. Las del proyecto,
+y qué las hace cumplir:
+
+| Regla | Qué la hace cumplir |
+|---|---|
+| La línea base heredada no se toca | Test que compara el prompt del enrutador carácter a carácter con el de la 3.3 |
+| El juez no puede ser el generador | `Config` aborta el arranque, con test |
+| Una métrica retirada por defectuosa no vuelve | El cargador del banco rechaza un caso que la pida |
+| El registro de riesgos no cita hallazgos inexistentes | `tests/test_riesgos.py` |
+| El inventario de dependencias no se queda viejo | El AIBOM se regenera y el test falla si difiere |
+| Nada llega a producción con un test roto | CI en cada push y despliegue condicionado a ella (3.4) |
+| El material docente no entra en el repositorio público | `.gitignore` |
+| No se relaja el banco; nada de fallbacks silenciosos | Solo texto en `CLAUDE.md`: las hace cumplir la revisión |
+
+**Lo que el método cazó.** El argumento a favor del método no es que el
+copiloto acierte, sino que sus errores se ven. Con fecha y fuente:
+
+- 21-09: los hallazgos §16 y §17 daban por hecha una clave separada para el
+  juez que no existía; se vio al ir a usarla (§18).
+- 21-09: el precio de `claude-sonnet-5` estaba un 50 % alto en el repo y
+  todo lo derivado salía inflado; lo destapó una predicción escrita antes
+  de mirar la consola (§21).
+- 22-09: el experimento de sesgo hizo tres afirmaciones falsas, concretas y
+  alarmantes antes de acertar; de ahí las trece pruebas que vigilan que los
+  pares sigan emparejados (§34).
+- 24-09: el prototipo de LangGraph tenía escrito "1 h 50 min" y fueron 19,
+  medidos con los tiempos de git; desde entonces el tiempo se mide así.
+- 24-09 y 26-09: dos lecturas hostiles de esta memoria, encargadas a un
+  agente con la instrucción de buscar errores, dejaron 35 y 35
+  correcciones: "cuatro semanas" que eran cinco días, 50 hallazgos que eran
+  53 (`docs/REVISION_MEMORIA_2026-09-26.md`).
+- 27-09: un recuento de tests hecho con la barra de progreso sumaba
+  caracteres de la línea de cierre; se cuenta con JUnit.
+
+Y un caso en el que el control llegó tarde, que también se dice: una
+entrega del Módulo 4 extraída de este repositorio por la app salió con dos
+afirmaciones falsas que la revisión encontró después de enviarla.
+
+**Dos superficies, una dirección.** La app de Claude hace lo que el copiloto
+de terminal no puede (altas en consolas, tareas en el campus, con el autor
+delante) a través de un puente MCP propio (capítulo 6.5). Claude Code le
+deja encargos con criterio de terminado; la app los ejecuta y registra; un
+aviso vuelve a la sesión. Dos reglas lo mantienen bajo control: **escribir
+encargos no es una herramienta de la app**, para que quien los ejecuta no
+pueda dárselos a sí mismo, y **un aviso nunca genera un encargo nuevo por sí
+solo**: la cadena termina en el autor. Las acciones de facturación las
+bloquea el propio control de permisos de la app y las hace el autor, como
+pasó al fijar el límite de gasto el 11-10.
+
+**En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 59
+hallazgos medidos y 1.185 tests.
 
 ## 4. Evaluación
 
@@ -702,6 +827,21 @@ Ejecuciones sin juez, posteriores al segundo corte de línea base
 | `empresa_quien` | Banco heredado, 53 casos | 48 | 0,9038 | 0,6364 | 1,0 |
 | `agencia_hitl_v3` | Agencia con los dos casos de escritura, 40 casos | 31 | 0,825 | 1,0 | 0,92 |
 | `gestoria_agregacion_v2` | Gestoría tras el caso de agregación, 29 casos | 28 | 0,963 | 1,0 | 1,0 |
+
+La recuperación, en las mismas ejecuciones, sobre los casos con documento
+esperado:
+
+| Ejecución | Casos | `hit_rate` | `recall@k` | `precision@k` | MRR |
+|---|---|---|---|---|---|
+| `empresa_quien` | 37 | 1,0 | 1,0 | 0,82 | 0,98 |
+| `agencia_hitl_v3` | 20 | 0,8 | 0,8 | 0,5 | 0,8 |
+| `gestoria_agregacion_v2` | 17 | 1,0 | 1,0 | 0,82 | 1,0 |
+
+En el heredado y la gestoría la recuperación está saturada: el documento
+correcto llega siempre y casi siempre primero. En la agencia hay margen:
+cuatro de los 20 casos no recuperan el documento esperado, y la precisión
+de 0,5 dice que la mitad del contexto que recibe el generador es de otros
+documentos.
 
 No hay un umbral de aceptación fijado de antemano. La regla es otra:
 ninguna pasada baja respecto a la anterior sin que el motivo esté escrito,
@@ -783,9 +923,9 @@ citar dos cifras que miden configuraciones distintas.
 | 22-09-2026 (`ALCANCE.md` §5.c) | Temperatura del enrutador a 0; juez por defecto a `gemini-3.6-flash` | 3 casos inestables de 38 pasan a 0; independencia de familia; juez 5,5 veces más barato | Determinismo (1 de 53 sigue variando); estabilidad del juez | `ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic` |
 | 23-09-2026 (`ALCANCE.md` §5.d) | El generador recibe quién pregunta y que su contexto está autorizado | 2 de 5 a 5 de 5 al dar un dato autorizado; la rama estructurada cita la herramienta | Nada frente a una fuga real: eso lo garantiza la búsqueda | `GEN_QUIEN_PREGUNTA=0` |
 
-Se decidieron antes de conocer la rúbrica, y a propósito: una decisión
+Se decidieron antes de conocer el enunciado, y a propósito: una decisión
 que invalida la comparación con las ejecuciones anteriores necesita tiempo
-para volver a medir, y entre la rúbrica y la defensa no lo habrá.
+para volver a medir, y entre el enunciado y la entrega no lo habría.
 
 ### 4.5 Lo que el banco enseñó sobre el método
 
@@ -821,7 +961,7 @@ confirma con los mismos datos, está donde se aprendió (capítulo 7.3).
 | Pasada completa de los dos bancos con el juez nuevo | 0,73 USD (una de Anthropic) o 0,40 USD (tres de Gemini), como mínimo | §32 |
 | Experimento de sesgo, las tres capas | 0,0046 USD (recuperación y enrutado) y 0,27 USD (generación, 336 respuestas) | §34, §44 |
 | Solapamiento consultando dos ramas | +40 % por caso en el grupo, +0,5 s | §22 |
-| Demo completa de la defensa | menos de 0,05 USD, estimación a partir del coste por consulta; no medida | `GUION_DEMO.md` |
+| Recorrido completo del guion de demostración | menos de 0,05 USD, estimación a partir del coste por consulta; no medida | `GUION_DEMO.md` |
 
 Hay tres cifras de coste por consulta en esta memoria y miden cosas
 distintas: 0,0021 USD (capítulo 1.2) es la del documento de concepto,
@@ -835,10 +975,15 @@ la propia contabilidad tuvo están en el capítulo 8.4.
 
 - **Tope duro**: cuentas de prepago en los dos proveedores con recarga
   automática desactivada, 12,66 USD de crédito en Anthropic a fecha de la
-  última medida (§16). Una fuga a pleno ritmo de un solo proceso, 115
-  consultas por minuto con ocho en vuelo (§53), gasta 13,7 USD por hora y
-  lo agotaría en 55 minutos. El riesgo que queda es el contrario: quedarse
-  sin crédito en la defensa.
+  medida (§16). Una fuga a pleno ritmo de un solo proceso, 115 consultas
+  por minuto con ocho en vuelo (§53), gasta 13,7 USD por hora y lo
+  agotaría en 55 minutos. El 11-10-2026 la organización de la API recibió
+  200 USD de crédito de la suscripción del autor, y con ellos el peor caso
+  de una fuga pasaba a ser todo el saldo. Se rehízo el tope por espacios de
+  trabajo de la consola: los tres servicios desplegados usan una clave
+  propia en un espacio con **límite de 10 USD al mes**, que a ese ritmo de
+  fuga se agota en 44 minutos; las claves de desarrollo no salen de la
+  máquina del autor.
 - **Tope blando**: `TOPE_GASTO_USD` en la interfaz, sobre el registro de
   producción. Es un suelo: excluye embeddings y lo gastado fuera de la
   interfaz, y no hay límite por usuario ni por minuto (R-08).
@@ -941,6 +1086,19 @@ que no le toca; y aplica la política de retención del capítulo 6.2. Nadie
 recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
 es un límite declarado (capítulo 9).
 
+**Por qué un registro propio y no una plataforma de observabilidad**
+(Langfuse, opik o LangSmith, que el máster usa). Tres motivos, en orden de
+peso. Uno, la retención: una plataforma recibe el texto de la consulta y de
+la respuesta, y este registro no guarda la respuesta a propósito
+(capítulo 6.2); mandarla a un tercero sería una transferencia de datos más
+(R-18) para obtener lo que ya se tiene. Dos, lo que hay que mirar aquí es
+propio del dominio: documentos denegados por permiso, campos redactados,
+rama elegida, inquilino; una plataforma genérica lo guardaría como
+metadatos sin significado. Tres, coste y dependencias: cero paquetes y cero
+servicios nuevos. Lo que se pierde es la interfaz de exploración y las
+trazas anidadas por paso, que aquí se suplen con `observabilidad_cli` y con
+las trazas del banco.
+
 En el despliegue actual el registro vive en el disco efímero del plan
 gratuito de Render y no sobrevive a un reinicio del servicio. La política
 de retención del capítulo 6.2 está medida en local y es un requisito del
@@ -974,8 +1132,8 @@ rojo completo (fallo legible y registrado en 4,8 s, evidencia congelada
 con manifiesto en 1,65 s, vuelta en 8,47 s) (§46). La primera pulsación
 destapó que las consultas fallidas no dejaban rastro. La mitad manual del
 plan, revocar y rotar la clave en las consolas y en Render, no está
-cronometrada y se decidió no hacerlo antes de la defensa: no hay incidente
-que lo pida, y rotar credenciales en el mes de la defensa solo para medir
+cronometrada y se decidió no hacerlo antes de la entrega: no hay incidente
+que lo pida, y rotar credenciales en el mes de la entrega solo para medir
 es más riesgo que dato. Queda declarada como estimación, unos cinco
 minutos, no como medida.
 
@@ -1086,7 +1244,7 @@ confirma con los mismos datos.
 
 Un asistente que interactúa con personas cae en la obligación de
 transparencia del **artículo 50.1**, en aplicación desde el 2 de agosto de
-2026 y por tanto vigente en la defensa; el aviso lo declara cada
+2026 y por tanto vigente al entregar; el aviso lo declara cada
 manifiesto y lo muestra la interfaz. Pero el corpus del inquilino heredado
 tiene salarios y evaluaciones individuales (anexo III, punto 4, empleo) y
 los expedientes de la agencia tienen ingresos y solvencia de personas
@@ -1188,13 +1346,13 @@ no haya que buscarlo en dos sitios:
 
 | Qué | Decisión o estado | Cuándo |
 |---|---|---|
-| Migrar embeddings a `gemini-embedding-2` | Decidido no antes de la defensa: invalida el índice y mueve las métricas de recuperación (§35) | Antes del 14-05-2028 |
+| Migrar embeddings a `gemini-embedding-2` | Decidido no antes de la entrega: invalida el índice y mueve las métricas de recuperación (§35) | Antes del 14-05-2028 |
 | Mayoría de tres del juez por defecto | Decidido no automatizarla (§32, §33): sobre 10 casos tres pasadas no bastan; repetir es un acto deliberado | Cerrado en el primer corte |
-| Denegación explícita en el caso parcial | Decidido no hacerlo antes de la defensa: 14 casos del heredado y otro corte de línea base (§47) | Tras la defensa |
+| Denegación explícita en el caso parcial | Decidido no hacerlo antes de la entrega: 14 casos del heredado y otro corte de línea base (§47) | Tras la entrega |
 | `inj-04` | Residual: arreglarlo es tocar el prompt del enrutador heredado, que es la línea base | No se hace |
-| Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la defensa, si se pide |
+| Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la entrega, si se pide |
 | Comparar el generador con Gemini | **Hecho** tras activar la facturación con tope de 5 EUR (§54, §57): empate en generación, 73 de 73 | Cerrado |
-| Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la defensa: no hay incidente que lo pida (capítulo 6.4) | Tras la defensa |
+| Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la entrega: no hay incidente que lo pida (capítulo 6.4) | Tras la entrega |
 | Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
 
 ### 8.4 Mantenimiento frente a proveedores que cambian solos
@@ -1271,7 +1429,7 @@ de usuarios sin redesplegar, moderación de contenido, y el corpus real de
 un cliente con su propia evaluación de envenenamiento y su contrato de
 encargado (capítulo 7.5).
 
-## 10. Documentación técnica y preparación de la defensa
+## 10. Documentación técnica y cómo comprobarlo
 
 ### 10.1 Cómo está documentado el proyecto
 
@@ -1293,25 +1451,27 @@ Y tres más de operación, cada uno con lo medido dentro: `INCIDENTES.md`
 (botón rojo, 14,95 s), `RETENCION.md` (90 días, supresión en menos de
 0,05 s) y `DESPLIEGUE.md` (usuarios, topes, Render).
 
-### 10.2 La defensa
+### 10.2 Cómo lo comprueba un tercero
 
-Si la defensa incluye una demostración, `docs/GUION_DEMO.md` la fija:
-quince minutos en ocho bloques, más dos de calentamiento sin público,
-cada uno con qué se enseña, qué se hace y qué tiene que verse. Las
-consultas son literales del golden set o del registro de producción, así
-que su comportamiento está medido y no se improvisa delante del tribunal.
-Los tres bloques centrales son los tres argumentos de las conclusiones: el
-control de acceso dentro de la búsqueda con la misma pregunta desde dos
-roles, la rama estructurada con datos que no están en ningún documento, y
-la escritura propuesta por el modelo y aprobada por una persona. El guion
-incluye qué hacer si algo falla en directo: cada fallo posible se enseña
-como lo que es, porque la regla de nada de fallbacks silenciosos vale
-también para la demo.
+No hay defensa oral: lo que se evalúa es este documento y el repositorio
+(`docs/MODULO_5.md`). Por eso el capítulo dice qué puede comprobar quien lo
+lea sin depender del autor, de lo más barato a lo más completo.
 
-[PENDIENTE: formato de la defensa (duración, demo en vivo, tribunal), que
-decide si el servicio de Render sigue vivo o basta una grabación. Coste de
-la demo entera: menos de 0,05 USD; el riesgo no es el gasto, es quedarse
-sin crédito.]
+| Qué | Cómo | Qué hace falta | Cuánto |
+|---|---|---|---|
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.185 pruebas en unos 20 s |
+| Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
+| Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
+| Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
+| Que se comporta como se describe | `docs/GUION_DEMO.md`: un recorrido en ocho bloques con consultas literales del banco, qué hacer y qué tiene que verse | Credenciales | Menos de 0,05 USD |
+
+El guion se escribió para una demostración en directo y se conserva como
+recorrido reproducible: cada bloque dice qué consulta lanzar, desde qué rol
+y qué tiene que aparecer, incluido qué hacer si algo falla, que se enseña
+como lo que es porque la regla de nada de fallbacks silenciosos vale también
+ahí. Los canales de WhatsApp y de correo atienden solo a números y
+direcciones de una lista cerrada (capítulo 2.9); probarlos exige que el
+autor dé de alta el número o la dirección de quien evalúa.
 
 ## 11. Conclusiones
 
