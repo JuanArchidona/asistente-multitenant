@@ -1,0 +1,386 @@
+[
+  {
+    "id": "conv-emp-01",
+    "tenant": "empresa_servicios",
+    "origen": "know-rrhh-07",
+    "turno_2": "¿Y si no los gasto todos?",
+    "categoria_esperada": "rrhh",
+    "reescrita": "¿Qué ocurre con los días de vacaciones de Soluciones Cloud Ibérica S.L. si no se gastan todos en el año?",
+    "latencia_reescritura_s": 0.939,
+    "latencia_total_s": {
+      "sin_memoria": 3.722,
+      "reescritura": 3.898,
+      "techo": 3.894
+    },
+    "sin_memoria": {
+      "categoria": "otro",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    },
+    "reescritura": {
+      "categoria": "rrhh",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "rrhh",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-emp-02",
+    "tenant": "empresa_servicios",
+    "origen": "know-rrhh-06",
+    "turno_2": "¿Y de asuntos propios?",
+    "categoria_esperada": "rrhh",
+    "reescrita": "¿Cuántos días de permiso tengo por asuntos propios según el Convenio Colectivo Interno de Soluciones Cloud Ibérica S.L.?",
+    "latencia_reescritura_s": 0.904,
+    "latencia_total_s": {
+      "sin_memoria": 4.11,
+      "reescritura": 3.874,
+      "techo": 2.405
+    },
+    "sin_memoria": {
+      "categoria": "otro",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    },
+    "reescritura": {
+      "categoria": "rrhh",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "rrhh",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-emp-03",
+    "tenant": "empresa_servicios",
+    "origen": "know-dev-02",
+    "turno_2": "¿Y la longitud máxima de línea?",
+    "categoria_esperada": "desarrollo",
+    "reescrita": "¿Cuál es la longitud máxima de línea en la Guía de Estilo de Desarrollo para proyectos nuevos de Python?",
+    "latencia_reescritura_s": 0.836,
+    "latencia_total_s": {
+      "sin_memoria": 3.029,
+      "reescritura": 3.388,
+      "techo": 2.72
+    },
+    "sin_memoria": {
+      "categoria": "desarrollo",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "desarrollo",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "desarrollo",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-emp-04",
+    "tenant": "empresa_servicios",
+    "origen": "know-marca-02",
+    "turno_2": "¿Y la tipografía para lo impreso?",
+    "categoria_esperada": "marca",
+    "reescrita": "¿Cuál es la tipografía para lo impreso según la Guía de Marca de Soluciones Cloud Ibérica?",
+    "latencia_reescritura_s": 0.838,
+    "latencia_total_s": {
+      "sin_memoria": 2.528,
+      "reescritura": 3.105,
+      "techo": 2.446
+    },
+    "sin_memoria": {
+      "categoria": "marca",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "marca",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "marca",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-emp-05",
+    "tenant": "empresa_servicios",
+    "origen": "know-act-04",
+    "turno_2": "¿Y en esa misma reunión se aprobó contratar a alguien?",
+    "categoria_esperada": "actas",
+    "reescrita": "¿En el acta del Comité de Producto del 17 de junio de 2026 se aprobó contratar a alguien?",
+    "latencia_reescritura_s": 0.863,
+    "latencia_total_s": {
+      "sin_memoria": 2.717,
+      "reescritura": 4.051,
+      "techo": 2.959
+    },
+    "sin_memoria": {
+      "categoria": "actas",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "actas",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "actas",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-ges-01",
+    "tenant": "gestoria_laboral",
+    "origen": "know-lab-02",
+    "turno_2": "¿Y la baja?",
+    "categoria_esperada": "laboral",
+    "reescrita": "¿Con cuánta antelación máxima se puede comunicar la baja de un trabajador en la Seguridad Social?",
+    "latencia_reescritura_s": 0.793,
+    "latencia_total_s": {
+      "sin_memoria": 4.224,
+      "reescritura": 3.942,
+      "techo": 3.981
+    },
+    "sin_memoria": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-ges-02",
+    "tenant": "gestoria_laboral",
+    "origen": "know-lab-04",
+    "turno_2": "¿Y las pagas extra cuándo se abonan?",
+    "categoria_esperada": "laboral",
+    "reescrita": "¿Cuándo se abonan las pagas extra según el documento de nóminas y convenios?",
+    "latencia_reescritura_s": 0.746,
+    "latencia_total_s": {
+      "sin_memoria": 2.999,
+      "reescritura": 3.955,
+      "techo": 2.759
+    },
+    "sin_memoria": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": false
+    },
+    "techo": {
+      "categoria": "laboral",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-ges-03",
+    "tenant": "gestoria_laboral",
+    "origen": "front-01",
+    "turno_2": "¿Y quién se encarga del de sociedades?",
+    "categoria_esperada": "fiscal",
+    "reescrita": "¿Quién se encarga de la presentación del Impuesto de Sociedades del cuarto trimestre?",
+    "latencia_reescritura_s": 0.862,
+    "latencia_total_s": {
+      "sin_memoria": 3.094,
+      "reescritura": 3.791,
+      "techo": 2.92
+    },
+    "sin_memoria": {
+      "categoria": "fiscal",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "fiscal",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "fiscal",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-age-01",
+    "tenant": "agencia_inmobiliaria",
+    "origen": "know-com-02",
+    "turno_2": "¿Y en un alquiler?",
+    "categoria_esperada": "comercial",
+    "reescrita": "¿Qué porcentaje de honorarios cobramos en un alquiler?",
+    "latencia_reescritura_s": 0.704,
+    "latencia_total_s": {
+      "sin_memoria": 4.441,
+      "reescritura": 3.171,
+      "techo": 2.835
+    },
+    "sin_memoria": {
+      "categoria": "otro",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    },
+    "reescritura": {
+      "categoria": "comercial",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "comercial",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-age-02",
+    "tenant": "agencia_inmobiliaria",
+    "origen": "know-proc-02",
+    "turno_2": "¿Y luego, cuántas visitas al día como máximo?",
+    "categoria_esperada": "procesos",
+    "reescrita": "¿Cuántas visitas al día como máximo puedo hacer a un propietario que acaba de entrar como aviso?",
+    "latencia_reescritura_s": 0.796,
+    "latencia_total_s": {
+      "sin_memoria": 2.747,
+      "reescritura": 4.91,
+      "techo": 2.866
+    },
+    "sin_memoria": {
+      "categoria": "procesos",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "procesos",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "procesos",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    }
+  },
+  {
+    "id": "conv-age-03",
+    "tenant": "agencia_inmobiliaria",
+    "origen": "know-norm-02",
+    "turno_2": "¿Y si es para alquilar, qué ingresos le pedimos al candidato?",
+    "categoria_esperada": "normativa",
+    "reescrita": "¿Qué ingresos le pedimos al candidato para alquilar un inmueble?",
+    "latencia_reescritura_s": 0.733,
+    "latencia_total_s": {
+      "sin_memoria": 4.356,
+      "reescritura": 4.168,
+      "techo": 3.869
+    },
+    "sin_memoria": {
+      "categoria": "procesos",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    },
+    "reescritura": {
+      "categoria": "procesos",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    },
+    "techo": {
+      "categoria": "procesos",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": false
+    }
+  },
+  {
+    "id": "conv-age-04",
+    "tenant": "agencia_inmobiliaria",
+    "origen": "front-02",
+    "turno_2": "¿Y cuándo se nos paga?",
+    "categoria_esperada": "comercial",
+    "reescrita": "¿Cuándo se nos paga los honorarios en una compraventa?",
+    "latencia_reescritura_s": 0.71,
+    "latencia_total_s": {
+      "sin_memoria": 3.676,
+      "reescritura": 3.632,
+      "techo": 3.411
+    },
+    "sin_memoria": {
+      "categoria": "comercial",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "reescritura": {
+      "categoria": "comercial",
+      "enrutado": true,
+      "recupera": true,
+      "contiene": true
+    },
+    "techo": {
+      "categoria": "procesos",
+      "enrutado": false,
+      "recupera": false,
+      "contiene": true
+    }
+  }
+]

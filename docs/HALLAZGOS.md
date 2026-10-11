@@ -4505,3 +4505,55 @@ de verlo; desde entonces el script la apaga antes de importar nada.
 de DeepTeam es un juez LLM (§30, §32); lo citable es lo determinista. Las
 negativas traducidas a un idioma que el detector no conoce no se detectan:
 con el atacante de Anthropic no apareció ninguna.
+
+## 66. Sin memoria, 4 de 12 seguimientos se pierden; reescribiendo la consulta con el turno anterior se recuperan los 3 que eran de memoria, por 0,8 s más
+
+**Ejecución:** `reports/memoria_2026-10-11/` (`evals/conversaciones.py`,
+11-10-2026, dos pasadas; se cita la segunda, y la primera dio el mismo
+enrutado). Banco nuevo y aparte de 12 conversaciones de dos turnos
+(`evals/datasets/conversaciones.jsonl`): cinco del heredado, tres de la
+gestoría y cuatro de la agencia. El primer turno es una pregunta del banco;
+el segundo, un seguimiento elíptico ("¿Y la baja?", "¿Y de asuntos
+propios?", "¿Y en un alquiler?") cuya respuesta correcta es otro caso del
+banco, del que hereda categoría, documento y literal ya verificados. Coste:
+0,12 USD y 108 llamadas.
+
+**Qué se quería.** El sistema es de un turno, y la interfaz pinta un
+historial que da a entender lo contrario. El Módulo 2 trató la memoria de
+los agentes. La pregunta es cuánto pierde un seguimiento sin memoria y si
+la solución más acotada, reescribir el seguimiento como pregunta autónoma
+con el último turno delante antes de enrutar (`src/memoria.py`), lo
+recupera sin tocar nada más.
+
+| Brazo | Enrutado correcto | Recupera el documento | Literal esperado | Latencia media |
+|---|---|---|---|---|
+| Sin memoria (producción) | 8 de 12 | 8 | 8 | 3,47 s |
+| Reescritura | **11 de 12** | 11 | 10 | 3,82 s (0,81 s la reescritura) |
+| Techo: la pregunta completa del banco | 10 de 12 | 10 | 11 | 3,09 s |
+
+**Resultado.** Los cuatro seguimientos que se pierden sin memoria se van a
+`otro`: "¿Y si no los gasto todos?" no es de ningún tema. La reescritura
+recupera los tres que eran de memoria ("¿Qué pasa con los días de
+vacaciones no disfrutados según el convenio...?"). El cuarto (`conv-age-03`)
+falla en los tres brazos, también con la pregunta completa: es un error de
+enrutado entre `normativa` y `procesos` que el banco ya conocía, no de
+memoria. Que la reescritura supere al techo en enrutado (11 frente a 10) es
+un caso, `conv-age-04`, y con doce conversaciones es ruido. El literal
+oscila un caso entre pasadas porque el generador muestrea; el enrutado y la
+recuperación no.
+
+**Lo que cuesta.** Una llamada más al modelo del enrutador por cada
+seguimiento con historial: 0,81 s de media. Sin historial no se llama.
+
+**Lo que se decide.** Queda detrás de `MEMORIA_TURNOS=reescritura`, apagado
+por defecto, así que ninguna cifra del banco cambia. La interfaz web ya
+pasa el historial; WhatsApp y el correo no lo guardan todavía. Activarlo en
+producción es decisión del autor.
+
+**Límites.** Doce conversaciones, escritas por quien construyó el sistema y
+de dos turnos. La reescritura a veces añade lo que dedujo de la respuesta
+anterior (el nombre del documento, o "a un propietario que acaba de entrar
+como aviso" en una pregunta sobre visitas): en este banco no estropeó
+ningún caso, pero es un riesgo que crece con conversaciones largas. Y no
+se probó contra el control de acceso con historial: la consulta reescrita
+pasa por el mismo `where` que cualquier otra, por construcción.

@@ -25,6 +25,7 @@ caracteres; de una plantilla, la huella es de la plantilla.
 | `generador.sin_fuente` | Consulta que el enrutador manda a `otro`: responde sin contexto interno | `ANTHROPIC_MODEL_GENERATOR` (por defecto `claude-haiku-4-5`) | por defecto del proveedor (1,0 en Anthropic) | `3b7912b56ad0` | Heredado de la 2.3 |
 | `herramienta.accion_pendiente` | Lo que recibe el modelo en lugar de ejecutar una herramienta que escribe | El de la rama estructurada | — | `78c91986cc46` | §42 (`accion_sin_aprobar` 40/40) |
 | `ingesta.transcriptor` | Ingesta: convierte un PDF en el documento estructurado que se indexa | `ANTHROPIC_MODEL_GENERATOR` (por defecto `claude-haiku-4-5`) | por defecto del proveedor (1,0 en Anthropic) | `830f8ddf0d38` | Heredado de la entrega 2.1; no interviene al responder |
+| `memoria.reescritura` | Reescribe un seguimiento como pregunta autónoma antes de enrutar (`MEMORIA_TURNOS=reescritura`, apagado por defecto) | `ANTHROPIC_MODEL_ROUTER` (por defecto `claude-haiku-4-5`) | 0,0 | `311f35959ec6` | §66: 8 de 12 seguimientos bien enrutados sin memoria, 11 de 12 con reescritura |
 | `juez.produccion` | Juez de producción: fidelidad de la respuesta a su contexto, sobre la fracción muestreada | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`), clave `GEMINI_API_KEY_JUEZ` | 0,0 | `35cde0d01081` | Capítulo 6.1 de la memoria; veredicto de tres valores por el §30 |
 | `juez.pasos_correccion` | Pasos de G-Eval del juez (solo en evaluación) | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`) | 0,0 | `d5d54a077f55` | §30, §32 |
 | `juez.pasos_abstencion` | Pasos de G-Eval del juez (solo en evaluación) | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`) | 0,0 | `6c105058ce97` | §30, §32 |
@@ -183,6 +184,17 @@ Reglas:
 Responde SOLO con un objeto JSON valido, sin texto adicional ni markdown, con esta forma:
 {"titulo": "<asunto de la reunion>", "fecha": "YYYY-MM-DD o null", "asistentes": ["..."],
  "resumen": "<2-4 frases>", "decisiones": ["..."], "tareas": ["..."], "confianza": 0.0}
+```
+
+### `memoria.reescritura`
+
+```text
+Reescribes la última pregunta de un empleado para que se entienda sola,
+sin el historial de la conversación. Usa el historial solo para completar lo
+que falta (el tema, el documento, la persona, el tipo de operación). No
+respondas a la pregunta, no añadas datos que no estén en ella o en el
+historial y no cambies lo que pide. Si ya se entiende sola, devuélvela igual.
+Devuelve SOLO la pregunta reescrita, en español, sin comillas ni explicaciones.
 ```
 
 ### `juez.produccion`

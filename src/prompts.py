@@ -26,7 +26,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import agent, evaluacion_produccion, router, transcriber
+from . import agent, evaluacion_produccion, memoria, router, transcriber
 from .config import Config
 from .tenant import Tenant
 
@@ -121,6 +121,14 @@ def catalogo(tenants: list[Tenant]) -> list[Prompt]:
             "Ingesta: convierte un PDF en el documento estructurado que se indexa",
             _GENERADOR, _TEMP_GEN, transcriber.SYSTEM_TRANSCRIPTOR,
             "Heredado de la entrega 2.1; no interviene al responder",
+        ),
+        Prompt(
+            "memoria.reescritura",
+            "Reescribe un seguimiento como pregunta autónoma antes de enrutar (`MEMORIA_TURNOS=reescritura`, apagado por defecto)",
+            "`ANTHROPIC_MODEL_ROUTER` (por defecto `claude-haiku-4-5`)",
+            "0,0",
+            memoria.SYSTEM_REESCRITURA,
+            "§66: 8 de 12 seguimientos bien enrutados sin memoria, 11 de 12 con reescritura",
         ),
         Prompt(
             "juez.produccion",

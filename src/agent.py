@@ -31,6 +31,7 @@ from .config import Config
 from .evaluacion_produccion import calidad_determinista, juez_desde_config, lanzar, nuevo_id
 from .gobernanza import USUARIO_ANONIMO, Usuario, redactar_json
 from .mcp_cliente import ClienteMCP, recortar_resultado
+from .memoria import reescribir
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
 from .router import enrutar
@@ -405,7 +406,12 @@ class Sistema:
     def __exit__(self, *_excepcion) -> None:
         self.cerrar()
 
-    def responder(self, consulta: str, usuario: Usuario | None = None) -> dict:
+    def responder(
+        self,
+        consulta: str,
+        usuario: Usuario | None = None,
+        historial: list[tuple[str, str]] | None = None,
+    ) -> dict:
         """Responde como `usuario`, o como el usuario por defecto del sistema.
 
         El parámetro existe para el banco: un golden set que solo puede
@@ -415,7 +421,7 @@ class Sistema:
         """
         usuario = usuario or self.usuario
         if self.registro is None:
-            return self._responder(consulta, usuario)
+            return self._con_memoria(consulta, usuario, historial)
         # El coste se atribuye a ESTA consulta, no al acumulado de la sesion:
         # restar dos instantaneas del total atribuiria a una lo que gasto otra
         # cuando hay varias en vuelo.
@@ -425,7 +431,7 @@ class Sistema:
         # justo lo que el plan de incidentes quiere detectar (§46).
         try:
             with self.chat.uso.por_consulta() as uso:
-                traza = self._responder(consulta, usuario)
+                traza = self._con_memoria(consulta, usuario, historial)
         except Exception as error:
             self.registro.anotar_fallo(consulta, usuario.id, error)
             raise
@@ -445,6 +451,23 @@ class Sistema:
         self.registro.anotar(traza, uso.resumen())
         if toca:
             lanzar(juez, traza, self.registro, traza["id_consulta"])
+        return traza
+
+    def _con_memoria(
+        self, consulta: str, usuario: Usuario, historial: list[tuple[str, str]] | None
+    ) -> dict:
+        """Con `MEMORIA_TURNOS=reescritura` y un historial, reescribe la consulta
+        para que se entienda sola antes de enrutar (src/memoria.py). Si no, el
+        camino de siempre. La traza guarda la original y la reescrita."""
+        if self.cfg.memoria_turnos != "reescritura" or not historial:
+            return self._responder(consulta, usuario)
+        t0 = time.perf_counter()
+        efectiva = reescribir(self.chat, self.cfg.model_router, historial, consulta)
+        latencia = time.perf_counter() - t0
+        traza = self._responder(efectiva, usuario)
+        traza["consulta_original"] = consulta
+        traza["consulta_reescrita"] = efectiva
+        traza["latencia_reescritura_s"] = round(latencia, 3)
         return traza
 
     def _responder(self, consulta: str, usuario: Usuario) -> dict:

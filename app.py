@@ -23,6 +23,8 @@ Lo que decide la arquitectura, y no la interfaz:
 Lo que NO hace, y está escrito en docs/DESPLIEGUE.md: cargar documentos,
 gestionar usuarios desde la interfaz, ni sustituir el tope duro del prepago.
 """
+from itertools import pairwise
+
 import streamlit as st
 
 from src.acceso import cargar_directorio, tope_superado
@@ -221,6 +223,14 @@ if consulta:
         )
         st.stop()
 
+    # Pares (pregunta, respuesta) anteriores, para la memoria entre turnos
+    # (src/memoria.py). Solo se usan con MEMORIA_TURNOS=reescritura.
+    previos = st.session_state.historial
+    pares = [
+        (a["texto"], b["texto"])
+        for a, b in pairwise(previos)
+        if a.get("rol") == "user" and b.get("rol") == "assistant"
+    ]
     st.session_state.historial.append({"rol": "user", "texto": consulta})
     with st.chat_message("user"):
         st.markdown(consulta)
@@ -228,7 +238,7 @@ if consulta:
     with st.chat_message("assistant"):
         with st.spinner("Enrutando, recuperando y respondiendo..."):
             try:
-                traza = sistema_de(cfg.tenant.id).responder(consulta, usuario=persona)
+                traza = sistema_de(cfg.tenant.id).responder(consulta, usuario=persona, historial=pares)
             except Exception as error:  # noqa: BLE001 -- frontera de UI: el fallo se muestra, no se traga
                 st.warning(mensaje_para_el_usuario(error, cfg.tenant.contacto_alternativo))
                 with st.expander("Detalle técnico"):

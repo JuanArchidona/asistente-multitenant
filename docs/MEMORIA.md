@@ -543,9 +543,12 @@ ahí la lectura por los cinco criterios del capstone:
 
 Lo que la medida no dice: nada sobre lo que LangGraph aporta cuando hay
 estado entre turnos, interrupciones con reanudación o ramas paralelas,
-porque este sistema no tiene nada de eso. Cuando el flujo tenga varios
-turnos (capítulo 9), la comparación habrá que rehacerla, y la aprobación
-humana del capítulo 2.7 sería el primer candidato.
+porque este sistema no tiene nada de eso. La memoria entre turnos que sí se
+midió (§66) no necesitó estado en el orquestador: es una llamada que
+reescribe la consulta antes de enrutar, y el resto del flujo no se entera.
+Si el flujo llega a tener estado de verdad, la comparación habrá que
+rehacerla, y la aprobación humana del capítulo 2.7 sería el primer
+candidato.
 
 ### 3.2 Servidores MCP frente a herramientas cableadas
 
@@ -776,8 +779,8 @@ bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 65
-hallazgos medidos y 1.232 tests.
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 66
+hallazgos medidos y 1.238 tests.
 
 ## 4. Evaluación
 
@@ -1479,7 +1482,7 @@ capítulo 8.3 y aquí solo se remite.
 
 **Lo que el banco no mide.**
 
-- **Un solo turno.** No hay evaluación conversacional de varios turnos.
+- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador apagado; conversaciones largas siguen sin medirse.
 - **Lo escribió quien construyó el sistema, y no hay conjunto reservado.**
   Las descripciones de categoría de la agencia se afinaron en tres
   iteraciones sobre el mismo banco (§6); el umbral del enrutador por
@@ -1561,7 +1564,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.232 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.238 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
@@ -1623,7 +1626,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 65 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
+Los 66 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
 memoria que los citan (todos los que lo hacen, no solo el principal).
 Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;
 un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`
@@ -1640,7 +1643,7 @@ que lo respalda o dice que no la tiene.
 | 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
 | 2.8 Generación anclada | §39, §40 |
 | 2.9 Interfaz y canales | §51, §55, §56, §58, §59 |
-| 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57 |
+| 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57, §66 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
 | 3.4 El resto de la pila | §19, §26, §38, §51, §52, §60 |
@@ -1668,5 +1671,5 @@ que lo respalda o dice que no la tiene.
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
 | 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §48, §50, §51, §54, §57, §60 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
-| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58, §59 |
+| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58, §59, §66 |
 | 10.2 Cómo lo comprueba un tercero | §52 |

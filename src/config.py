@@ -109,7 +109,13 @@ class Config:
     # encadenado. `langgraph` exige `uv sync --group langgraph`.
     orquestador: str = "vanilla"
 
+    # Memoria entre turnos (src/memoria.py): `off`, la línea base de un turno,
+    # o `reescritura`, que reescribe un seguimiento como pregunta autónoma
+    # antes de enrutar. Medido en evals/conversaciones.py.
+    memoria_turnos: str = "off"
 
+
+MEMORIAS = ("off", "reescritura")
 ROUTER_KINDS = ("llm", "embeddings_descripciones", "embeddings_indice")
 ORQUESTADORES = ("vanilla", "langgraph")
 
@@ -238,7 +244,10 @@ def load_config(tenant_id: str | None = None, con_juez: bool = True) -> Config:
         router_kind=os.getenv("ROUTER_KIND", "llm").strip().lower(),
         router_umbral_otro=float(os.getenv("ROUTER_UMBRAL_OTRO", "0.55")),
         orquestador=os.getenv("ORQUESTADOR", "vanilla").strip().lower(),
+        memoria_turnos=os.getenv("MEMORIA_TURNOS", "off").strip().lower(),
     )
+    if cfg.memoria_turnos not in MEMORIAS:
+        sys.exit(f"[config] MEMORIA_TURNOS inválido: {cfg.memoria_turnos!r}. Usa uno de {MEMORIAS}.")
     if cfg.router_kind not in ROUTER_KINDS:
         sys.exit(f"[config] ROUTER_KIND inválido: {cfg.router_kind!r}. Usa uno de {ROUTER_KINDS}.")
     if cfg.orquestador not in ORQUESTADORES:
