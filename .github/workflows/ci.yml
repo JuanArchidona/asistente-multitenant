@@ -32,3 +32,17 @@ jobs:
 
       - name: Pruebas (sin llamadas a API)
         run: uv run pytest
+
+      # Vulnerabilidades conocidas en lo que se despliega (sin dev, con la
+      # interfaz), contra la base de PyPA. Falla si aparece una nueva.
+      # Excepciones, revisadas el 11-10-2026: las cinco de chromadb 1.5.9 no
+      # tienen versión corregida y todas atacan el modo servidor (la API HTTP
+      # /api/v2 y su proveedor RBAC). El sistema usa chromadb embebido
+      # (PersistentClient) y no expone ningún servidor de Chroma, así que no
+      # son alcanzables. Se revisan cuando salga una versión corregida.
+      - name: Auditoría de dependencias desplegadas
+        run: |
+          uv export --frozen --no-dev --group app --no-hashes --no-emit-project -q > requisitos-desplegados.txt
+          uvx pip-audit==2.10.1 -r requisitos-desplegados.txt --no-deps --disable-pip --progress-spinner off \
+            --ignore-vuln PYSEC-2026-311 --ignore-vuln PYSEC-2026-3813 \
+            --ignore-vuln PYSEC-2026-3814 --ignore-vuln PYSEC-2026-3815

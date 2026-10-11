@@ -4254,3 +4254,46 @@ leído. Esperar a la CI retrasa cada despliegue lo que tarda la CI (unos 30 s
 en GitHub Actions). La CI instala sin el grupo `langgraph`, así que las 10
 pruebas del prototipo de LangGraph no protegen el despliegue; no importa
 porque ese código no se despliega.
+
+## 61. Lo desplegado tenía 23 vulnerabilidades conocidas en 6 paquetes: 18 se cerraron subiendo cinco versiones y las 5 de chromadb no son alcanzables
+
+**Ejecución:** 11-10-2026, `pip-audit 2.10.1` contra la base de PyPA sobre
+`uv export --frozen --no-dev --group app` (lo que instala Render: 115
+paquetes), 10 s. Coste: cero. La evidencia es la propia CI: el paso
+"Auditoría de dependencias desplegadas" de `.github/workflows/ci.yml` falla
+si aparece una vulnerabilidad nueva.
+
+**Qué se quería.** La página P6 del Módulo 5 y el material del Módulo 4 piden
+verificaciones de seguridad en el repositorio. El AIBOM (§35) inventariaba
+las dependencias y las fijaba, pero nadie miraba si alguna versión fijada
+tenía un fallo publicado.
+
+| Paquete | Versión | Vulnerabilidades | Acción |
+|---|---|---|---|
+| `pypdf` | 6.15.0 | 11 | Subido a 6.20.0 |
+| `urllib3` | 2.7.0 | 3 | Subido a 2.8.0 |
+| `pyjwt` | 2.14.0 | 2 | Subido a 2.15.1 |
+| `multidict` | 6.7.1 | 1 | Subido a 6.9.1 |
+| `oauthlib` | 3.3.1 | 1 | Subido a 4.0.0 |
+| `chromadb` | 1.5.9 | 5 | **Sin versión corregida.** Excepción escrita en la CI |
+
+**Las cinco de chromadb** (CVE-2026-45829, -45830, -45831, -45833) atacan el
+modo servidor: ejecución de código por la API HTTP `/api/v2` y un control de
+acceso por inquilino que no comprueba el inquilino. El sistema usa chromadb
+embebido (`PersistentClient` en `src/ingest.py`, `src/retriever.py` y los
+scripts) y no expone ningún servidor de Chroma, así que no son alcanzables.
+Es también la razón de que el aislamiento entre clientes sea una colección
+por inquilino dentro de un proceso y no los inquilinos de Chroma (capítulo
+2.3 de la memoria): con el servidor, el segundo de esos fallos habría roto
+el aislamiento.
+
+**Resultado.** Tras subir las cinco versiones, 1.185 pruebas en verde y
+`ruff` limpio; la auditoría da cero vulnerabilidades con las cinco
+excepciones. El AIBOM se regeneró (17 paquetes directos y 147 transitivos
+con el grupo `material` del 11-10).
+
+**Límites.** Se audita lo desplegado, no los grupos de desarrollo,
+evaluación ni material, que no salen de la máquina del autor. La base de
+datos de vulnerabilidades es la de PyPA: lo que no está publicado allí no
+se ve. `--no-deps` sobre un export sin hashes confía en las versiones del
+lock, que es lo que se quiere auditar.

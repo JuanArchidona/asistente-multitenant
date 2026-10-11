@@ -31,7 +31,7 @@
 | `langgraph` | 1.2.12 | langgraph | https://pypi.org/simple |
 | `mcp` | 2.2.0 | runtime | https://pypi.org/simple |
 | `pydantic` | 2.13.4 | runtime | https://pypi.org/simple |
-| `pypdf` | 6.15.0 | material | https://pypi.org/simple |
+| `pypdf` | 6.20.0 | material | https://pypi.org/simple |
 | `pytest` | 9.1.1 | dev | https://pypi.org/simple |
 | `python-docx` | 1.2.0 | material | https://pypi.org/simple |
 | `python-dotenv` | 1.2.2 | runtime | https://pypi.org/simple |

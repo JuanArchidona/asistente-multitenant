@@ -1294,12 +1294,16 @@ contrastaron contra la Comisión y el BOE (fuentes en `MODULO_4.md`).
 ### 7.6 Cadena de suministro
 
 `AIBOM.md` se genera desde `uv.lock`, `config.py`, `provider.py` y los
-manifiestos, con un test que falla si difiere: 12 paquetes directos y 142
+manifiestos, con un test que falla si difiere: 17 paquetes directos y 147
 transitivos fijados, todos los grupos opcionales incluidos, y cada modelo
 con su precio o con la marca de que no lo tiene. La primera vez que se
 generó destapó que el modelo de embeddings está en retirada y costaba
-cero (§35). Residual: la versión de Node del puente no está
-fijada, y el inventario lo dice.
+cero (§35). Desde el 11-10-2026 la CI audita además lo desplegado contra la
+base de vulnerabilidades de PyPA y falla si aparece una: la primera pasada
+encontró 23 en 6 paquetes, cerró 18 subiendo cinco versiones y dejó como
+excepción escrita las 5 de chromadb, que atacan su modo servidor y este
+sistema lo usa embebido (§61). Residual: la versión de Node del puente no
+está fijada, y el inventario lo dice.
 
 ## 8. Escalabilidad y mantenimiento
 
