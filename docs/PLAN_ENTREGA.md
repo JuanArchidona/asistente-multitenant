@@ -141,15 +141,15 @@ feedback.
 
 | # | Tarea | Horas | Terminado cuando |
 |---|---|---|---|
-| B0 | **Límite de gasto** en un espacio de trabajo de la consola de Anthropic para la clave del despliegue, y otra clave en otro espacio para experimentos (es también lo que pedía el feedback de la 3.3: separar lo que cuesta el sistema de lo que cuesta medirlo) | 0,5 | El límite se ve en la consola y `CLAUDE.md` §8 dice el peor caso nuevo |
+| B0 | ~~**Límite de gasto** en un espacio de trabajo de la consola de Anthropic para la clave del despliegue, y otra clave en otro espacio para experimentos (es también lo que pedía el feedback de la 3.3: separar lo que cuesta el sistema de lo que cuesta medirlo) | 0,5 | **Hecho el 11-10 (E-0019)**: espacio `tfm-produccion`, 10 USD/mes, clave `tfm-despliegue` en los tres servicios~~. Falta una consulta real que lo confirme en el uso del espacio |
 
 ## Decisiones
 
 1. ~~**B4 manda respuestas reales a Gemini** para que las juzgue.~~ **Decidido
    por Juan el 11-10: sí.** Es una transferencia nueva a otro encargado y
    entra en R-18 y en `RETENCION.md`.
-2. **B6 necesita un almacén externo**: Postgres gratuito de Render (caduca a
+2. ~~**B6 necesita un almacén externo**: Postgres gratuito de Render (caduca a
    los 30 días, que cubren la entrega), Neon (gratuito sin caducidad, cuenta
-   nueva por la app) o seguir en disco efímero y declararlo. **Pendiente.**
+   nueva por la app) o seguir en disco efímero y declararlo.~~ **Render Postgres**, creado el 11-10 (E-0019): `asistente-registro`, Free, PostgreSQL 18, Frankfurt, `REGISTRO_DB_URL` en los tres servicios. **Caduca y se borra el 10-11-2026**, después del 31-10; el código que lo usa está por escribir.
 3. **Orden del bloque C**: con el crédito caducando el 25, C1 y C3 suben antes
    de esa fecha. **Pendiente** de lo demás.

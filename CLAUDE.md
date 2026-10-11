@@ -300,20 +300,20 @@ y §14).
   redistribuirla, y son decenas de MB que git no olvida. Vive en
   `Master/Módulo N/N.X/Documentación/` y se cita desde `docs/MODULO_4.md`. Hay
   una regla en `.gitignore` para que no vuelva a entrar por descuido.
-- **El tope de gasto se ha multiplicado por veinte el 11-10, y hay que volver a
-  ponerlo.** La organización de la API (Juan's Individual Org) queda vinculada a
-  la suscripción Max y recibe **200 USD de crédito promocional que caducan el
-  25-10-2026** (próximo crédito, 23-10), sobre 9,33 USD comprados; recarga
-  automática desactivada. Hasta el 10-10 el tope duro eran ~12 USD y una fuga
-  se agotaba sola en una hora (§16); **ahora el peor caso son ~209 USD**.
-  Arreglo pendiente: un límite de gasto en el espacio de trabajo de la consola
-  para la clave de los servicios desplegados, separada de la de experimentos.
-  **Sigue sin activarse la recarga automática.** Falta comprobar en la consola
-  que las claves del `.env` pertenecen a esa organización (el saldo comprado
-  bajó de 12,66 a 9,33, lo que apunta a que sí). Gemini: 4,30 EUR de prepago;
-  la suscripción Google AI Pro trae 10 USD al mes de crédito de Google Cloud
-  vía Google Developer Program, **sin activar** (AI Studio muestra 0 créditos
-  aptos).
+- **El tope de gasto se rehízo el 11-10 por espacios de trabajo (E-0019).** La
+  organización de la API (Juan's Individual Org) quedó vinculada a la
+  suscripción Max: **200 USD de crédito promocional que caducan el 25-10-2026**
+  (próximo crédito, 23-10) sobre 9,33 USD comprados, recarga automática
+  desactivada. Eso rompía el tope duro de ~12 USD del §16, así que **los tres
+  servicios de Render usan desde el 11-10 la clave `tfm-despliegue`, en el
+  espacio `tfm-produccion` con límite de 10 USD al mes** (se restablece el día
+  1, UTC; la clave caduca el 31-12-2026). Las dos del `.env` (`tfm-sistema`,
+  final `AAA`, y `tfm-juez`, final `QAA`) siguen en el espacio Default sin
+  límite propio: el peor caso de una fuga de una de ellas son los ~209 USD de
+  saldo, y no salen de la máquina. **Sigue sin activarse la recarga
+  automática.** Gemini: 4,30 EUR de prepago más el crédito de Google AI Pro
+  por Google Developer Program, activado el 11-10 (AI Studio: 8,8 EUR aptos;
+  10 USD al mes).
 - **Evaluar cuesta 11 veces más que funcionar**: 0,0278 USD por caso con juez
   frente a 0,00245 USD sin él, y 2,53 USD una pasada completa de los dos
   inquilinos — el 20 % del crédito. La pasada con juez es un acto deliberado, no
