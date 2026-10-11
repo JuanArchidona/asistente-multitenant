@@ -9,13 +9,20 @@
 #   y el startCommand de abajo los escribe a disco antes de arrancar si el
 #   fichero no existe. Sin esa variable, la app arranca con las credenciales de
 #   ejemplo y lo dice en pantalla. Activada el 23-09-2026 (E-0007).
-# - TOPE_GASTO_USD es el tope blando de la interfaz. El duro es el prepago.
+# - TOPE_GASTO_USD es el tope blando de la interfaz. El duro es, desde el
+#   11-10-2026, el limite de 10 USD/mes del espacio tfm-produccion de la consola
+#   de Anthropic, al que pertenece la clave de los tres servicios (E-0019).
+# - Ningun servicio despliega un commit hasta que la CI de GitHub (ruff + pytest,
+#   .github/workflows/ci.yml) lo da en verde: autoDeployTrigger: checksPass, que
+#   sustituye al autoDeploy: true, ya obsoleto en la especificacion. Un push con
+#   un test roto no llega a produccion (docs/PLAN_ENTREGA.md, B1).
 services:
   - type: web
     name: asistente-multitenant
     runtime: python
     region: frankfurt
     plan: free
+    autoDeployTrigger: checksPass
     buildCommand: uv sync --frozen --no-dev --group app
     startCommand: >-
       sh -c 'if [ -n "$APP_USUARIOS_JSON" ] && [ ! -f usuarios.local.json ]; then printf "%s" "$APP_USUARIOS_JSON" > usuarios.local.json; fi;
@@ -63,7 +70,7 @@ services:
     runtime: python
     region: frankfurt
     plan: free
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_whatsapp_servidor
     healthCheckPath: /salud
@@ -119,7 +126,7 @@ services:
     # El nombre es el de la especificacion del blueprint (render.com/docs/
     # blueprint-spec): 'starter' ya no es un valor valido, es 0.5c-512mb.
     plan: 0.5c-512mb
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     buildCommand: uv sync --frozen --no-dev
     startCommand: uv run python -m src.canal_correo_servidor
     healthCheckPath: /salud
