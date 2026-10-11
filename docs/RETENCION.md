@@ -15,6 +15,16 @@
 | Respuesta | **No**: longitud y hash | Es el texto con más probabilidad de arrastrar datos del corpus. `OBS_GUARDAR_RESPUESTA=1` la activa y quien lo hace asume lo que implica |
 | Contexto recuperado | No | Son fragmentos del corpus, que ya están en el índice |
 | Categoría, fuentes, señales de control, latencias, coste | Sí | Es lo que responde a las preguntas de explotación |
+| Versión (commit y huella de los prompts) | Sí | Partir cualquier cifra por versión (`docs/PROMPTS.md`), desde el 11-10-2026 |
+| Calidad de la respuesta | Sí, solo números: citas, citas inventadas, si cita alguna fuente, y el veredicto del juez cuando la consulta cae en la muestra | Saber cómo va en producción sin guardar la respuesta: se evalúa al servir, en memoria (`src/evaluacion_produccion.py`) |
+| Razonamiento del juez | **No** | Podría repetir datos de la respuesta. Se pide un veredicto de tres valores y no un número para que no haga falta leerlo con su razón |
+
+**Una transferencia nueva desde el 11-10-2026.** Con `EVAL_PRODUCCION_FRACCION`
+mayor que cero, la consulta, el contexto recuperado y la respuesta de la
+fracción muestreada se envían al juez (Gemini, con su clave y proyecto
+propios) para que dé su veredicto. Google no los conserva más allá de lo que
+digan sus condiciones de la API de pago; aquí no se guarda nada de lo enviado.
+Decidido por el autor y registrado en R-18 de `RIESGOS.md`.
 
 ## Cuánto tiempo
 

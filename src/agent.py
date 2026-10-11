@@ -28,6 +28,7 @@ from datetime import UTC, date, datetime
 from typing import Self
 
 from .config import Config
+from .evaluacion_produccion import calidad_determinista, juez_desde_config, lanzar, nuevo_id
 from .gobernanza import USUARIO_ANONIMO, Usuario, redactar_json
 from .mcp_cliente import ClienteMCP, recortar_resultado
 from .provider import ChatProvider, get_chat
@@ -347,6 +348,7 @@ class Sistema:
         chat: ChatProvider | None = None,
         usuario: Usuario | None = None,
         registro=None,
+        juez_produccion=None,
     ):
         self.cfg = cfg
         self.chat = chat or get_chat(cfg)
@@ -356,6 +358,11 @@ class Sistema:
         # produccion y "cuanto ha costado atender a este cliente" dejaria de
         # tener respuesta. Lo activa el punto de entrada de produccion.
         self.registro = registro
+        # Evaluación en producción (src/evaluacion_produccion.py): solo donde
+        # hay registro, por el mismo motivo que el registro es opt-in.
+        if juez_produccion is None and registro is not None:
+            juez_produccion = juez_desde_config(cfg)
+        self.juez_produccion = juez_produccion
         # Sin identidad no hay control de acceso. Por defecto, el empleado sin
         # privilegios: el caso que hay que medir es el de quien pide lo que no
         # le corresponde, no el del administrador.
@@ -422,7 +429,22 @@ class Sistema:
         except Exception as error:
             self.registro.anotar_fallo(consulta, usuario.id, error)
             raise
+        # Calidad al servir, sin guardar la respuesta: el verificador de citas
+        # sobre todas, y el juez sobre una fracción en un hilo aparte que deja
+        # su propia línea enlazada por `id_consulta` (PLAN_ENTREGA B4).
+        traza["id_consulta"] = nuevo_id()
+        juez = self.juez_produccion
+        toca = juez is not None and juez.toca()
+        estado_juez = "muestreada" if toca else (juez.estado() if juez else "apagado")
+        if estado_juez == "activo":
+            estado_juez = "no_muestreada"
+        traza["calidad"] = {
+            **(calidad_determinista(traza) or {"citas": "no_aplica"}),
+            "juez": estado_juez,
+        }
         self.registro.anotar(traza, uso.resumen())
+        if toca:
+            lanzar(juez, traza, self.registro, traza["id_consulta"])
         return traza
 
     def _responder(self, consulta: str, usuario: Usuario) -> dict:

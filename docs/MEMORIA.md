@@ -777,7 +777,7 @@ pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
 7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 61
-hallazgos medidos y 1.193 tests.
+hallazgos medidos y 1.205 tests.
 
 ## 4. Evaluación
 
@@ -1089,7 +1089,21 @@ commit desplegado y la huella de los prompts activos, que remite al
 catálogo generado `docs/PROMPTS.md` (cada prompt con su modelo, temperatura
 y la evidencia que lo respalda, vigilado por test como el AIBOM). Así
 cualquier cifra de producción se parte por versión, y un cambio de prompt
-o de modelo se compara antes y después sobre tráfico real. Nadie
+o de modelo se compara antes y después sobre tráfico real.
+
+**Calidad en producción, sin guardar la respuesta.** El banco mide antes de
+desplegar; lo que pasa después lo mide la propia consulta al servirse
+(`src/evaluacion_produccion.py`). Sobre todas, el mismo verificador de
+citas que el banco (§23): cuántos ficheros cita la respuesta, cuántos no
+estaban en lo recuperado y si cita alguna fuente. Sobre una fracción
+aleatoria (`EVAL_PRODUCCION_FRACCION`, 0,5 en el despliegue), un juez de
+otra familia que el generador, en un hilo aparte para no sumar latencia,
+dice si lo que afirma la respuesta está respaldado por su contexto, con un
+veredicto de tres valores (fiel, parcial, no fiel) y no un número, por lo
+que el §30 midió de los números del juez. Al registro solo van los números
+y el veredicto, enlazado a la consulta y con el coste del juez aparte; ni la
+respuesta ni el razonamiento del juez. Mandar la muestra a Gemini es una
+transferencia más, aceptada por el autor y registrada (R-18). Nadie
 recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
 es un límite declarado (capítulo 9).
 
@@ -1471,7 +1485,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.193 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.205 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |

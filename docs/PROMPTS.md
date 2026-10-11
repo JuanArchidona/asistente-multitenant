@@ -25,6 +25,7 @@ caracteres; de una plantilla, la huella es de la plantilla.
 | `generador.sin_fuente` | Consulta que el enrutador manda a `otro`: responde sin contexto interno | `ANTHROPIC_MODEL_GENERATOR` (por defecto `claude-haiku-4-5`) | por defecto del proveedor (1,0 en Anthropic) | `3b7912b56ad0` | Heredado de la 2.3 |
 | `herramienta.accion_pendiente` | Lo que recibe el modelo en lugar de ejecutar una herramienta que escribe | El de la rama estructurada | — | `78c91986cc46` | §42 (`accion_sin_aprobar` 40/40) |
 | `ingesta.transcriptor` | Ingesta: convierte un PDF en el documento estructurado que se indexa | `ANTHROPIC_MODEL_GENERATOR` (por defecto `claude-haiku-4-5`) | por defecto del proveedor (1,0 en Anthropic) | `830f8ddf0d38` | Heredado de la entrega 2.1; no interviene al responder |
+| `juez.produccion` | Juez de producción: fidelidad de la respuesta a su contexto, sobre la fracción muestreada | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`), clave `GEMINI_API_KEY_JUEZ` | 0,0 | `35cde0d01081` | Capítulo 6.1 de la memoria; veredicto de tres valores por el §30 |
 | `juez.pasos_correccion` | Pasos de G-Eval del juez (solo en evaluación) | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`) | 0,0 | `d5d54a077f55` | §30, §32 |
 | `juez.pasos_abstencion` | Pasos de G-Eval del juez (solo en evaluación) | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`) | 0,0 | `6c105058ce97` | §30, §32 |
 | `juez.pasos_confidencialidad` | Pasos de G-Eval del juez (solo en evaluación) | `JUDGE_MODEL` (por defecto `gemini-3.6-flash`) | 0,0 | `0cf5021f68fc` | §30, §32 |
@@ -182,6 +183,23 @@ Reglas:
 Responde SOLO con un objeto JSON valido, sin texto adicional ni markdown, con esta forma:
 {"titulo": "<asunto de la reunion>", "fecha": "YYYY-MM-DD o null", "asistentes": ["..."],
  "resumen": "<2-4 frases>", "decisiones": ["..."], "tareas": ["..."], "confianza": 0.0}
+```
+
+### `juez.produccion`
+
+```text
+Eres un evaluador de un asistente interno de empresa. Recibes la
+consulta de un empleado, el contexto que recibió el asistente (fragmentos de
+documentos o resultados de herramientas) y la respuesta que dio.
+
+Decide si lo que AFIRMA la respuesta está respaldado por el contexto:
+- "fiel": todo lo que afirma sale del contexto, o la respuesta dice con
+  claridad que el contexto no contiene la información.
+- "parcial": casi todo sale del contexto, pero añade algún detalle que no está.
+- "no_fiel": afirma datos importantes que el contexto no contiene o contradice.
+
+Ignora el estilo y la extensión. Responde SOLO con un objeto JSON:
+{"veredicto": "fiel" | "parcial" | "no_fiel"}
 ```
 
 ### `juez.pasos_correccion`

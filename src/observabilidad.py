@@ -160,6 +160,35 @@ class Registro:
                 self.ultimo_error = f"{type(e).__name__}: {e}"
             return None
 
+    def anotar_evaluacion(self, id_consulta: str, resultado: dict) -> dict | None:
+        """Veredicto del juez de producción sobre una consulta ya anotada.
+
+        Línea aparte, enlazada por `id_consulta`, porque el juez corre en otro
+        hilo y termina después de que la consulta se haya registrado. Lleva el
+        veredicto, la latencia y el coste del juez, nunca su razonamiento ni
+        ningún texto de la respuesta (src/evaluacion_produccion.py).
+        """
+        try:
+            registro = {
+                CLAVE_EVALUACION: "juez",
+                "ts": datetime.now(UTC).isoformat(timespec="seconds"),
+                "tenant": self.tenant_id,
+                "id_consulta": id_consulta,
+                **{k: v for k, v in resultado.items() if k not in ("razon", "respuesta")},
+            }
+            if self.version:
+                registro["version"] = self.version
+            with self._lock:
+                self.ruta.parent.mkdir(parents=True, exist_ok=True)
+                with self.ruta.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            return registro
+        except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
+            with self._lock:
+                self.fallos += 1
+                self.ultimo_error = f"{type(e).__name__}: {e}"
+            return None
+
     def anotar_fallo(self, consulta: str, usuario: str, error: BaseException) -> dict | None:
         """Una línea por consulta que no llegó a responder.
 
@@ -351,6 +380,7 @@ def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
 CLAVE_LAPIDA = "_borrado"
 CLAVE_ACCION = "_accion"
 CLAVE_FALLO = "_fallo"
+CLAVE_EVALUACION = "_evaluacion"
 
 
 def _reescribir(ruta: Path, conservar, motivo: dict) -> dict:
@@ -425,16 +455,36 @@ def _percentil(valores: list[float], p: float) -> float:
     return orden[min(len(orden) - 1, round((len(orden) - 1) * p))]
 
 
+def _resumir_calidad(filas: list[dict], evaluaciones: list[dict]) -> dict:
+    """Calidad en producción: citas sobre todas, veredictos del juez sobre la muestra."""
+    con_citas = [r["calidad"] for r in filas if isinstance(r.get("calidad"), dict)
+                 and "citas_inventadas" in r["calidad"]]
+    veredictos: dict[str, int] = {}
+    for e in evaluaciones:
+        veredictos[e.get("veredicto", "?")] = veredictos.get(e.get("veredicto", "?"), 0) + 1
+    juzgables = sum(veredictos.get(v, 0) for v in ("fiel", "parcial", "no_fiel"))
+    return {
+        "consultas_con_algo_que_citar": len(con_citas),
+        "con_cita_inventada": sum(1 for c in con_citas if c["citas_inventadas"]),
+        "sin_citar_ninguna_fuente": sum(1 for c in con_citas if not c["cita_alguna_fuente"]),
+        "juzgadas": len(evaluaciones),
+        "veredictos": veredictos,
+        "tasa_no_fiel": round(veredictos.get("no_fiel", 0) / juzgables, 3) if juzgables else None,
+        "coste_juez_usd": round(sum(e.get("coste_usd") or 0.0 for e in evaluaciones), 6),
+    }
+
+
 def resumir(registros: list[dict]) -> dict:
     """Agrega un log en las cifras que responden a las preguntas de producción."""
     ilegibles = sum(r.get("_ilegible", 0) for r in registros)
     lapidas = [r for r in registros if CLAVE_LAPIDA in r]
     acciones = [r for r in registros if CLAVE_ACCION in r]
     fallos = [r for r in registros if CLAVE_FALLO in r]
+    evaluaciones = [r for r in registros if CLAVE_EVALUACION in r]
     filas = [
         r for r in registros
         if "_ilegible" not in r and CLAVE_LAPIDA not in r and CLAVE_ACCION not in r
-        and CLAVE_FALLO not in r
+        and CLAVE_FALLO not in r and CLAVE_EVALUACION not in r
     ]
     # Consultas que no llegaron a responder, por tipo de error. Aparte de las
     # respondidas: sumarlas a `consultas` bajaría el coste medio y la latencia
@@ -486,6 +536,7 @@ def resumir(registros: list[dict]) -> dict:
         "latencia_p95_s": round(_percentil(lat, 0.95), 3),
         # Separadas a propósito: la primera es casi constante por fuente y la
         # segunda es la que señala a alguien pidiendo lo que no le toca.
+        "calidad": _resumir_calidad(filas, evaluaciones),
         "por_version": por_version,
         "filtro_retuvo_documentos": sum(1 for r in filas if r.get("filtro_retuvo")),
         "sin_acceso_a_lo_pedido": sum(1 for r in filas if r.get("sin_acceso_a_lo_pedido")),

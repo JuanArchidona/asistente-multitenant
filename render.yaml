@@ -37,6 +37,14 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Juez de produccion (src/evaluacion_produccion.py): clave propia, de otro
+      # proyecto de Google que la de los embeddings, para separar lo que cuesta
+      # evaluar; y fraccion de consultas que juzga. Sin la clave, cada linea del
+      # registro dice juez=sin_clave.
+      - key: GEMINI_API_KEY_JUEZ
+        sync: false
+      - key: EVAL_PRODUCCION_FRACCION
+        value: "0.5"
       - key: APP_USUARIOS_JSON
         sync: false
       - key: TOPE_GASTO_USD
@@ -83,6 +91,14 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Juez de produccion (src/evaluacion_produccion.py): clave propia, de otro
+      # proyecto de Google que la de los embeddings, para separar lo que cuesta
+      # evaluar; y fraccion de consultas que juzga. Sin la clave, cada linea del
+      # registro dice juez=sin_clave.
+      - key: GEMINI_API_KEY_JUEZ
+        sync: false
+      - key: EVAL_PRODUCCION_FRACCION
+        value: "0.5"
       - key: WHATSAPP_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_NUMBER_ID
@@ -139,6 +155,14 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Juez de produccion (src/evaluacion_produccion.py): clave propia, de otro
+      # proyecto de Google que la de los embeddings, para separar lo que cuesta
+      # evaluar; y fraccion de consultas que juzga. Sin la clave, cada linea del
+      # registro dice juez=sin_clave.
+      - key: GEMINI_API_KEY_JUEZ
+        sync: false
+      - key: EVAL_PRODUCCION_FRACCION
+        value: "0.5"
       - key: CORREO_USUARIO
         sync: false
       - key: CORREO_CONTRASENA

@@ -26,7 +26,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import agent, router, transcriber
+from . import agent, evaluacion_produccion, router, transcriber
 from .config import Config
 from .tenant import Tenant
 
@@ -121,6 +121,14 @@ def catalogo(tenants: list[Tenant]) -> list[Prompt]:
             "Ingesta: convierte un PDF en el documento estructurado que se indexa",
             _GENERADOR, _TEMP_GEN, transcriber.SYSTEM_TRANSCRIPTOR,
             "Heredado de la entrega 2.1; no interviene al responder",
+        ),
+        Prompt(
+            "juez.produccion",
+            "Juez de producción: fidelidad de la respuesta a su contexto, sobre la fracción muestreada",
+            "`JUDGE_MODEL` (por defecto `gemini-3.6-flash`), clave `GEMINI_API_KEY_JUEZ`",
+            "0,0",
+            evaluacion_produccion.SYSTEM_JUEZ_PRODUCCION,
+            "Capítulo 6.1 de la memoria; veredicto de tres valores por el §30",
         ),
     ]
     return prompts
