@@ -5,6 +5,88 @@
 > `BITACORA_3.3.md`.
 
 
+## 2026-10-11 — Sesión 14: llega el Módulo 5, no hay defensa, y el plan de entrega se ejecuta casi entero en un día
+
+**27 commits, 7 hallazgos (§60-§66), 1.239 tests** (JUnit; la sesión empezó
+en 1.183). Coste en modelos: unos 2,1 USD del red-teaming, 0,24 USD de las
+conversaciones de memoria, céntimos del resto; con cargo al crédito de 200 USD
+de la suscripción Max, que caduca el 25-10.
+
+**Hecho:**
+
+- **Módulo 5 leído** (E-0018): la app recorrió el campus entero y Claude Code
+  transcribió en local la tutoría del 6-10 con Whisper (`scripts/transcribir_material.py`,
+  grupo `material`; 2 h de vídeo en 1 h 05 min de CPU). `docs/MODULO_5.md`:
+  **no hay defensa**, se entrega un documento de decisiones antes del 31-10 a
+  las 12 de la noche (idealmente el 27), se puede reentregar con feedback y
+  cuenta la mejor; criterios en tres tramos y corrección módulo a módulo,
+  "como una skill".
+- **Plan de entrega** (`docs/PLAN_ENTREGA.md`), construido con tres
+  inventarios del material de los módulos 1-3 contra el repo.
+- **Bloque A, la memoria**: guía de lectura por módulos, **capítulo 3.5
+  sobre el desarrollo con copiloto** (reparto honesto, decisiones de Juan,
+  reglas con su mecanismo, errores que el método cazó; Juan lo leyó y lo
+  aprobó), 10.2 sin defensa, métricas del recuperador en 4.2, Langfuse/opik
+  en 6.1, modelo abierto frente a API con punto de equilibrio, seis
+  exclusiones razonadas, anexo B generado y vigilado por test, tablas que se
+  parten entre páginas (35 páginas).
+- **Bloque B, el tramo 9-10**: tope de gasto rehecho por espacios tras el
+  crédito de Max (E-0019, clave `tfm-despliegue` con 10 USD/mes), despliegue
+  condicionado a la CI (§60), `pip-audit` en la CI (§61), catálogo de
+  prompts con versión en cada traza, evaluación de la calidad en producción
+  sin guardar la respuesta (§62), registro persistente en Postgres, plan B
+  ante caída del proveedor (§63). Usuarios `eval_*` para quien corrija
+  (E-0020).
+- **Bloque C**: red-teaming con DeepTeam (§65), recuperación híbrida (§64,
+  nulo), memoria entre turnos (§66), **activada en la web** y verificada en
+  producción (E-0021).
+- **Dos arreglos de interfaz** que encontró la app en E-0021: contador
+  lateral desfasado y "Retenido por permiso" que desaparecía del historial.
+
+**Decisiones:**
+
+- **No hay presentación** (Juan): la sección de defensa de la memoria pasa a
+  "cómo lo comprueba un tercero".
+- **Capítulo de copiloto honesto** (Juan lo pidió y aprobó): el copiloto
+  escribió el código y los documentos; el autor puso el producto, las
+  reglas, las decisiones y la revisión. Corregida la frase de 1.3 que le
+  atribuía en solitario las expectativas del banco.
+- **Evaluar en producción con el juez de Gemini** aceptando la transferencia
+  (Juan); **Render Postgres y no Neon** para el registro, porque Render ya es
+  encargado del tratamiento.
+- **Memoria entre turnos activa en la web** (Juan), por el blueprint.
+- **Conmutación automática de proveedor descartada** con números (§63, §57).
+- **No rotar claves** y no volver a recordarlo (Juan): él gestiona dónde las guarda.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Lectura final de la memoria** con los recuentos rehechos por comando,
+      regenerar el PDF y **primera entrega hacia el 20-10** (la sube Juan o la
+      app con él).
+- [ ] Tras el feedback: B7 (alertas), B8 (deriva), C4 (modelo abierto local
+      como enrutador), C5 (clasificador entrenado), C6 (escala de Chroma),
+      C7 (enmascarado). El crédito de Anthropic caduca el 25-10.
+- [ ] Opcional: `eval_gestor` y `eval_socio` para que quien corrija pruebe la
+      gestoría.
+- [ ] Entrega definitiva el 27-10; tras el 31-10, apagar servicios (CLAUDE.md §8).
+
+**Notas:**
+
+- **Tres veces el mismo fallo de presupuesto de salida**: el juez de
+  producción con 64 tokens (§62), el envoltorio de DeepEval con 1.024 (§65) y,
+  en el fondo, modelos que piensan antes de responder. Con un modelo que
+  razona, el límite de salida incluye el razonamiento.
+- **Una herramienta de evaluación puede aprobar sin medir**: Gemini devolvía
+  su negativa como ataque y DeepTeam la contaba como superado (§65).
+- Al construir el PDF se sobrescribió el de la entrega 3.3 (salida por
+  defecto del script heredado); restaurado desde git y cambiados los valores
+  por defecto.
+- La URL de Postgres que se pegó en el `.env` era la interna; la externa
+  lleva `.frankfurt-postgres.render.com`.
+- Los heredocs con apóstrofos rompen la shell del entorno: los textos largos
+  van por fichero.
+
+
 ## 2026-10-10 — Sesión 13: el Módulo 4 se entrega desde el TFM y el puente pierde tres fallos
 
 **3 commits, 0 hallazgos nuevos, 1.183 tests** (JUnit). Coste en modelos:

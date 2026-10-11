@@ -31,7 +31,7 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-10-10)
+## 2. Estado (2026-10-11)
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
@@ -65,6 +65,16 @@ servicio público desplegado. **1239 tests en verde** (con el grupo `langgraph`;
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
+| Plan hasta la entrega | **`docs/PLAN_ENTREGA.md`** (11-10): bloques A (documento), B (tramo 9-10) y C (materias del máster como experimentos medidos), calendario con primera entrega hacia el 20-10 y definitiva el 27-10. Hechos el 11-10: A1-A7, B0-B6, C1-C3 |
+| Despliegue condicionado a la CI | **Hecho y medido** el 11-10 (§60): `autoDeployTrigger: checksPass` en los tres servicios, vigilado por test; un commit rojo se quedó fuera más de 4 min, los verdes desplegaron en 77 y 109 s |
+| Auditoría de dependencias | **Hecha** el 11-10 (§61): `pip-audit` en la CI sobre lo desplegado; 23 vulnerabilidades en 6 paquetes, 18 cerradas subiendo versiones, 5 de chromadb (modo servidor) como excepción escrita |
+| PromptOps | **Hecho** el 11-10: `docs/PROMPTS.md` generado y vigilado por test (16 prompts, juez incluido); commit y huella de los prompts activos en cada línea del registro y cada `resumen.json` |
+| Calidad en producción | **Hecha y medida** el 11-10 (§62, §66): verificador de citas sobre el 100 % y juez de Gemini sobre la mitad (`EVAL_PRODUCCION_FRACCION=0.5`) al servir, sin guardar la respuesta; el primer veredicto salió ilegible por un límite de tokens (corregido) y los siguientes, fiel |
+| Registro de producción persistente | **Hecho** el 11-10: Postgres gratuito de Render `asistente-registro` (caduca el 10-11), misma supresión y purga con lápida; `observabilidad_cli` lo lee con `REGISTRO_DB_URL_EXTERNA` |
+| Plan B ante caída del proveedor | **Hecho y medido** el 11-10 (§63): mensaje determinista con el `contacto_alternativo` del manifiesto en los tres canales; 6 s con clave revocada, 13 s con proveedor inalcanzable; conmutación automática decidida en contra |
+| Recuperación híbrida | **Medida** el 11-10 (§64): nulo, BM25 solo es peor y RRF empata; se queda la densa. Destapó que los fallos de recuperación de la agencia son de enrutado |
+| Red-teaming con herramienta | **Hecho** el 11-10 (§65): DeepTeam, 64 ataques, ninguna fuga por criterio determinista, pero solo 7 llegaron al control (7 de 7 retenidos); tres defectos de la herramienta cazados (el peor, negativas del atacante contadas como ataques superados) |
+| Memoria entre turnos | **Hecha, medida y activa en la web** el 11-10 (§66): reescritura de la consulta con `MEMORIA_TURNOS=reescritura`; 8 de 12 seguimientos sin memoria, 11 de 12 con ella, +0,8 s; verificada en producción por la app (E-0021) |
 | Enunciado y criterios del TFM (Módulo 5) | **Leídos el 11-10** (E-0018 y grabación de la tutoría del 6-10 transcrita en local): `docs/MODULO_5.md`, con la tabla de lo que pide cada módulo contra la memoria y siete huecos ordenados. Sin defensa; entrega antes del 31-10 |
 | Cadena de suministro (AIBOM) y plan de incidentes | **Hecho y simulado** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35) y `docs/INCIDENTES.md` pulsado en frío con `scripts/simulacro_incidente.py`: **14,95 s** el botón rojo, y destapó que las consultas fallidas no dejaban rastro en el registro (§46, corregido) |
 | Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
@@ -148,6 +158,12 @@ src/
   router.py       Enrutador (prompt construido desde el manifiesto)
   orquestacion_langgraph.py   El mismo sistema encadenado por LangGraph, solo para la comparativa (§50)
   retriever.py    Recuperación filtrada por fuente y por permiso
+  prompts.py      Catálogo de prompts y versión (commit + huella) sellada en cada traza
+  citas.py        Verificador determinista de citas, compartido por el banco y producción
+  evaluacion_produccion.py   Calidad al servir: citas sobre todas, juez sobre una muestra
+  registro_db.py  Copia persistente del registro en Postgres (SQLite en pruebas)
+  fallos.py       Clase del fallo y mensaje al usuario con el contacto del inquilino
+  memoria.py      Memoria entre turnos por reescritura de la consulta
   provider.py     Abstracción de proveedor, con tool-calling
 evals/            Banco: datasets por inquilino, métricas, runner, barrido
 reports/          Evidencia de cada ejecución
@@ -202,6 +218,12 @@ uv run python scripts/generar_prompts.py               # regenera el catálogo d
 uv run python scripts/simulacro_incidente.py           # botón rojo en frío: ~15 s y una consulta real (§46)
 uv run python scripts/prueba_carga.py --remoto         # puerta HTTP de Render, coste cero (§53)
 uv run python scripts/prueba_carga.py --local --agencia --etiqueta X   # pipeline bajo concurrencia, ~0,12 USD (§53)
+uv run python -m evals.conversaciones --etiqueta X     # memoria entre turnos, 12 conversaciones, ~0,12 USD (§66)
+uv run python -m evals.hibrido --etiqueta X            # densa frente a BM25 y RRF, solo embeddings (§64)
+uv run --with deepteam==1.0.9 --with sentry-sdk python scripts/red_team.py --tenant X --etiqueta Y --por-tipo 2   # red-teaming, ~1 USD por inquilino (§65)
+uv run python scripts/generar_anexo_b.py               # regenera el anexo B de la memoria (el test lo vigila)
+uv run python docs/entrega/construir_pdf.py            # memoria -> docs/entrega/TFM_Juan_Archidona.pdf (ignorado por git)
+uv run python scripts/transcribir_material.py --entrada URL --salida RUTA --referer URL   # vídeos del máster, fuera del repo (uv sync --group material)
 TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E
 node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app, con la orden en la caja
 node puente/avisos.mjs --listar                        # avisos de la app; el hook los inyecta solo
@@ -240,8 +262,13 @@ y §14).
   sistema y token permanente; buzón de Gmail dedicado del canal de correo;
   facturación de Google en los dos proyectos de Gemini (sistema y juez) con
   tope de 5 EUR cada uno; crédito de prepago de Anthropic (recarga automática
-  desactivada a propósito, §16). Decidido por Juan el 27-09. La lista se
-  cierra el día de la entrega, no antes: hasta la defensa hacen falta vivos.
+  desactivada a propósito, §16). Añadidos el 11-10: Postgres gratuito
+  `asistente-registro` en Render (caduca el 10-11), espacio `tfm-produccion`
+  de la consola de Anthropic con su clave `tfm-despliegue` (caduca el 31-12),
+  beneficio de Google Developer Program aplicado a la cuenta de facturación
+  de Gemini y los cuatro usuarios `eval_*` de la web. Decidido por Juan el
+  27-09. La lista se cierra el día de la entrega, no antes: hasta entonces
+  hacen falta vivos.
 - **Opus por defecto desde el 27-09**; Fable solo para revisiones hostiles
   de la memoria, diagnósticos sin traza y decisiones de línea base, y se
   avisa antes de empezar.
