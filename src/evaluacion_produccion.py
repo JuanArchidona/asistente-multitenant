@@ -106,9 +106,12 @@ class JuezProduccion:
             ensure_ascii=False,
         )
         t0 = time.perf_counter()
+        # Sin recortar `max_tokens`: Gemini piensa antes de responder y el
+        # pensamiento cuenta contra ese límite. Con 64, el primer veredicto real
+        # llegó cortado ('{"veredic') y se anotó como ilegible (§62).
         with self.chat.uso.por_consulta() as uso:
             bruto = self.chat.completar(
-                SYSTEM_JUEZ_PRODUCCION, usuario, self.modelo, max_tokens=64, temperature=0.0
+                SYSTEM_JUEZ_PRODUCCION, usuario, self.modelo, temperature=0.0
             )
         resultado = {
             "veredicto": _veredicto(bruto),

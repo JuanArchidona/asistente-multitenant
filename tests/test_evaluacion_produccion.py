@@ -27,9 +27,11 @@ class _ChatJuez(ChatProvider):
         super().__init__()
         self.salida = salida
         self.recibido: list[str] = []
+        self.max_tokens: list[int] = []
 
     def completar(self, system, user, model, max_tokens=1024, temperature=None):
         self.recibido.append(user)
+        self.max_tokens.append(max_tokens)
         self.uso.registrar(model, 100, 5)
         return self.salida
 
@@ -73,6 +75,14 @@ def test_el_juez_da_un_veredicto_de_tres_valores_y_lo_demas_es_ilegible():
     assert _juez('```json\n{"veredicto": "fiel"}\n```').juzgar(_traza("x"))["veredicto"] == "fiel"
     assert _juez("0.8").juzgar(_traza("x"))["veredicto"] == "ilegible"
     assert _juez('{"veredicto": "excelente"}').juzgar(_traza("x"))["veredicto"] == "ilegible"
+
+
+def test_el_juez_no_recorta_la_salida():
+    """Con 64 tokens, Gemini gastaba el presupuesto pensando y el veredicto
+    llegaba cortado: el primero de producción fue 'ilegible' (§62)."""
+    juez = _juez('{"veredicto": "fiel"}')
+    juez.juzgar(_traza("x"))
+    assert juez.chat.max_tokens == [1024]
 
 
 def test_sin_contexto_el_juez_no_se_llama():

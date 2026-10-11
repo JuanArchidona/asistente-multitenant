@@ -4297,3 +4297,50 @@ evaluación ni material, que no salen de la máquina del autor. La base de
 datos de vulnerabilidades es la de PyPA: lo que no está publicado allí no
 se ve. `--no-deps` sobre un export sin hashes confía en las versiones del
 lock, que es lo que se quiere auditar.
+
+## 62. Las primeras consultas reales con el registro persistente y la evaluación al servir: 3 de 3 sin citas inventadas, la versión en cada línea, y un juez que no veía su propio veredicto
+
+**Ejecución:** encargo E-0020 (11-10-2026, 13:53-13:57 hora de Madrid, app de
+Claude con Juan delante; aviso A-0022). Servicio `asistente-multitenant`
+desplegado en `789ca39`. Tres consultas reales con los usuarios de
+evaluación, leídas después desde la máquina del autor en el Postgres de
+producción (`src/registro_db.py`). Coste: 0,0063 USD del sistema y 0,00097
+USD del juez. Sin carpeta en `reports/`: la evidencia son las líneas de la
+base, copiadas aquí sin consultas ni respuestas.
+
+**Qué se quería.** Ver funcionar juntos, sobre tráfico real, tres cosas
+construidas el mismo día y probadas solo con dobles: el registro persistente
+(B6), la versión sellada en cada línea (B3) y la evaluación de la calidad al
+servir (B4). Y de paso, la primera llamada real con la clave `tfm-despliegue`
+del espacio con límite de gasto (E-0019).
+
+| Consulta | Usuario | Resultado | Coste | Latencia | Calidad determinista | Juez |
+|---|---|---|---|---|---|---|
+| Vacaciones | `eval_empleado` | Responde 23 días citando el convenio | 0,00204 USD | 4,66 s | 1 cita, 0 inventadas | No muestreada |
+| Salario de una empleada | `eval_empleado` | Denegada, "Retenido por permiso" | 0,00191 USD | 3,13 s | 0 citas de fichero, cita alguna fuente | No muestreada |
+| La misma | `eval_direccion` | Responde citando el anexo confidencial | 0,00236 USD | 3,29 s | 1 cita, 0 inventadas | Muestreada: **`ilegible`** |
+
+**Lo que funcionó.** Las tres líneas llegaron a Postgres y se leen desde
+fuera; las tres llevan `789ca39/cff60c514dff` (commit y huella de los
+prompts), y `observabilidad_cli` las agrupa por versión. El control de
+acceso, el mismo que en el bloque 2 de `GUION_DEMO.md`. La clave nueva
+funciona: las consultas tienen coste y la consola muestra uso en el espacio
+`tfm-produccion`. La línea del juez llegó aparte, enlazada por `id_consulta`,
+con su coste separado y sin texto de la respuesta.
+
+**Lo que no.** El único veredicto fue `ilegible`. Reproducido en local con la
+clave del juez: con `max_tokens=64`, `gemini-3.6-flash` gasta el presupuesto
+de salida pensando y devuelve `'{"veredic'`; con el límite del sistema
+(1024) devuelve `{"veredicto": "fiel"}`, por 0,000205 USD frente a
+0,000182. El límite de 64 lo puse para abaratar y lo que hizo fue romperlo
+sin hacer ruido en las pruebas, que usan un doble que no piensa. El diseño
+de no esconder nada hizo su trabajo: un veredicto ilegible se anota como
+tal y no como "fiel" ni como ausencia. Corregido el mismo día, con una
+prueba que impide volver a recortar el límite.
+
+**Límites.** Tres consultas, una juzgada: esto demuestra que la tubería
+funciona, no mide la calidad de producción. El tráfico real del despliegue
+es el de las pruebas del autor y de quien corrija. La URL que se puso en el
+`.env` local era la interna de Render, que solo se resuelve dentro de su
+red; se leyó con la externa, que usa las mismas credenciales con el sufijo
+`.frankfurt-postgres.render.com`.
