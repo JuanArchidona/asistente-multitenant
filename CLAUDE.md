@@ -300,11 +300,20 @@ y §14).
   redistribuirla, y son decenas de MB que git no olvida. Vive en
   `Master/Módulo N/N.X/Documentación/` y se cita desde `docs/MODULO_4.md`. Hay
   una regla en `.gitignore` para que no vuelva a entrar por descuido.
-- **El tope de gasto ya existe y el riesgo se ha invertido.** La cuenta es de
-  prepago, 12,66 USD de crédito y **recarga automática desactivada**: es un tope
-  duro y el peor caso de una fuga se agota solo en una hora. Lo que hay que
-  vigilar ahora es lo contrario, quedarse sin crédito en la defensa. **No activar
-  la recarga automática**: es lo único que rompería el tope. Ver §16.
+- **El tope de gasto se ha multiplicado por veinte el 11-10, y hay que volver a
+  ponerlo.** La organización de la API (Juan's Individual Org) queda vinculada a
+  la suscripción Max y recibe **200 USD de crédito promocional que caducan el
+  25-10-2026** (próximo crédito, 23-10), sobre 9,33 USD comprados; recarga
+  automática desactivada. Hasta el 10-10 el tope duro eran ~12 USD y una fuga
+  se agotaba sola en una hora (§16); **ahora el peor caso son ~209 USD**.
+  Arreglo pendiente: un límite de gasto en el espacio de trabajo de la consola
+  para la clave de los servicios desplegados, separada de la de experimentos.
+  **Sigue sin activarse la recarga automática.** Falta comprobar en la consola
+  que las claves del `.env` pertenecen a esa organización (el saldo comprado
+  bajó de 12,66 a 9,33, lo que apunta a que sí). Gemini: 4,30 EUR de prepago;
+  la suscripción Google AI Pro trae 10 USD al mes de crédito de Google Cloud
+  vía Google Developer Program, **sin activar** (AI Studio muestra 0 créditos
+  aptos).
 - **Evaluar cuesta 11 veces más que funcionar**: 0,0278 USD por caso con juez
   frente a 0,00245 USD sin él, y 2,53 USD una pasada completa de los dos
   inquilinos — el 20 % del crédito. La pasada con juez es un acto deliberado, no

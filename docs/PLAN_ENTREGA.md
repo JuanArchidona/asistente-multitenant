@@ -120,13 +120,36 @@ nombra. C1 y C2 entran antes de la primera entrega porque cubren materias que
 el enunciado o el programa nombran y son baratas. El resto, después del
 feedback.
 
-## Decisiones pendientes de Juan
+## Presupuesto (11-10)
 
-1. **B4 manda respuestas reales a Gemini** para que las juzgue: es una
-   transferencia nueva a otro encargado (R-18). La alternativa sin
-   transferencia es quedarse solo con el verificador determinista sobre el
-   100 %.
+- **Anthropic: 200 USD de crédito promocional de la suscripción Max, que
+  caducan el 25-10-2026**, más 9,33 USD comprados. Lo que no se gaste antes del
+  25 se pierde, así que los experimentos que más API consumen (C1, C3, pasadas
+  completas con juez, repeticiones) van **antes del 25**, no después del
+  feedback. Una pasada completa de los bancos con juez costaba 2,53 USD (§21):
+  el crédito deja de ser la restricción; el tiempo sí lo es.
+- **El crédito rompe el tope duro** (`CLAUDE.md` §8): tarea previa a todo lo
+  demás, poner un límite de gasto en la consola para la clave de los servicios
+  desplegados (tarea B0).
+- **Gemini: 4,30 EUR de prepago.** Basta para el juez de producción (B4):
+  ~0,00076 USD por evaluación, unas 5.000 evaluaciones. La suscripción Google
+  AI Pro añade 10 USD al mes de crédito de Google Cloud si se activa en Google
+  Developer Program y se asocia a la cuenta de facturación; con saldo de
+  prepago positivo, el crédito apto se consume antes que el prepago.
+- **El juez sigue siendo Gemini** aunque sobre crédito de Anthropic: la
+  independencia de familia (§24, §32) es una decisión de línea base.
+
+| # | Tarea | Horas | Terminado cuando |
+|---|---|---|---|
+| B0 | **Límite de gasto** en un espacio de trabajo de la consola de Anthropic para la clave del despliegue, y otra clave en otro espacio para experimentos (es también lo que pedía el feedback de la 3.3: separar lo que cuesta el sistema de lo que cuesta medirlo) | 0,5 | El límite se ve en la consola y `CLAUDE.md` §8 dice el peor caso nuevo |
+
+## Decisiones
+
+1. ~~**B4 manda respuestas reales a Gemini** para que las juzgue.~~ **Decidido
+   por Juan el 11-10: sí.** Es una transferencia nueva a otro encargado y
+   entra en R-18 y en `RETENCION.md`.
 2. **B6 necesita un almacén externo**: Postgres gratuito de Render (caduca a
    los 30 días, que cubren la entrega), Neon (gratuito sin caducidad, cuenta
-   nueva por la app) o seguir en disco efímero y declararlo.
-3. **Orden del bloque C** tras la primera entrega, si el feedback no lo decide.
+   nueva por la app) o seguir en disco efímero y declararlo. **Pendiente.**
+3. **Orden del bloque C**: con el crédito caducando el 25, C1 y C3 suben antes
+   de esa fecha. **Pendiente** de lo demás.
