@@ -20,7 +20,7 @@ este repositorio es público. Vive en
 | `Repaso y gestión de proyectos.pptx` / `.pdf` | Diapositivas de la sesión del 6-10 (34), exportadas de Google Slides |
 | `Tutoria_2026-10-06_vimeo_1233612760_es-autogen.vtt` | Subtítulos automáticos de Vimeo, 1.594 entradas |
 | `Tutoria_2026-10-06_transcripcion.txt` | Los mismos subtítulos agrupados por minuto (la app) |
-| `Tutoria_2026-10-06_whisper.*` | Transcripción propia con `scripts/transcribir_material.py` (Whisper `large-v3-turbo` en CPU), para contrastar los pasajes de fechas y criterios |
+| `Tutoria_2026-10-06_whisper.*` | Transcripción propia con `scripts/transcribir_material.py` (Whisper `large-v3-turbo`, int8, 16 núcleos de CPU): 7.152 s de audio en 3.892 s, 0,54 veces la duración, sin GPU ni servicio externo. Resuelve la hora de entrega que los subtítulos dejaban ambigua |
 
 La grabación dura 1 h 59 min. De ella interesan los primeros 5 minutos
 (calendario y entrega) y el tramo 1:07-1:26 (qué se evalúa); el resto es
@@ -39,8 +39,10 @@ formato nunca se confirmó (`TUTORIA_2026-09-22.md`, pregunta 8). Lo que hay:
   al repositorio, a un flujo de n8n o a cualquier artefacto que evidencie el
   trabajo. El tutor, en la grabación (1:12): «en esencia es un documento de
   vuestras decisiones. Ese es el entregable mínimo».
-- **Plazo: el 31 de octubre**, que es el cierre de actas, aceptado «hasta
-  última hora». El tutor pide **idealmente el 27**, día de la sesión de
+- **Plazo: el 31 de octubre a las 12 de la noche**, que es el cierre de actas
+  («antes del 31 a las 12 de la noche», 0:01:14 en la transcripción de
+  Whisper; los subtítulos de Vimeo decían «12:00 p.m.» y luego «a.m.»). El
+  tutor pide **idealmente el 27**, día de la sesión de
   cierre, para tener margen de ver la evaluación. Las tutorías se pueden
   pedir hasta el 31. La tarea del campus no muestra fecha.
 - **Se puede entregar varias veces.** Cada entrega recibe feedback y
@@ -87,7 +89,7 @@ Resumen del enunciado y de las diapositivas 30-33, con dónde lo cubre
 | 1 | Costes anticipados según niveles de uso | 5.4 | Cubierto: ficha por consultas al mes y por tipo de inquilino |
 | 2 | Flujo de acciones, niveles de autonomía e intervención humana | 2.1, 2.6, HITL (§42) | Cubierto |
 | 2 | Por qué el framework, controles intermedios | 3.1, 3.2, 2.7 | Cubierto y medido (§50) |
-| 2 | **Si se usaron copilotos, cómo se integraron las instrucciones y la cadena de desarrollo** | Dos menciones (líneas 140 y 984) | **Hueco**: el enunciado lo pide expresamente y la memoria lo despacha en dos frases |
+| 2 | **Si se usaron copilotos, cómo se integraron las instrucciones y la cadena de desarrollo** (en la grabación, 1:23:50: si el proyecto es solo software, «explicarme cómo habéis utilizado copilotos para generar ese software») | Dos menciones (líneas 140 y 984) | **Hueco**: el enunciado lo pide expresamente y la memoria lo despacha en dos frases |
 | 2 | Cómo un proceso de negocio se aterriza en proceso técnico | 1.1, 1.4 | Cubierto |
 | 3 | Despliegue | 6.3, 2.9 | Cubierto: web, WhatsApp y correo, con autenticación |
 | 3 | Cómo se evalúa ahora: tests y LLM como juez, o algún evaluador no subjetivo | 4 | Cubierto de sobra: banco, juez evaluado, métricas deterministas |
