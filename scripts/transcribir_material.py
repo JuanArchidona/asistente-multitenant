@@ -2,7 +2,7 @@
 
     uv sync --group material
     uv run python scripts/transcribir_material.py --entrada "https://..." \
-        --salida "../../Módulo 5/Grabaciones/tutoria_2026-10-06" [--cookies-chrome]
+        --salida "../../Módulo 5/Grabaciones/tutoria_2026-10-06" [--cookies-chrome] [--referer URL]
     uv run python scripts/transcribir_material.py --entrada video.mp4 --salida ...
 
 Existe porque la app de Claude puede navegar el campus pero no escuchar un
@@ -37,7 +37,7 @@ def _dentro_del_repo(ruta: Path) -> bool:
         return False
 
 
-def descargar_audio(url: str, destino: Path, cookies_chrome: bool) -> Path:
+def descargar_audio(url: str, destino: Path, cookies_chrome: bool, referer: str | None) -> Path:
     import imageio_ffmpeg
     import yt_dlp
 
@@ -50,6 +50,9 @@ def descargar_audio(url: str, destino: Path, cookies_chrome: bool) -> Path:
     }
     if cookies_chrome:
         opciones["cookiesfrombrowser"] = ("chrome",)
+    if referer:
+        # Un video de Vimeo incrustado solo se sirve a la pagina que lo incrusta.
+        opciones["http_headers"] = {"Referer": referer}
     with yt_dlp.YoutubeDL(opciones) as ydl:
         info = ydl.extract_info(url, download=True)
         return Path(ydl.prepare_filename(info))
@@ -106,6 +109,7 @@ def main() -> int:
     p.add_argument("--modelo", default="large-v3-turbo")
     p.add_argument("--idioma", default="es", help="'auto' para detectarlo")
     p.add_argument("--cookies-chrome", action="store_true")
+    p.add_argument("--referer", help="Pagina que incrusta el video (Vimeo la exige)")
     args = p.parse_args()
 
     salida = Path(args.salida)
@@ -115,7 +119,7 @@ def main() -> int:
     salida.parent.mkdir(parents=True, exist_ok=True)
 
     if args.entrada.startswith(("http://", "https://")):
-        audio = descargar_audio(args.entrada, salida, args.cookies_chrome)
+        audio = descargar_audio(args.entrada, salida, args.cookies_chrome, args.referer)
     else:
         audio = Path(args.entrada)
         if not audio.exists():

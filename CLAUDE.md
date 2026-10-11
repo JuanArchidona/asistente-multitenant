@@ -22,7 +22,8 @@ entrada → clasificador → recuperación (documental | estructurada)
 ```
 
 Es el Trabajo Fin de Máster de Juan Archidona Ahijado (Máster en IA Generativa
-Avanzada, The Bridge). Se defiende en **octubre de 2026**.
+Avanzada, The Bridge). Se entrega como documento **antes del 31-10-2026**,
+idealmente el 27, con entregas repetibles y feedback (`docs/MODULO_5.md`).
 
 El criterio con el que se evalúa, del programa del máster: *"el objetivo del
 proyecto no está únicamente en que el sistema funcione, sino en justificar cada
@@ -64,6 +65,7 @@ servicio público desplegado. **1183 tests en verde** (con el grupo `langgraph`;
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
+| Enunciado y criterios del TFM (Módulo 5) | **Leídos el 11-10** (E-0018 y grabación de la tutoría del 6-10 transcrita en local): `docs/MODULO_5.md`, con la tabla de lo que pide cada módulo contra la memoria y siete huecos ordenados. Sin defensa; entrega antes del 31-10 |
 | Cadena de suministro (AIBOM) y plan de incidentes | **Hecho y simulado** el 23-09: `docs/AIBOM.md` generado y vigilado por test (destapó el §35) y `docs/INCIDENTES.md` pulsado en frío con `scripts/simulacro_incidente.py`: **14,95 s** el botón rojo, y destapó que las consultas fallidas no dejaban rastro en el registro (§46, corregido) |
 | Retención y supresión del registro de producción | **Hecho y medido** el 23-09: `docs/RETENCION.md` (90 días, respuesta no guardada), `observabilidad_cli --borrar-usuario` y `--purgar-dias` con lápida; décimas de segundo sobre 10.000 líneas (§37) |
 | Consumo de embeddings contabilizado | **Hecho** el 23-09: exacto en la ingesta (2.724 y 3.027 tokens por corpus), estimado en la consulta (14 tokens de media); aparte de los totales del chat y sin precio publicado (§37) |
@@ -154,6 +156,7 @@ docs/
   HALLAZGOS.md    Hallazgos medidos, con la ejecución que los respalda
   RIESGOS.md      Registro de riesgos: Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia
   MODULO_4.md     Qué aporta el Módulo 4 y qué falta; artículo 6 con citas
+  MODULO_5.md     Enunciado y criterios del TFM contra la memoria; huecos y calendario de entrega
   AIBOM.md        Inventario generado (scripts/generar_aibom.py); no se edita
   INCIDENTES.md   Plan de respuesta: botón rojo, quién avisa, qué se registra
   RETENCION.md    Política del registro de producción: 90 días, supresión con lápida
@@ -249,9 +252,10 @@ y §14).
   `fuga_literal` citado desde trazas anteriores a la gobernanza). Regla que
   sale de las dos: **cada vez que la memoria absorbe un hallazgo nuevo, los
   recuentos globales (hallazgos, tests, paquetes, bloques de la demo) se
-  recuentan con el comando, no se editan a mano.** Los tests, con `uv run pytest --junitxml=...` y no con la barra de progreso, que suma caracteres de la línea de cierre (27-09). Lo que le falta no es
-  trabajo de código: el formato de la defensa. La rúbrica, cuando
-  llegue, puede reordenar capítulos; las cifras no cambian.
+  recuentan con el comando, no se editan a mano.** Los tests, con `uv run pytest --junitxml=...` y no con la barra de progreso, que suma caracteres de la línea de cierre (27-09). Lo que le falta,
+  desde el 11-10, son los huecos ordenados de `docs/MODULO_5.md`: el
+  mapa de módulo a capítulo, el desarrollo con copilotos y el 10.2
+  reescrito sin defensa; las cifras no cambian.
 - **LangGraph está medido y descartado como orquestador por defecto** (§50):
   mismas llamadas y mismos tokens de entrada que la línea base, +0,011 s, y a
   cambio 95 líneas de orquestación frente a 21 y 14 paquetes. La comparación
@@ -268,16 +272,19 @@ y §14).
   y el **enunciado y la rúbrica llegan al desbloquearse el Módulo 5, al acabar
   el 4, en 2-3 semanas** (en torno al 6-13 de octubre). El planteamiento del
   proyecto le pareció bien tal cual.
-- **Lo que sigue sin saberse:** el **formato de la defensa** —duración, si hay
-  demo en vivo, si hay tribunal— no se abordó, y de eso depende si hace falta
-  dejar el despliegue público funcionando o basta con una grabación.
-- **La rúbrica llega tarde para decidir línea base, y eso cambia la
-  estrategia.** Entre que aparece (6-13 de octubre) y la defensa (finales de
-  mes) hay una o dos semanas. Tomar en esa ventana una decisión que **invalida
-  la comparación con las ejecuciones anteriores** no deja tiempo de volver a
-  medir. Por eso las decisiones de línea base **se toman ahora**: lo que la
-  rúbrica puede cambiar es cómo se presentan las cifras, no qué configuración es
-  la buena.
+- **El Módulo 5 llegó el 11-10 y no hay defensa** (`docs/MODULO_5.md`). Ni el
+  campus ni la grabación de la tutoría del 6-10 hablan de defensa, tribunal o
+  demo: el entregable es **un documento de decisiones (PDF)** con el repo como
+  evidencia, **antes de que acabe el 31-10** (cierre de actas), idealmente el
+  27-10, y **se puede entregar varias veces: cada entrega recibe feedback y
+  cuenta la mejor**. Los criterios van en tres tramos (5-7 conceptos, 7-9
+  implementado, 9-10 consumible por terceros sin carga de mantenimiento) y los
+  aplica módulo a módulo, según el tutor, algo parecido a un agente con una
+  skill de rúbrica. "Defensa" en el resto de este documento significa ya la
+  entrega. Falta que Juan confirme con el tutor que no hay presentación.
+- **Las decisiones de línea base siguen cerradas.** Lo que el enunciado pide y
+  la memoria no tiene son huecos de documentación, de CI/CD y de evaluación en
+  producción, ninguno de enrutador, generador ni banco (`MODULO_5.md`, huecos).
 - **La securización es un requisito nombrado por el tutor**, no una prioridad
   media del bloque 2, y **sí incluye ciberseguridad**. El análisis completo del
   material está en `docs/MODULO_4.md`; en corto: de los cuatro apartados del
