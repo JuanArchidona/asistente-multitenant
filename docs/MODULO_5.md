@@ -51,8 +51,8 @@ formato nunca se confirmó (`TUTORIA_2026-09-22.md`, pregunta 8). Lo que hay:
   consultora boutique (20-10) y la de cierre (27-10).
 
 El hueco `[PENDIENTE]` de la memoria (capítulo 10.2) se cierra así: no hay
-formato de defensa que esperar. Queda por confirmar con el tutor si, aparte
-de lo que dice el campus, hay alguna presentación; la evidencia dice que no.
+formato de defensa que esperar. **Confirmado por Juan el 11-10: no habrá
+presentación.** El documento y el repositorio son todo lo que se evalúa.
 
 ## Cómo se evalúa
 
@@ -166,7 +166,8 @@ modelado, evaluación y seguridad, despliegue continuo y monitorización).
 No piden nada que el enunciado no pida; sirven para comprobar que la memoria
 nombra cada fase. Dos referencias que coinciden con decisiones ya tomadas:
 P7 nombra Langfuse y opik para observabilidad (el proyecto tiene registro
-propio, justificado en 6.1) y P6 nombra los análisis de seguridad en el
+propio; la memoria aún no justifica en 6.1 por qué no una de esas, tarea A4
+de `PLAN_ENTREGA.md`) y P6 nombra los análisis de seguridad en el
 repositorio (Snyk); esto último entraría con el punto 3. El resto
 (estrategia, transformar organizaciones, certificaciones, referencias) es
 contenido de contexto sin efecto en la entrega.

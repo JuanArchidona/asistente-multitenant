@@ -157,6 +157,7 @@ docs/
   RIESGOS.md      Registro de riesgos: Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia
   MODULO_4.md     Qué aporta el Módulo 4 y qué falta; artículo 6 con citas
   MODULO_5.md     Enunciado y criterios del TFM contra la memoria; huecos y calendario de entrega
+  PLAN_ENTREGA.md Plan hasta la entrega: bloques A (documento), B (tramo 9-10), C (materias del máster), calendario
   AIBOM.md        Inventario generado (scripts/generar_aibom.py); no se edita
   INCIDENTES.md   Plan de respuesta: botón rojo, quién avisa, qué se registra
   RETENCION.md    Política del registro de producción: 90 días, supresión con lápida
@@ -281,7 +282,7 @@ y §14).
   implementado, 9-10 consumible por terceros sin carga de mantenimiento) y los
   aplica módulo a módulo, según el tutor, algo parecido a un agente con una
   skill de rúbrica. "Defensa" en el resto de este documento significa ya la
-  entrega. Falta que Juan confirme con el tutor que no hay presentación.
+  entrega. **Confirmado por Juan el 11-10: no habrá presentación.**
 - **Las decisiones de línea base siguen cerradas.** Lo que el enunciado pide y
   la memoria no tiene son huecos de documentación, de CI/CD y de evaluación en
   producción, ninguno de enrutador, generador ni banco (`MODULO_5.md`, huecos).
