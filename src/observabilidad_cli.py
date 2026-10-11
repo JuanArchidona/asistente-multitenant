@@ -73,6 +73,16 @@ def _informe(tenant: str, resumen: dict, ultimas: list[dict]) -> str:
         _fila("Por rama", json.dumps(resumen["por_rama"], ensure_ascii=False)),
         _fila("Por categoria", json.dumps(resumen["por_categoria"], ensure_ascii=False)),
         _fila("Por version (commit/prompts)", json.dumps(resumen["por_version"], ensure_ascii=False)),
+        _fila(
+            "Calidad: citas inventadas / sin citar",
+            f"{resumen['calidad']['con_cita_inventada']} / {resumen['calidad']['sin_citar_ninguna_fuente']}"
+            f" de {resumen['calidad']['consultas_con_algo_que_citar']} con algo que citar",
+        ),
+        _fila(
+            "Calidad: juez (muestra)",
+            f"{resumen['calidad']['juzgadas']} juzgadas {json.dumps(resumen['calidad']['veredictos'])}"
+            f", {resumen['calidad']['coste_juez_usd']:.6f} USD",
+        ),
     ]
     if resumen.get("_lineas_ilegibles"):
         out.append(
