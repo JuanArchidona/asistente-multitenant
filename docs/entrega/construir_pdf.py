@@ -1,6 +1,6 @@
 """Construye el PDF de entrega desde el markdown.
 
-    uv run python docs/entrega/construir_pdf.py
+    uv run python docs/entrega/construir_pdf.py     # la memoria del TFM, a docs/entrega/TFM_Juan_Archidona.pdf
 
 Cadena: markdown -> (pandoc) -> HTML autocontenido con estilos de impresión ->
 (Chrome headless) -> PDF. Se eligió esta vía en lugar de pandoc con LaTeX porque
@@ -104,8 +104,11 @@ def html_a_pdf(navegador: str, entrada: Path, salida: Path) -> None:
 
 def main() -> None:
     p = argparse.ArgumentParser(description="Genera el PDF de entrega")
-    p.add_argument("--entrada", default=str(AQUI / "Entrega_Modulo_3.3_Juan_Archidona.md"))
-    p.add_argument("--salida", default=str(RAIZ / "Entrega_Modulo_3.3_Juan_Archidona.pdf"))
+    # Por defecto, la memoria del TFM. El PDF va a docs/entrega/, que .gitignore
+    # excluye: el fuente versionado es el markdown. La entrega 3.3 se sigue
+    # generando con --entrada y --salida explicitos.
+    p.add_argument("--entrada", default=str(RAIZ / "docs" / "MEMORIA.md"))
+    p.add_argument("--salida", default=str(AQUI / "TFM_Juan_Archidona.pdf"))
     p.add_argument("--css", default=str(AQUI / "estilo.css"))
     p.add_argument("--pandoc")
     p.add_argument("--navegador")

@@ -35,7 +35,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1230 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
+servicio público desplegado. **1232 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|

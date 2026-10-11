@@ -46,3 +46,6 @@ docs/**/*.pdf
 # aprobacion humana). Estado de un despliegue, no del proyecto: el CRM
 # generado con semilla no cambia por usar el sistema.
 datos/*/visitas_registradas.jsonl
+
+# Identificador local de telemetria de DeepTeam (scripts/red_team.py)
+.deepteam/

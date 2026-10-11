@@ -777,7 +777,7 @@ pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
 7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 64
-hallazgos medidos y 1.230 tests.
+hallazgos medidos y 1.232 tests.
 
 ## 4. Evaluación
 
@@ -1134,7 +1134,11 @@ veredicto de tres valores (fiel, parcial, no fiel) y no un número, por lo
 que el §30 midió de los números del juez. Al registro solo van los números
 y el veredicto, enlazado a la consulta y con el coste del juez aparte; ni la
 respuesta ni el razonamiento del juez. Mandar la muestra a Gemini es una
-transferencia más, aceptada por el autor y registrada (R-18). Nadie
+transferencia más, aceptada por el autor y registrada (R-18). Las primeras
+consultas reales lo pusieron a prueba: tres de tres sin citas inventadas,
+la versión en cada línea, y un juez que devolvía su veredicto cortado
+porque el límite de salida que le puse no dejaba sitio a su razonamiento;
+corregido el mismo día, con una prueba (§62). Nadie
 recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
 es un límite declarado (capítulo 9).
 
@@ -1539,7 +1543,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.230 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.232 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
@@ -1601,10 +1605,11 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 59 hallazgos de `docs/HALLAZGOS.md`, con los capítulos de esta memoria
-que los citan (todos los que lo hacen, no solo el principal; regenerado
-desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
-`reports/` que lo respalda o dice que no la tiene.
+Los 64 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
+memoria que los citan (todos los que lo hacen, no solo el principal).
+Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;
+un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`
+que lo respalda o dice que no la tiene.
 
 | Capítulo | Hallazgos citados |
 |---|---|
@@ -1620,36 +1625,30 @@ desde las citas `§N` del texto). Cada hallazgo nombra la ejecución de
 | 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
-| 3.4 El resto de la pila | §19, §26, §38, §51, §52 |
+| 3.4 El resto de la pila | §19, §26, §38, §51, §52, §60 |
+| 3.5 Desarrollo con un copiloto: reparto, método y control | §16, §17, §18, §21, §34, §39, §58 |
 | 4.1 El banco | §11, §23, §30, §31, §42, §47 |
-| 4.2 Resultados en la línea base vigente | §42, §45, §49 |
+| 4.2 Resultados en la línea base vigente | §42, §45, §49, §64 |
 | 4.3 Evaluar al evaluador | §8, §24, §26, §30, §32, §33, §40 |
 | 4.5 Lo que el banco enseñó sobre el método | §3, §11, §21, §31, §45, §47, §49, §54 |
 | 5.1 Lo que cuesta funcionar y lo que cuesta medir | §17, §21, §22, §32, §34, §44 |
 | 5.2 Tope de gasto y una clave por fin | §16, §18, §24, §53 |
 | 5.3 Lo que la contabilidad no ve | §16, §35, §37 |
-| 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37, §55 |
-| 6.1 El registro de producción | §20, §46 |
+| 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37, §55, §57 |
+| 6.1 El registro de producción | §20, §23, §30, §46, §62 |
 | 6.2 Retención y supresión | §37 |
 | 6.3 Despliegue | §38, §39, §41, §42 |
-| 6.4 Plan de incidentes, pulsado en frío | §46 |
+| 6.4 Plan de incidentes, pulsado en frío | §46, §57, §63 |
 | 6.5 Dos superficies y un puente | §19 |
 | 6.6 Carga y arranque en frío | §52, §53, §59 |
 | 7.1 El registro de riesgos | §54, §57 |
 | 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53 |
 | 7.3 Sesgo, medido en tres capas | §34, §44 |
 | 7.5 RGPD sobre el RAG | §36 |
-| 7.6 Cadena de suministro | §35 |
+| 7.6 Cadena de suministro | §35, §61 |
 | 8.1 Dar de alta un cliente nuevo, cronometrado | §1, §43, §45, §49 |
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
-| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §51, §54, §55, §57, §58 |
+| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §48, §50, §51, §54, §57, §60 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
 | 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58, §59 |
-
-Hallazgos que corrigen a otro, y que hay que leer juntos: §21 corrige las
-cifras en dólares de §17 y §18 (un 50 % altas); §33 matiza §31 y §32 (la
-mayoría de tres no generaliza); §41 corrige una condición no escrita de
-§8; §47 cierra lo que §22 dejó abierto y cambia su decisión; §22 ejecuta
-lo que §12 dejó pendiente; §44 completa §34; §45 revisa §43 sin mover su
-cifra.
-
+| 10.2 Cómo lo comprueba un tercero | §52 |

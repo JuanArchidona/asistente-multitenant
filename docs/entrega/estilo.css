@@ -156,13 +156,16 @@ table {
   margin: 0.9em 0 1.1em;
   font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   font-size: 8.8pt;
-  break-inside: avoid;
+  /* Se puede partir entre páginas: impedirlo mandaba tablas enteras a la
+     página siguiente y dejaba media página en blanco (memoria, 11-10-2026).
+     Lo que no se parte es una fila, y la cabecera se repite. */
+  break-inside: auto;
   text-align: left;
 }
 
-/* Una tabla larga sí puede partirse, pero repitiendo la cabecera. */
-table.larga {
-  break-inside: auto;
+tr {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 thead {
