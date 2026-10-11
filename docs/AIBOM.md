@@ -13,7 +13,7 @@
 ## Entorno de ejecucion
 
 - Python `3.11` (`.python-version`); el lock exige `>=3.11`.
-- `uv.lock` revision 3: 12 paquetes directos y 142 transitivos, todos con version y origen fijados.
+- `uv.lock` revision 3: 17 paquetes directos y 147 transitivos, todos con version y origen fijados.
 - Node para el puente MCP: **sin fijar en el repositorio**. Lo pone el equipo
   que ejecuta la app. Es el unico componente ejecutable cuya version no
   esta escrita, y por eso se dice aqui.
@@ -25,17 +25,22 @@
 | `anthropic` | 0.121.0 | runtime | https://pypi.org/simple |
 | `chromadb` | 1.5.9 | runtime | https://pypi.org/simple |
 | `deepeval` | 4.1.7 | judge | https://pypi.org/simple |
+| `faster-whisper` | 1.2.1 | material | https://pypi.org/simple |
 | `google-genai` | 2.17.0 | runtime | https://pypi.org/simple |
+| `imageio-ffmpeg` | 0.6.0 | material | https://pypi.org/simple |
 | `langgraph` | 1.2.12 | langgraph | https://pypi.org/simple |
 | `mcp` | 2.2.0 | runtime | https://pypi.org/simple |
 | `pydantic` | 2.13.4 | runtime | https://pypi.org/simple |
-| `pypdf` | 6.15.0 | runtime | https://pypi.org/simple |
+| `pypdf` | 6.15.0 | material | https://pypi.org/simple |
 | `pytest` | 9.1.1 | dev | https://pypi.org/simple |
+| `python-docx` | 1.2.0 | material | https://pypi.org/simple |
 | `python-dotenv` | 1.2.2 | runtime | https://pypi.org/simple |
+| `python-pptx` | 1.0.2 | material | https://pypi.org/simple |
 | `ruff` | 0.16.2 | dev | https://pypi.org/simple |
 | `streamlit` | 1.64.0 | app | https://pypi.org/simple |
+| `yt-dlp` | 2026.8.19 | material | https://pypi.org/simple |
 
-Los 142 transitivos estan en `docs/aibom.json`, con version y origen.
+Los 147 transitivos estan en `docs/aibom.json`, con version y origen.
 
 ## Modelos
 

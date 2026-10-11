@@ -35,6 +35,18 @@ app = [
 langgraph = [
     "langgraph>=1.2.12",
 ]
+# Procesado del material del máster (vídeos de tutoría y adjuntos del campus):
+# descarga, transcripción local en CPU y extracción de texto de pptx/docx/pdf.
+# El material y sus transcripciones viven fuera del repositorio (es público);
+# aquí solo están las herramientas. `uv sync --group material`.
+material = [
+    "yt-dlp>=2026.8.19",
+    "faster-whisper>=1.2.1",
+    "imageio-ffmpeg>=0.6.0",
+    "python-pptx>=1.0.2",
+    "python-docx>=1.2.0",
+    "pypdf>=6.0.0",
+]
 
 [tool.ruff]
 line-length = 100
