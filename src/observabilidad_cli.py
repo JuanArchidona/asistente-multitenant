@@ -61,6 +61,7 @@ def _informe(tenant: str, resumen: dict, ultimas: list[dict]) -> str:
         "",
         _fila("Por rama", json.dumps(resumen["por_rama"], ensure_ascii=False)),
         _fila("Por categoria", json.dumps(resumen["por_categoria"], ensure_ascii=False)),
+        _fila("Por version (commit/prompts)", json.dumps(resumen["por_version"], ensure_ascii=False)),
     ]
     if resumen.get("_lineas_ilegibles"):
         out.append(

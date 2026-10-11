@@ -99,10 +99,16 @@ class Registro:
         tenant_id: str,
         raiz: Path | str = RAIZ_POR_DEFECTO,
         guardar_respuesta: bool = False,
+        version: dict | None = None,
     ):
         self.tenant_id = tenant_id
         self.ruta = Path(raiz) / tenant_id / "trazas.jsonl"
         self.guardar_respuesta = guardar_respuesta
+        # Commit desplegado y huella de los prompts activos (src/prompts.py).
+        # Va en cada línea para poder partir cualquier cifra por versión: sin
+        # ella, una línea de producción no dice si es de antes o de después de
+        # cambiar un prompt.
+        self.version = version
         self.fallos = 0
         self.ultimo_error: str | None = None
         self._lock = threading.Lock()
@@ -178,6 +184,8 @@ class Registro:
                 "consulta": consulta,
                 "mensaje": str(error)[:200],
             }
+            if self.version:
+                registro["version"] = self.version
             with self._lock:
                 self.ruta.parent.mkdir(parents=True, exist_ok=True)
                 with self.ruta.open("a", encoding="utf-8") as f:
@@ -243,6 +251,8 @@ class Registro:
             },
             "error": traza.get("error"),
         }
+        if self.version:
+            registro["version"] = self.version
 
         if uso:
             registro["llamadas"] = uso.get("llamadas")
@@ -279,10 +289,14 @@ def desde_config(cfg, raiz: Path | str = RAIZ_POR_DEFECTO) -> Registro:
     `OBS_GUARDAR_RESPUESTA=1` guarda además el texto de la respuesta. Apagado
     por defecto: ver el encabezado del módulo.
     """
+    # Importación tardía: `prompts` importa el agente, que es quien usa esto.
+    from .prompts import version
+
     return Registro(
         cfg.tenant.id,
         raiz=raiz,
         guardar_respuesta=os.getenv("OBS_GUARDAR_RESPUESTA", "") == "1",
+        version=version(cfg),
     )
 
 
@@ -448,7 +462,13 @@ def resumir(registros: list[dict]) -> dict:
     por_categoria: dict[str, int] = {}
     por_rama: dict[str, int] = {}
     por_usuario: dict[str, int] = {}
+    # Consultas por versión desplegada (commit/huella de prompts). Las líneas
+    # anteriores al 11-10-2026 no la llevan y cuentan como "sin_version".
+    por_version: dict[str, int] = {}
     for r in filas:
+        v = r.get("version") or {}
+        clave = f"{v.get('commit')}/{v.get('prompts')}" if v else "sin_version"
+        por_version[clave] = por_version.get(clave, 0) + 1
         por_categoria[r.get("categoria") or "?"] = por_categoria.get(r.get("categoria") or "?", 0) + 1
         por_rama[r.get("rama") or "?"] = por_rama.get(r.get("rama") or "?", 0) + 1
         por_usuario[r.get("usuario") or "?"] = por_usuario.get(r.get("usuario") or "?", 0) + 1
@@ -466,6 +486,7 @@ def resumir(registros: list[dict]) -> dict:
         "latencia_p95_s": round(_percentil(lat, 0.95), 3),
         # Separadas a propósito: la primera es casi constante por fuente y la
         # segunda es la que señala a alguien pidiendo lo que no le toca.
+        "por_version": por_version,
         "filtro_retuvo_documentos": sum(1 for r in filas if r.get("filtro_retuvo")),
         "sin_acceso_a_lo_pedido": sum(1 for r in filas if r.get("sin_acceso_a_lo_pedido")),
         "redaccion_aplicada": sum(1 for r in filas if r.get("redaccion_aplicada")),

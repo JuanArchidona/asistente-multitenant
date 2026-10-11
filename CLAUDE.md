@@ -35,7 +35,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1185 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
+servicio público desplegado. **1193 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -159,6 +159,7 @@ docs/
   MODULO_5.md     Enunciado y criterios del TFM contra la memoria; huecos y calendario de entrega
   PLAN_ENTREGA.md Plan hasta la entrega: bloques A (documento), B (tramo 9-10), C (materias del máster), calendario
   AIBOM.md        Inventario generado (scripts/generar_aibom.py); no se edita
+  PROMPTS.md      Catálogo de prompts generado (scripts/generar_prompts.py); no se edita
   INCIDENTES.md   Plan de respuesta: botón rojo, quién avisa, qué se registra
   RETENCION.md    Política del registro de producción: 90 días, supresión con lápida
   DESPLIEGUE.md   Interfaz desplegada: usuarios, tope blando, Render
@@ -197,6 +198,7 @@ uv run streamlit run app.py                            # interfaz (uv sync --gro
 uv run python -m src.canal_whatsapp_servidor --simular "..." --desde 34600000001   # canal WhatsApp en local, sin Meta
 uv run python -m src.canal_correo_servidor --simular "..." --desde empleado@ejemplo.es   # canal de correo en local, sin buzón
 uv run python scripts/generar_aibom.py                 # regenera el AIBOM (el test lo vigila)
+uv run python scripts/generar_prompts.py               # regenera el catálogo de prompts (el test lo vigila)
 uv run python scripts/simulacro_incidente.py           # botón rojo en frío: ~15 s y una consulta real (§46)
 uv run python scripts/prueba_carga.py --remoto         # puerta HTTP de Render, coste cero (§53)
 uv run python scripts/prueba_carga.py --local --agencia --etiqueta X   # pipeline bajo concurrencia, ~0,12 USD (§53)

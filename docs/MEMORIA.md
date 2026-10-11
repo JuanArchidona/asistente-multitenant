@@ -61,7 +61,7 @@ que no está, o está a medias, lo dice el capítulo 9.
 | Módulo | Lo que pide el enunciado | Dónde |
 |---|---|---|
 | 1 | Qué modelos se emplean y por qué | 3.3 |
-| 1 | Configuración, forma de consumo, parámetros y prompts, incluidos los candidatos | 2.4, 2.8, 3.3, 4.4 |
+| 1 | Configuración, forma de consumo, parámetros y prompts, incluidos los candidatos | 2.4, 2.8, 3.3, 4.4 y `docs/PROMPTS.md` |
 | 1 | Costes anticipados según niveles de uso | 5.1, 5.4 |
 | 2 | Flujo de acciones, niveles de autonomía e intervención humana | 2.1, 2.6, 2.7 |
 | 2 | Por qué el framework, y los controles intermedios | 3.1, 3.2, 2.7 |
@@ -776,8 +776,8 @@ bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 59
-hallazgos medidos y 1.185 tests.
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 61
+hallazgos medidos y 1.193 tests.
 
 ## 4. Evaluación
 
@@ -1083,7 +1083,13 @@ quedan con `_fallo` y su tipo de error desde que la primera pulsación del
 simulacro de incidentes destapó que no dejaban rastro (§46). El registro
 no guarda la respuesta. `observabilidad_cli` resume por inquilino:
 consultas, coste acumulado, latencia p95, cuántas veces alguien pidió lo
-que no le toca; y aplica la política de retención del capítulo 6.2. Nadie
+que no le toca; y aplica la política de retención del capítulo 6.2. Desde
+el 11-10-2026 cada línea lleva además la versión con que se respondió: el
+commit desplegado y la huella de los prompts activos, que remite al
+catálogo generado `docs/PROMPTS.md` (cada prompt con su modelo, temperatura
+y la evidencia que lo respalda, vigilado por test como el AIBOM). Así
+cualquier cifra de producción se parte por versión, y un cambio de prompt
+o de modelo se compara antes y después sobre tráfico real. Nadie
 recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
 es un límite declarado (capítulo 9).
 
@@ -1439,7 +1445,7 @@ encargado (capítulo 7.5).
 ### 10.1 Cómo está documentado el proyecto
 
 La documentación no es un anexo del código: es donde viven las decisiones,
-y el código la hace cumplir con tests. Siete ficheros, cada uno con una
+y el código la hace cumplir con tests. Ocho ficheros, cada uno con una
 función que no se solapa con la de los demás:
 
 | Fichero | Qué es | Quién lo hace cumplir |
@@ -1449,6 +1455,7 @@ función que no se solapa con la de los demás:
 | `docs/HALLAZGOS.md` | 59 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
+| `docs/PROMPTS.md` | Catálogo de prompts: uso, modelo, temperatura, huella y evidencia | Generado desde el código; el test falla si difiere |
 | `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
 | `reports/<etiqueta>/` | Evidencia de cada ejecución: `resumen.json`, `informe.md`, trazas | Versionados a propósito: una cifra sin carpeta no es un dato |
 
@@ -1464,7 +1471,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.185 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.193 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |

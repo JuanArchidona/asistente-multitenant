@@ -25,6 +25,7 @@ from pathlib import Path
 from src.agent import Sistema, crear_sistema
 from src.config import load_config
 from src.gobernanza import Usuario
+from src.prompts import huella_activa, version
 from src.provider import get_chat
 from src.tenant import Tenant
 
@@ -548,6 +549,8 @@ def suite_consultas(args) -> None:
         "duracion_s": round(time.perf_counter() - t0, 1),
         "con_juez": not args.sin_juez,
         "configuracion": descripcion(cfg),
+        # Commit y huella de los prompts con que corrió (docs/PROMPTS.md).
+        "version": {**version(cfg), "huellas": huella_activa(cfg)},
         "uso_sistema": uso,
         # El gasto del juez, aparte del del sistema y nunca sumado por el
         # camino: las dos claves estan separadas desde el feedback de la 3.3
