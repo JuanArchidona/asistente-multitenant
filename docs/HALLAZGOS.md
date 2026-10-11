@@ -4217,3 +4217,40 @@ Juan no se copia a este repositorio, que es público.
   caliente y 13,9 s en frío**, con N=3.
 - `CANAL_WHATSAPP.md` deja de mostrar el `6.53` como si fuera una lectura.
 - `CANAL_CORREO.md` rebaja la promesa de la huella a lo que da.
+
+## 60. Producción ya no recibe un commit con la CI en rojo: el roto se quedó fuera más de cuatro minutos y los verdes llegaron en 77 y 109 s
+
+**Ejecución:** 11-10-2026, 12:48-13:03, sobre `master` y el servicio
+desplegado. Cuatro pushes y lectura del commit desplegado en `/salud` de
+`asistente-whatsapp` (lo expone desde `RENDER_GIT_COMMIT`), cada 15-20 s.
+Coste: cero. Sin carpeta en `reports/`: la evidencia son los commits, las
+ejecuciones de GitHub Actions y las lecturas de `/salud`, copiadas aquí.
+
+**Qué se quería.** El tramo 9-10 del enunciado pide "automatización de los
+pases a producción" (`MODULO_5.md`). Hasta hoy la CI pasaba `ruff` y
+`pytest` en cada push y Render desplegaba en cada push **sin esperarla**: un
+test roto llegaba a producción igual. `render.yaml` pasa a
+`autoDeployTrigger: checksPass` en los tres servicios (el `autoDeploy: true`
+que tenían está obsoleto en la especificación del blueprint) y
+`tests/test_despliegue.py` falla si un servicio lo pierde. Lo que no se
+quería era dar el cambio por bueno sin ver un commit rojo quedarse fuera.
+
+| Commit | Qué | CI | `/salud` |
+|---|---|---|---|
+| `f91c64d` | El cambio del blueprint | Verde, 12:49:30 | `f91c64d` a las 12:50:47 (77 s) |
+| `fc0bd97` | Cambios de la memoria | Verde | `fc0bd97` a las 12:55:34 |
+| `f8f4d5f` | Un test que falla a propósito | **Rojo, 12:56:14** | **`fc0bd97` en todas las lecturas hasta las 13:00:40** |
+| `02881a8` | Lo revierte | Verde, 13:01:16 | `02881a8` a las 13:03:05 (109 s) |
+
+**Resultado.** El commit rojo no se desplegó en más de cuatro minutos,
+cuando los verdes tardaron de 77 a 109 s desde la CI hasta servir, y el
+siguiente verde se desplegó con normalidad. El blueprint se aplicó en el
+mismo push que lo cambiaba: `f91c64d` ya esperó a su CI.
+
+**Límites.** Se midió en `asistente-whatsapp`, el único de los tres que
+expone el commit en una ruta sin credenciales; los otros dos llevan el mismo
+campo en el blueprint y el test lo vigila, pero su comportamiento no se ha
+leído. Esperar a la CI retrasa cada despliegue lo que tarda la CI (unos 30 s
+en GitHub Actions). La CI instala sin el grupo `langgraph`, así que las 10
+pruebas del prototipo de LangGraph no protegen el despliegue; no importa
+porque ese código no se despliega.

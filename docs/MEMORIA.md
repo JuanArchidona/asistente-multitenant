@@ -680,8 +680,9 @@ alternativa medida, y por eso cada una dice qué se mediría si se cambiara:
   push) y, desde el 11-10-2026, **Render solo despliega un commit cuando la
   CI lo da en verde** (`autoDeployTrigger: checksPass` en los tres
   servicios, vigilado por `tests/test_despliegue.py`): un test roto no llega
-  a producción. Es lo que el Módulo 3 llama automatizar los pases a
-  producción.
+  a producción: medido con un commit roto a propósito, que se quedó fuera
+  mientras los verdes se desplegaban en 77 y 109 s (§60). Es lo que el
+  Módulo 3 llama automatizar los pases a producción.
 
 ### 3.5 Desarrollo con un copiloto: reparto, método y control
 
