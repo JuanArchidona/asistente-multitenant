@@ -1482,7 +1482,7 @@ capítulo 8.3 y aquí solo se remite.
 
 **Lo que el banco no mide.**
 
-- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador apagado; conversaciones largas siguen sin medirse.
+- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador, apagado en el banco y activado en la web por decisión del autor el mismo día (WhatsApp y el correo no guardan historial); conversaciones largas siguen sin medirse.
 - **Lo escribió quien construyó el sistema, y no hay conjunto reservado.**
   Las descripciones de categoría de la agencia se afinaron en tres
   iteraciones sobre el mismo banco (§6); el umbral del enrutador por

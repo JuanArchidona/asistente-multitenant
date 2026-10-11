@@ -53,6 +53,12 @@ services:
         sync: false
       - key: TOPE_GASTO_USD
         value: "2.0"
+      # Memoria entre turnos (src/memoria.py): reescribe un seguimiento como
+      # pregunta autonoma antes de enrutar. Solo en la web, que es el canal que
+      # guarda historial. Activada por decision del autor el 11-10-2026 tras
+      # medirla (HALLAZGOS.md 66: 8 de 12 seguimientos sin memoria, 11 de 12 con ella).
+      - key: MEMORIA_TURNOS
+        value: reescritura
       - key: ANTHROPIC_MODEL_ROUTER
         value: claude-haiku-4-5-20251001
       - key: ANTHROPIC_MODEL_GENERATOR
