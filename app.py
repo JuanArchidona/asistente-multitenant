@@ -28,6 +28,7 @@ import streamlit as st
 from src.acceso import cargar_directorio, tope_superado
 from src.agent import Sistema
 from src.config import Config, load_config
+from src.fallos import mensaje_para_el_usuario
 from src.ingest import construir_indice, indice_existe
 from src.observabilidad import desde_config, leer, resumir
 
@@ -229,7 +230,9 @@ if consulta:
             try:
                 traza = sistema_de(cfg.tenant.id).responder(consulta, usuario=persona)
             except Exception as error:  # noqa: BLE001 -- frontera de UI: el fallo se muestra, no se traga
-                st.error(f"La consulta falló: {type(error).__name__}: {error}")
+                st.warning(mensaje_para_el_usuario(error, cfg.tenant.contacto_alternativo))
+                with st.expander("Detalle técnico"):
+                    st.code(f"{type(error).__name__}: {error}")
                 st.stop()
         st.markdown(traza["respuesta"])
         meta = {k: v for k, v in traza.items() if k not in ("respuesta", "contexto_recuperado")}

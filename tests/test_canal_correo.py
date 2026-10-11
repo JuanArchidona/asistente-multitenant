@@ -596,3 +596,24 @@ def test_el_buzon_imap_abre_con_tope_de_tiempo(monkeypatch):
     monkeypatch.setattr(servidor.imaplib, "IMAP4_SSL", IMAPFalso)
     assert servidor.BuzonIMAP("imap.ejemplo.es", "u", "p").no_leidos() == []
     assert visto["timeout"] == 30.0
+
+
+def test_el_fallo_dice_a_quien_acudir_con_el_contacto_del_inquilino():
+    """B5: si el proveedor cae, el usuario recibe el contacto alternativo que
+    declara el manifiesto, no solo el tipo del error."""
+    from types import SimpleNamespace
+
+    from src.tenant import cargar_tenant
+
+    tenant = cargar_tenant("empresa_servicios")
+
+    class Caido(SistemaFalso):
+        cfg = SimpleNamespace(tenant=tenant)
+
+        def responder(self, consulta, usuario=None):
+            raise TimeoutError("sin respuesta del proveedor")
+
+    canal = _canal({"empresa_servicios": Caido("empresa_servicios")})
+    salida = canal.procesar(_msg("¿vacaciones?"))
+    assert "no responde" in salida[0]
+    assert salida[0].endswith(tenant.contacto_alternativo)

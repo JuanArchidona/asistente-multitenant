@@ -776,8 +776,8 @@ bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 61
-hallazgos medidos y 1.214 tests.
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 63
+hallazgos medidos y 1.230 tests.
 
 ## 4. Evaluación
 
@@ -1163,6 +1163,18 @@ que lo pida, y rotar credenciales en el mes de la entrega solo para medir
 es más riesgo que dato. Queda declarada como estimación, unos cinco
 minutos, no como medida.
 
+**El plan B del usuario.** Cuando la consulta no se puede atender, los tres
+canales responden con un mensaje determinista que dice qué ha pasado (el
+proveedor no responde, la configuración está rota, demasiadas peticiones) y
+a quién acudir, con el contacto que declara el manifiesto de cada inquilino;
+el registro guarda la clase del fallo. Medido provocando los dos fallos más
+probables: el mensaje llega en 6 s con la clave revocada y en 13 s con el
+proveedor inalcanzable, contando el arranque del proceso y los dos
+reintentos del SDK (§63). No es un fallback silencioso: no se inventa una
+respuesta ni se cambia de modelo sin decirlo. La conmutación automática a
+Gemini se decidió en contra, porque cambiaría el enrutado y con él el
+control de acceso en mitad de un incidente (§57).
+
 ### 6.5 Dos superficies y un puente
 
 El proyecto se desarrolló desde Claude Code y desde la app de Claude,
@@ -1490,7 +1502,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.214 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.230 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |

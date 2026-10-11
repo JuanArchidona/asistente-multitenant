@@ -72,6 +72,8 @@ import threading
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from .fallos import clasificar
+
 RAIZ_POR_DEFECTO = Path("data/observabilidad")
 
 # Campos de la traza que no se copian al registro: o son enormes, o son el texto
@@ -233,6 +235,7 @@ class Registro:
                 "usuario": usuario,
                 "consulta": consulta,
                 "mensaje": str(error)[:200],
+                "clase": clasificar(error),
             }
             if self.version:
                 registro["version"] = self.version

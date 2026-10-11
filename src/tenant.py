@@ -270,6 +270,10 @@ class Tenant(BaseModel):
     # Rol necesario para aprobar una escritura. Vacío: cualquier persona
     # identificada puede aprobar lo que ella misma pidió.
     aprobacion_requiere: str = ""
+    # A quién acudir si el asistente no puede responder (proveedor caído,
+    # credencial revocada): se añade al mensaje de fallo de los tres canales
+    # (src/fallos.py). Opcional; sin él, el mensaje dice qué pasó y nada más.
+    contacto_alternativo: str = ""
 
     @model_validator(mode="after")
     def _escrituras_de_servidores_declarados(self) -> "Tenant":

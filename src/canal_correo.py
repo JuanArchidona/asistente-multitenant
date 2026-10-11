@@ -49,6 +49,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 from .acceso import tope_superado
 from .canal_whatsapp import RE_ORDEN, TEXTO_TOPE
+from .fallos import mensaje_para_el_usuario
 from .gobernanza import Usuario
 
 FICHERO_DIRECCIONES = Path("correo.local.json")
@@ -392,7 +393,9 @@ class CanalCorreo:
         try:
             traza = sistema.responder(mensaje.texto, usuario=persona)
         except Exception as error:  # noqa: BLE001 -- frontera de canal: el fallo ya está registrado (§46)
-            return [prefijo + f"La consulta no se pudo atender ({type(error).__name__}). Vuelve a intentarlo más tarde."]
+            cfg = getattr(sistema, "cfg", None)
+            contacto = cfg.tenant.contacto_alternativo if cfg is not None else ""
+            return [prefijo + mensaje_para_el_usuario(error, contacto)]
 
         partes = [traza["respuesta"]]
         if traza.get("denegados_por_permiso"):

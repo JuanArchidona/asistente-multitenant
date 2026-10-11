@@ -4344,3 +4344,46 @@ es el de las pruebas del autor y de quien corrija. La URL que se puso en el
 `.env` local era la interna de Render, que solo se resuelve dentro de su
 red; se leyó con la externa, que usa las mismas credenciales con el sufijo
 `.frankfurt-postgres.render.com`.
+
+## 63. Cuando el proveedor cae, el usuario ya sabe qué pasa y a quién acudir: 6 s con la clave revocada y 13 s con el proveedor inalcanzable
+
+**Ejecución:** 11-10-2026, 14:10, en local con los simuladores de los dos
+canales (`--simular`), sin coste: ninguna llamada llega a responder. Dos
+fallos provocados: una clave inválida (`ANTHROPIC_API_KEY=sk-ant-invalida`)
+y un proveedor inalcanzable (`ANTHROPIC_BASE_URL` a un puerto cerrado). La
+evidencia son las salidas y las cuatro líneas `_fallo` del registro local,
+copiadas aquí.
+
+**Qué se quería.** El tutor pidió un plan B (grabación del 6-10, 1:15): si
+la parte inteligente se rompe, que el usuario no se quede colgado. Hasta hoy
+los canales decían "no se pudo atender (TipoDeError). Vuelve a intentarlo
+más tarde" y la web enseñaba la excepción. Ahora `src/fallos.py` clasifica
+el fallo por su código HTTP o su tipo (proveedor no disponible, límite de
+tasa, credencial, otro), el mensaje dice qué ha pasado y añade el contacto
+que declara el manifiesto de cada inquilino (`contacto_alternativo`, campo
+nuevo y opcional: dar de alta un cliente sigue sin exigir código), y el
+registro guarda la clase.
+
+| Fallo | Canal | Hasta el mensaje | Clase registrada |
+|---|---|---|---|
+| Clave inválida | WhatsApp | 6,7 s | `credencial` |
+| Clave inválida | Correo | 6,1 s | `credencial` |
+| Proveedor inalcanzable | WhatsApp | 13,2 s | `proveedor_no_disponible` |
+| Proveedor inalcanzable | Correo | 13,5 s | `proveedor_no_disponible` |
+
+Los tiempos son de pared e incluyen arrancar el proceso y construir el
+sistema (unos 5-6 s, el mismo arranque que mide el §59); la diferencia de
+unos 7 s del proveedor inalcanzable son los dos reintentos con espera del
+SDK de Anthropic, que es lo que conviene: un corte de red de un segundo no
+llega al usuario.
+
+**Lo que se decidió no hacer.** La conmutación automática a Gemini. Está
+medida (§57) y funciona, pero cambia el enrutado (cobertura del riesgo 0,636
+a 1,0 en el heredado, pierde las preguntas de actas): activarla sola en mitad
+de una caída cambiaría el comportamiento del control de acceso sin que nadie
+lo hubiera decidido. Sigue siendo contingencia manual con `LLM_PROVIDER`.
+
+**Límites.** La web no se probó con un fallo real (cambiar la clave del
+servicio desplegado para verlo no compensa); usa el mismo
+`mensaje_para_el_usuario` que los canales, con el detalle técnico en un
+desplegable. Los contactos son sintéticos, en dominios `.example`.
