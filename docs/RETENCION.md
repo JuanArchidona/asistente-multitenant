@@ -65,6 +65,16 @@ Eso es control de acceso al sistema de ficheros, no de este módulo.
 Las **líneas ilegibles** (un proceso muerto a media escritura) se conservan:
 no se sabe de quién son, y borrarlas sería borrar sin saber qué.
 
+## Dónde vive
+
+En el fichero `data/observabilidad/<inquilino>/trazas.jsonl` del proceso y,
+desde el 11-10-2026, si `REGISTRO_DB_URL` está definida, también en la tabla
+`registro` de una base Postgres (`src/registro_db.py`; en el despliegue, el
+gratuito de Render `asistente-registro`, en Frankfurt). Las dos copias tienen
+el mismo contenido. `--borrar-usuario` y `--purgar-dias` actúan sobre la base
+cuando `observabilidad_cli` lee de ella (`REGISTRO_DB_URL_EXTERNA` o `--db`),
+con la misma lápida que en el fichero.
+
 ## Lo que sigue fuera
 
 - Las **consultas ya enviadas al proveedor** del modelo. El proveedor tiene

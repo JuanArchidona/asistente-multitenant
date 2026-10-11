@@ -13,7 +13,7 @@
 ## Entorno de ejecucion
 
 - Python `3.11` (`.python-version`); el lock exige `>=3.11`.
-- `uv.lock` revision 3: 17 paquetes directos y 147 transitivos, todos con version y origen fijados.
+- `uv.lock` revision 3: 18 paquetes directos y 148 transitivos, todos con version y origen fijados.
 - Node para el puente MCP: **sin fijar en el repositorio**. Lo pone el equipo
   que ejecuta la app. Es el unico componente ejecutable cuya version no
   esta escrita, y por eso se dice aqui.
@@ -30,6 +30,7 @@
 | `imageio-ffmpeg` | 0.6.0 | material | https://pypi.org/simple |
 | `langgraph` | 1.2.12 | langgraph | https://pypi.org/simple |
 | `mcp` | 2.2.0 | runtime | https://pypi.org/simple |
+| `psycopg` | 3.3.6 | runtime | https://pypi.org/simple |
 | `pydantic` | 2.13.4 | runtime | https://pypi.org/simple |
 | `pypdf` | 6.20.0 | material | https://pypi.org/simple |
 | `pytest` | 9.1.1 | dev | https://pypi.org/simple |
@@ -40,7 +41,7 @@
 | `streamlit` | 1.64.0 | app | https://pypi.org/simple |
 | `yt-dlp` | 2026.8.19 | material | https://pypi.org/simple |
 
-Los 147 transitivos estan en `docs/aibom.json`, con version y origen.
+Los 148 transitivos estan en `docs/aibom.json`, con version y origen.
 
 ## Modelos
 

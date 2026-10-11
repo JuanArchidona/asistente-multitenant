@@ -72,6 +72,13 @@
     },
     {
       "type": "library",
+      "name": "psycopg",
+      "version": "3.3.6",
+      "source": "https://pypi.org/simple",
+      "group": "runtime"
+    },
+    {
+      "type": "library",
       "name": "pydantic",
       "version": "2.13.4",
       "source": "https://pypi.org/simple",
@@ -754,6 +761,13 @@
       "transitive": true,
       "name": "protobuf",
       "version": "7.35.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "psycopg-binary",
+      "version": "3.3.6",
       "source": "https://pypi.org/simple"
     },
     {

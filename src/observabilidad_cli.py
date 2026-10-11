@@ -11,9 +11,20 @@ acceso y cuántas consultas salieron degradadas.
 """
 import argparse
 import json
+import os
 import time
 
-from .observabilidad import RAIZ_POR_DEFECTO, borrar_usuario, inquilinos, leer, purgar, resumir
+from dotenv import load_dotenv
+
+from .observabilidad import (
+    RAIZ_POR_DEFECTO,
+    almacen_desde_url,
+    borrar_usuario,
+    inquilinos,
+    leer,
+    purgar,
+    resumir,
+)
 
 
 def _fila(etiqueta: str, valor) -> str:
@@ -121,23 +132,35 @@ def main() -> None:
         metavar="N",
         help="Retencion: quita las consultas con mas de N dias. Exige --tenant.",
     )
+    p.add_argument(
+        "--db",
+        default=None,
+        help="Leer de la base (src/registro_db.py) y no del fichero. Por defecto, "
+        "REGISTRO_DB_URL_EXTERNA del .env si existe: la de produccion en Render.",
+    )
+    p.add_argument("--fichero", action="store_true", help="Forzar el fichero aunque haya base.")
     args = p.parse_args()
+    load_dotenv()
+    url = None if args.fichero else (args.db or os.getenv("REGISTRO_DB_URL_EXTERNA", "").strip() or None)
+    almacen = almacen_desde_url(url) if url else None
+    if almacen is not None:
+        print("[registro] leyendo de la base de produccion (--fichero para el local)")
 
     if args.borrar_usuario or args.purgar_dias:
         if not args.tenant:
             p.error("--borrar-usuario y --purgar-dias exigen --tenant: se borra en un inquilino, no en todos.")
         t0 = time.perf_counter()
         if args.borrar_usuario:
-            lapida = borrar_usuario(args.tenant, args.borrar_usuario, args.raiz)
+            lapida = borrar_usuario(args.tenant, args.borrar_usuario, args.raiz, almacen=almacen)
         else:
-            lapida = purgar(args.tenant, args.purgar_dias, args.raiz)
+            lapida = purgar(args.tenant, args.purgar_dias, args.raiz, almacen=almacen)
         segundos = time.perf_counter() - t0
         print(json.dumps({**lapida, "segundos": round(segundos, 3)}, ensure_ascii=False, indent=2))
         if not lapida["lineas_quitadas"]:
             print("Nada que quitar: el registro queda como estaba y no se escribe lapida.")
         return
 
-    tenants = [args.tenant] if args.tenant else inquilinos(args.raiz)
+    tenants = [args.tenant] if args.tenant else inquilinos(args.raiz, almacen=almacen)
     if not tenants:
         print(
             f"No hay registros en {args.raiz}/.\n"
@@ -148,7 +171,7 @@ def main() -> None:
 
     salida = {}
     for t in tenants:
-        registros = leer(t, args.raiz)
+        registros = leer(t, args.raiz, almacen=almacen)
         resumen = resumir(registros)
         salida[t] = resumen
         if not args.json:

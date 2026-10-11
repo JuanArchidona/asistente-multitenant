@@ -45,6 +45,10 @@ services:
         sync: false
       - key: EVAL_PRODUCCION_FRACCION
         value: "0.5"
+      # Registro de produccion persistente (src/registro_db.py): URL interna del
+      # Postgres gratuito asistente-registro (E-0019). Caduca el 10-11-2026.
+      - key: REGISTRO_DB_URL
+        sync: false
       - key: APP_USUARIOS_JSON
         sync: false
       - key: TOPE_GASTO_USD
@@ -99,6 +103,10 @@ services:
         sync: false
       - key: EVAL_PRODUCCION_FRACCION
         value: "0.5"
+      # Registro de produccion persistente (src/registro_db.py): URL interna del
+      # Postgres gratuito asistente-registro (E-0019). Caduca el 10-11-2026.
+      - key: REGISTRO_DB_URL
+        sync: false
       - key: WHATSAPP_TOKEN
         sync: false
       - key: WHATSAPP_PHONE_NUMBER_ID
@@ -163,6 +171,10 @@ services:
         sync: false
       - key: EVAL_PRODUCCION_FRACCION
         value: "0.5"
+      # Registro de produccion persistente (src/registro_db.py): URL interna del
+      # Postgres gratuito asistente-registro (E-0019). Caduca el 10-11-2026.
+      - key: REGISTRO_DB_URL
+        sync: false
       - key: CORREO_USUARIO
         sync: false
       - key: CORREO_CONTRASENA

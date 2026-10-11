@@ -100,6 +100,7 @@ class Registro:
         raiz: Path | str = RAIZ_POR_DEFECTO,
         guardar_respuesta: bool = False,
         version: dict | None = None,
+        almacen=None,
     ):
         self.tenant_id = tenant_id
         self.ruta = Path(raiz) / tenant_id / "trazas.jsonl"
@@ -109,9 +110,26 @@ class Registro:
         # ella, una línea de producción no dice si es de antes o de después de
         # cambiar un prompt.
         self.version = version
+        # Copia persistente en una base SQL (src/registro_db.py), si la hay.
+        # El fichero se sigue escribiendo: es el camino probado y el que se
+        # lee en local; la base es lo que sobrevive a un reinicio en Render.
+        self.almacen = almacen
+        self.fallos_almacen = 0
         self.fallos = 0
         self.ultimo_error: str | None = None
         self._lock = threading.Lock()
+
+    def _a_almacen(self, registro: dict) -> None:
+        """Copia la línea a la base. Un fallo aquí no tumba la consulta ni se calla:
+        se cuenta aparte y queda en `ultimo_error`, y el fichero ya está escrito."""
+        if self.almacen is None:
+            return
+        try:
+            self.almacen.escribir(self.tenant_id, registro)
+        except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
+            with self._lock:
+                self.fallos_almacen += 1
+                self.ultimo_error = f"almacen: {type(e).__name__}: {e}"
 
     def anotar(self, traza: dict, uso: dict | None = None) -> dict | None:
         """Compone y escribe el registro. Devuelve lo escrito, o None si falló."""
@@ -122,6 +140,7 @@ class Registro:
                 self.ruta.parent.mkdir(parents=True, exist_ok=True)
                 with self.ruta.open("a", encoding="utf-8") as f:
                     f.write(linea + "\n")
+            self._a_almacen(registro)
             return registro
         except Exception as e:  # noqa: BLE001 -- ver docstring de la clase
             with self._lock:
@@ -153,6 +172,7 @@ class Registro:
                 self.ruta.parent.mkdir(parents=True, exist_ok=True)
                 with self.ruta.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            self._a_almacen(registro)
             return registro
         except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
             with self._lock:
@@ -182,6 +202,7 @@ class Registro:
                 self.ruta.parent.mkdir(parents=True, exist_ok=True)
                 with self.ruta.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            self._a_almacen(registro)
             return registro
         except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
             with self._lock:
@@ -219,6 +240,7 @@ class Registro:
                 self.ruta.parent.mkdir(parents=True, exist_ok=True)
                 with self.ruta.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(registro, ensure_ascii=False) + "\n")
+            self._a_almacen(registro)
             return registro
         except Exception as e:  # noqa: BLE001 -- misma regla que anotar()
             with self._lock:
@@ -321,18 +343,26 @@ def desde_config(cfg, raiz: Path | str = RAIZ_POR_DEFECTO) -> Registro:
     # Importación tardía: `prompts` importa el agente, que es quien usa esto.
     from .prompts import version
 
+    url = os.getenv("REGISTRO_DB_URL", "").strip()
     return Registro(
         cfg.tenant.id,
         raiz=raiz,
         guardar_respuesta=os.getenv("OBS_GUARDAR_RESPUESTA", "") == "1",
         version=version(cfg),
+        almacen=almacen_desde_url(url) if url else None,
     )
+
+
+def almacen_desde_url(url: str):
+    from .registro_db import AlmacenRegistro
+
+    return AlmacenRegistro(url)
 
 
 # --- Lectura ---------------------------------------------------------------
 
 
-def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
+def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO, almacen=None) -> list[dict]:
     """Lee el log de un inquilino, saltando líneas corruptas y contándolas.
 
     Una línea a medias es lo que deja un proceso que murió escribiendo. Se
@@ -340,6 +370,8 @@ def leer(tenant_id: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> list[dict]:
     lector que las esconde convierte un log incompleto en uno que parece
     completo.
     """
+    if almacen is not None:
+        return almacen.leer(tenant_id)
     ruta = Path(raiz) / tenant_id / "trazas.jsonl"
     if not ruta.is_file():
         return []
@@ -416,32 +448,52 @@ def _reescribir(ruta: Path, conservar, motivo: dict) -> dict:
     return lapida
 
 
-def borrar_usuario(tenant_id: str, usuario: str, raiz: Path | str = RAIZ_POR_DEFECTO) -> dict:
+def borrar_usuario(
+    tenant_id: str, usuario: str, raiz: Path | str = RAIZ_POR_DEFECTO, almacen=None
+) -> dict:
     """Supresion (RGPD art. 17): quita todas las consultas de un usuario y deja
     una lapida con su hash. Devuelve la lapida, con `lineas_quitadas`."""
+    motivo = {"motivo": "supresion_usuario", "usuario_hash": _hash(usuario)}
+    if almacen is not None:
+        quitadas = almacen.quitar(tenant_id, usuario=usuario, clave_lapida=CLAVE_LAPIDA)
+        return _lapida_en_almacen(almacen, tenant_id, quitadas, motivo)
     ruta = Path(raiz) / tenant_id / "trazas.jsonl"
-    return _reescribir(
-        ruta,
-        conservar=lambda r: r.get("usuario") != usuario,
-        motivo={"motivo": "supresion_usuario", "usuario_hash": _hash(usuario)},
-    )
+    return _reescribir(ruta, conservar=lambda r: r.get("usuario") != usuario, motivo=motivo)
 
 
-def purgar(tenant_id: str, dias: int, raiz: Path | str = RAIZ_POR_DEFECTO, ahora=None) -> dict:
+def _lapida_en_almacen(almacen, tenant_id: str, quitadas: int, motivo: dict) -> dict:
+    """La misma lapida que deja `_reescribir`, en la base."""
+    lapida = {
+        CLAVE_LAPIDA: True,
+        "ts": datetime.now(UTC).isoformat(timespec="seconds"),
+        "lineas_quitadas": quitadas,
+        "lineas_ilegibles_conservadas": 0,
+        **motivo,
+    }
+    if quitadas:
+        almacen.escribir(tenant_id, lapida)
+    return lapida
+
+
+def purgar(
+    tenant_id: str, dias: int, raiz: Path | str = RAIZ_POR_DEFECTO, ahora=None, almacen=None
+) -> dict:
     """Retencion: quita las consultas con mas de `dias` dias. Devuelve la lapida."""
     if dias < 1:
         raise ValueError("la retencion se expresa en dias enteros positivos")
     ahora = ahora or datetime.now(UTC)
     limite = (ahora - timedelta(days=dias)).isoformat(timespec="seconds")
+    motivo = {"motivo": "retencion", "dias": dias, "anteriores_a": limite}
+    if almacen is not None:
+        quitadas = almacen.quitar(tenant_id, anteriores_a=limite, clave_lapida=CLAVE_LAPIDA)
+        return _lapida_en_almacen(almacen, tenant_id, quitadas, motivo)
     ruta = Path(raiz) / tenant_id / "trazas.jsonl"
-    return _reescribir(
-        ruta,
-        conservar=lambda r: (r.get("ts") or "") >= limite,
-        motivo={"motivo": "retencion", "dias": dias, "anteriores_a": limite},
-    )
+    return _reescribir(ruta, conservar=lambda r: (r.get("ts") or "") >= limite, motivo=motivo)
 
 
-def inquilinos(raiz: Path | str = RAIZ_POR_DEFECTO) -> list[str]:
+def inquilinos(raiz: Path | str = RAIZ_POR_DEFECTO, almacen=None) -> list[str]:
+    if almacen is not None:
+        return almacen.inquilinos()
     raiz = Path(raiz)
     if not raiz.is_dir():
         return []

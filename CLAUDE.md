@@ -35,7 +35,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1205 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
+servicio público desplegado. **1214 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -192,7 +192,7 @@ ROUTER_KIND=embeddings_descripciones uv run python -m src.main "..."   # enrutar
 uv sync --group langgraph && ORQUESTADOR=langgraph uv run python -m evals.runner --etiqueta X --sin-juez   # el grafo (§50)
 
 uv run python -m src.main "tu consulta"                # consulta real: SÍ se registra
-uv run python -m src.observabilidad_cli                # qué ha pasado en producción
+uv run python -m src.observabilidad_cli                # qué ha pasado en producción (lee la base si REGISTRO_DB_URL_EXTERNA está en .env; --fichero para el local)
 uv run python -m src.observabilidad_cli --tenant X --borrar-usuario U   # supresión RGPD
 uv run streamlit run app.py                            # interfaz (uv sync --group app)
 uv run python -m src.canal_whatsapp_servidor --simular "..." --desde 34600000001   # canal WhatsApp en local, sin Meta

@@ -777,7 +777,7 @@ pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
 7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 61
-hallazgos medidos y 1.205 tests.
+hallazgos medidos y 1.214 tests.
 
 ## 4. Evaluación
 
@@ -1120,10 +1120,15 @@ servicios nuevos. Lo que se pierde es la interfaz de exploración y las
 trazas anidadas por paso, que aquí se suplen con `observabilidad_cli` y con
 las trazas del banco.
 
-En el despliegue actual el registro vive en el disco efímero del plan
-gratuito de Render y no sobrevive a un reinicio del servicio. La política
-de retención del capítulo 6.2 está medida en local y es un requisito del
-despliegue de pago (capítulo 5.4), no una propiedad del actual.
+Hasta el 11-10-2026 el registro vivía solo en el disco efímero del plan
+gratuito de Render y no sobrevivía a un reinicio del servicio; era lo que
+el feedback de las entregas 3.1 y 3.3 había dejado pendiente. Desde
+entonces cada línea va además a un Postgres gratuito de Render en la misma
+región (`src/registro_db.py`), y `observabilidad_cli` lee de ahí desde la
+máquina del autor. La supresión y la purga del capítulo 6.2 se aplican
+igual en la base, con la misma lápida, y lo vigilan nueve pruebas contra
+SQLite. Ese Postgres gratuito caduca el 10-11-2026, después de la entrega;
+un despliegue real lo pasaría a un plan de pago (capítulo 5.4).
 
 ### 6.2 Retención y supresión
 
@@ -1314,7 +1319,7 @@ contrastaron contra la Comisión y el BOE (fuentes en `MODULO_4.md`).
 ### 7.6 Cadena de suministro
 
 `AIBOM.md` se genera desde `uv.lock`, `config.py`, `provider.py` y los
-manifiestos, con un test que falla si difiere: 17 paquetes directos y 147
+manifiestos, con un test que falla si difiere: 18 paquetes directos y 148
 transitivos fijados, todos los grupos opcionales incluidos, y cada modelo
 con su precio o con la marca de que no lo tiene. La primera vez que se
 generó destapó que el modelo de embeddings está en retirada y costaba
@@ -1485,7 +1490,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.205 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.214 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
