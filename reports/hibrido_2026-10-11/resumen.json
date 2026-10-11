@@ -1,0 +1,92 @@
+{
+  "etiqueta": "hibrido_2026-10-11",
+  "fecha": "2026-10-11T12:20:43+00:00",
+  "enrutado": "oráculo (categoría esperada)",
+  "bm25": {
+    "k1": 1.5,
+    "b": 0.75,
+    "tokens": ">=3 letras, sin tildes"
+  },
+  "rrf": {
+    "k": 60,
+    "candidatos": 20
+  },
+  "duracion_s": 19.7,
+  "por_inquilino": {
+    "empresa_servicios": {
+      "casos": 37,
+      "excluidos_por_permiso": 7,
+      "top_k": 4,
+      "medias": {
+        "densa": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.8243,
+          "mrr": 0.982
+        },
+        "bm25": {
+          "hit_rate": 0.9459,
+          "recall_at_k": 0.9459,
+          "precision_at_k": 0.7973,
+          "mrr": 0.9189
+        },
+        "rrf": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.8198,
+          "mrr": 0.9865
+        }
+      }
+    },
+    "agencia_inmobiliaria": {
+      "casos": 20,
+      "excluidos_por_permiso": 4,
+      "top_k": 4,
+      "medias": {
+        "densa": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.6,
+          "mrr": 1.0
+        },
+        "bm25": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.575,
+          "mrr": 0.95
+        },
+        "rrf": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.5833,
+          "mrr": 1.0
+        }
+      }
+    },
+    "gestoria_laboral": {
+      "casos": 18,
+      "excluidos_por_permiso": 5,
+      "top_k": 4,
+      "medias": {
+        "densa": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.8333,
+          "mrr": 1.0
+        },
+        "bm25": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.8333,
+          "mrr": 1.0
+        },
+        "rrf": {
+          "hit_rate": 1.0,
+          "recall_at_k": 1.0,
+          "precision_at_k": 0.8333,
+          "mrr": 1.0
+        }
+      }
+    }
+  }
+}

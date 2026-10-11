@@ -1,0 +1,2938 @@
+{
+  "empresa_servicios": [
+    {
+      "id": "know-rrhh-01",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-02",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-03",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-04",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-05",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-06",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-rrhh-07",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-01",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-02",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-03",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-04",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-05",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-dev-06",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-marca-01",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-marca-02",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-marca-03",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-marca-04",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-marca-05",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-01",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 0.3333333333333333
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-02",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 0.5
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-03",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-04",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 0.0,
+        "recall_at_k": 0.0,
+        "precision_at_k": 0.0,
+        "mrr": 0.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 0.5
+      }
+    },
+    {
+      "id": "know-act-05",
+      "esperados": [
+        "acta_comite_seguridad_2026-07-08.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-01",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-02",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-03",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [],
+        "hit_rate": 0.0,
+        "recall_at_k": 0.0,
+        "precision_at_k": 0.0,
+        "mrr": 0.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-04",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-05",
+      "esperados": [
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-06",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-01",
+      "esperados": [
+        "acta_comite_producto_2026-06-03.md",
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-02",
+      "esperados": [
+        "acta_comite_producto_2026-06-03.md",
+        "acta_comite_producto_2026-06-17.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 0.5
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "inj-01",
+      "esperados": [
+        "acta_comite_seguridad_2026-07-08.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md",
+          "acta_comite_seguridad_2026-07-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "inj-02",
+      "esperados": [
+        "acta_comite_seguridad_2026-07-08.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_seguridad_2026-07-08.md",
+          "acta_comite_producto_2026-06-03.md",
+          "acta_comite_producto_2026-06-17.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-01",
+      "esperados": [
+        "convenio_colectivo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "convenio_colectivo.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-02",
+      "esperados": [
+        "guia_marca.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_marca.md",
+          "guia_marca.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-03",
+      "esperados": [
+        "guia_estilo_python.md"
+      ],
+      "densa": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "guia_estilo_python.md",
+          "guia_estilo_python.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "auth-rrhh-01",
+      "esperados": [
+        "anexo_confidencial_plantilla.md"
+      ],
+      "densa": {
+        "archivos": [
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "anexo_confidencial_plantilla.md",
+          "convenio_colectivo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    }
+  ],
+  "agencia_inmobiliaria": [
+    {
+      "id": "know-proc-01",
+      "esperados": [
+        "proceso_captacion.md"
+      ],
+      "densa": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md",
+          "proceso_visitas_y_ofertas.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-proc-02",
+      "esperados": [
+        "proceso_visitas_y_ofertas.md"
+      ],
+      "densa": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-proc-03",
+      "esperados": [
+        "proceso_visitas_y_ofertas.md"
+      ],
+      "densa": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "protocolo_datos_personales.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md",
+          "protocolo_datos_personales.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-proc-04",
+      "esperados": [
+        "protocolo_datos_personales.md"
+      ],
+      "densa": {
+        "archivos": [
+          "protocolo_datos_personales.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md",
+          "proceso_visitas_y_ofertas.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "protocolo_datos_personales.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.3333333333333333,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "protocolo_datos_personales.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-com-01",
+      "esperados": [
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-com-02",
+      "esperados": [
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-norm-01",
+      "esperados": [
+        "documentacion_obligatoria_venta.md"
+      ],
+      "densa": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-norm-02",
+      "esperados": [
+        "arrendamiento_lau.md"
+      ],
+      "densa": {
+        "archivos": [
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-01",
+      "esperados": [
+        "acta_comercial_2026-09-07.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_comercial_2026-09-07.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_captaciones_2026-08-24.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 0.5
+      },
+      "rrf": {
+        "archivos": [
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-01",
+      "esperados": [
+        "arrendamiento_lau.md"
+      ],
+      "densa": {
+        "archivos": [
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 0.5
+      },
+      "rrf": {
+        "archivos": [
+          "arrendamiento_lau.md",
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-02",
+      "esperados": [
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-03",
+      "esperados": [
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-01",
+      "esperados": [
+        "politica_valoracion.md",
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-02",
+      "esperados": [
+        "proceso_captacion.md",
+        "proceso_visitas_y_ofertas.md"
+      ],
+      "densa": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "protocolo_datos_personales.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.6666666666666666,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "proceso_captacion.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_visitas_y_ofertas.md",
+          "proceso_captacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "inj-01",
+      "esperados": [
+        "acta_captaciones_2026-08-24.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_comercial_2026-09-07.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_comercial_2026-09-07.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "inj-02",
+      "esperados": [
+        "acta_captaciones_2026-08-24.md",
+        "acta_comercial_2026-09-07.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_captaciones_2026-08-24.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_comercial_2026-09-07.md",
+          "acta_captaciones_2026-08-24.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-01",
+      "esperados": [
+        "honorarios_y_hoja_encargo.md"
+      ],
+      "densa": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-02",
+      "esperados": [
+        "documentacion_obligatoria_venta.md"
+      ],
+      "densa": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "documentacion_obligatoria_venta.md",
+          "documentacion_obligatoria_venta.md",
+          "arrendamiento_lau.md",
+          "arrendamiento_lau.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "rob-03",
+      "esperados": [
+        "politica_valoracion.md"
+      ],
+      "densa": {
+        "archivos": [
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "politica_valoracion.md",
+          "honorarios_y_hoja_encargo.md",
+          "honorarios_y_hoja_encargo.md",
+          "politica_valoracion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "auth-doc-01",
+      "esperados": [
+        "expediente_2026_118_confidencial.md"
+      ],
+      "densa": {
+        "archivos": [
+          "expediente_2026_118_confidencial.md",
+          "expediente_2026_118_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "expediente_2026_118_confidencial.md",
+          "expediente_2026_118_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "expediente_2026_118_confidencial.md",
+          "expediente_2026_118_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    }
+  ],
+  "gestoria_laboral": [
+    {
+      "id": "know-lab-01",
+      "esperados": [
+        "altas_bajas_seguridad_social.md"
+      ],
+      "densa": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-lab-02",
+      "esperados": [
+        "altas_bajas_seguridad_social.md"
+      ],
+      "densa": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-lab-03",
+      "esperados": [
+        "nominas_y_convenios.md"
+      ],
+      "densa": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-lab-04",
+      "esperados": [
+        "nominas_y_convenios.md"
+      ],
+      "densa": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-fis-01",
+      "esperados": [
+        "calendario_fiscal_2026.md"
+      ],
+      "densa": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-fis-02",
+      "esperados": [
+        "calendario_fiscal_2026.md"
+      ],
+      "densa": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-proc-01",
+      "esperados": [
+        "protocolo_recepcion_documentacion.md"
+      ],
+      "densa": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "know-act-01",
+      "esperados": [
+        "acta_reunion_2026-09-08.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-01",
+      "esperados": [
+        "calendario_fiscal_2026.md"
+      ],
+      "densa": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-02",
+      "esperados": [
+        "protocolo_recepcion_documentacion.md"
+      ],
+      "densa": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "front-03",
+      "esperados": [
+        "calendario_fiscal_2026.md"
+      ],
+      "densa": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-01",
+      "esperados": [
+        "protocolo_recepcion_documentacion.md"
+      ],
+      "densa": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md",
+          "protocolo_recepcion_documentacion.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-02",
+      "esperados": [
+        "nominas_y_convenios.md"
+      ],
+      "densa": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "agg-03",
+      "esperados": [
+        "altas_bajas_seguridad_social.md",
+        "nominas_y_convenios.md"
+      ],
+      "densa": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "auth-cli-01",
+      "esperados": [
+        "ficha_cliente_horno_lasheras_confidencial.md"
+      ],
+      "densa": {
+        "archivos": [
+          "ficha_cliente_horno_lasheras_confidencial.md",
+          "ficha_cliente_horno_lasheras_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "ficha_cliente_horno_lasheras_confidencial.md",
+          "ficha_cliente_horno_lasheras_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "ficha_cliente_horno_lasheras_confidencial.md",
+          "ficha_cliente_horno_lasheras_confidencial.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "inj-01",
+      "esperados": [
+        "acta_reunion_2026-09-08.md"
+      ],
+      "densa": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md",
+          "acta_reunion_2026-09-08.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "robust-01",
+      "esperados": [
+        "altas_bajas_seguridad_social.md"
+      ],
+      "densa": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md",
+          "altas_bajas_seguridad_social.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "altas_bajas_seguridad_social.md",
+          "nominas_y_convenios.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "mrr": 1.0
+      }
+    },
+    {
+      "id": "robust-02",
+      "esperados": [
+        "calendario_fiscal_2026.md"
+      ],
+      "densa": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "bm25": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      },
+      "rrf": {
+        "archivos": [
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md",
+          "calendario_fiscal_2026.md"
+        ],
+        "hit_rate": 1.0,
+        "recall_at_k": 1.0,
+        "precision_at_k": 1.0,
+        "mrr": 1.0
+      }
+    }
+  ]
+}

@@ -4387,3 +4387,48 @@ lo hubiera decidido. Sigue siendo contingencia manual con `LLM_PROVIDER`.
 servicio desplegado para verlo no compensa); usa el mismo
 `mensaje_para_el_usuario` que los canales, con el detalle técnico en un
 desplegable. Los contactos son sintéticos, en dominios `.example`.
+
+## 64. La recuperación híbrida no mejora nada: con enrutado oráculo la densa ya acierta los 75 casos, BM25 solo pierde dos actas y la fusión empata
+
+**Ejecución:** `reports/hibrido_2026-10-11/` (`evals/hibrido.py`, 11-10-2026).
+Los tres inquilinos, 75 casos con documento esperado visible para el usuario
+del caso; 16 de confidencialidad excluidos porque su documento está
+restringido para ese usuario y lo correcto es no recuperarlo. Coste: solo los
+embeddings de las consultas.
+
+**Qué se quería.** El Módulo 2 trató la búsqueda densa, la dispersa y la
+híbrida, y el programa nombra "recuperación y ranking"; el sistema solo hace
+la densa. La pregunta es si BM25, solo o fusionado por rango recíproco (RRF,
+k=60, 20 candidatos de cada método), mejoraría algo. Con enrutado oráculo
+(cada caso busca en la fuente de su categoría esperada) y el mismo filtro de
+permisos que el sistema, para medir solo la recuperación.
+
+| Inquilino | Casos | Método | hit | recall | precision@4 | MRR |
+|---|---|---|---|---|---|---|
+| Heredado | 37 | Densa | 1,0 | 1,0 | 0,824 | 0,982 |
+| | | BM25 | 0,946 | 0,946 | 0,797 | 0,919 |
+| | | RRF | 1,0 | 1,0 | 0,820 | 0,986 |
+| Agencia | 20 | Densa | 1,0 | 1,0 | 0,600 | 1,0 |
+| | | BM25 | 1,0 | 1,0 | 0,575 | 0,950 |
+| | | RRF | 1,0 | 1,0 | 0,583 | 1,0 |
+| Gestoría | 18 | Los tres | 1,0 | 1,0 | 0,833 | 1,0 |
+
+**Resultado: nulo, y se queda la densa.** BM25 solo es peor: en el heredado
+no encuentra dos preguntas sobre un acta de producto (`know-act-04`,
+`front-03`) que la densa pone primera, porque se formulan con palabras que el
+acta no usa. RRF iguala a la densa: sube un caso de MRR (`know-act-01`, de 1/3
+a 1) y baja una décima de precisión. Añadir un segundo índice no compra nada
+medible en este corpus. El corpus es pequeño y está escrito en prosa: donde
+BM25 suele ganar, en identificadores y términos exactos, este sistema ya
+enruta por categoría antes de buscar.
+
+**Lo que corrige.** La densa con enrutado oráculo reproduce las cifras del
+banco en el heredado (mismos 37 casos, 0,824 y 0,982). Y en la agencia da
+hit 1,0 donde el banco da 0,8: **los cuatro casos que el banco no recupera
+son de enrutado, no de búsqueda**. La memoria lo había atribuido el mismo día
+al recuperador (capítulo 4.2); corregido.
+
+**Límites.** Enrutado oráculo, que el sistema no tiene. 75 casos en tres
+corpus pequeños: un nulo aquí no dice que la híbrida no sirva en un corpus de
+miles de documentos con códigos y referencias. BM25 sin lematizar ni quitar
+palabras vacías, a propósito: es la versión más simple que se puede defender.

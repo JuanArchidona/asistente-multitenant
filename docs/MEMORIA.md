@@ -776,7 +776,7 @@ bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 63
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 64
 hallazgos medidos y 1.230 tests.
 
 ## 4. Evaluación
@@ -839,10 +839,12 @@ esperado:
 | `gestoria_agregacion_v2` | 17 | 1,0 | 1,0 | 0,82 | 1,0 |
 
 En el heredado y la gestoría la recuperación está saturada: el documento
-correcto llega siempre y casi siempre primero. En la agencia hay margen:
-cuatro de los 20 casos no recuperan el documento esperado, y la precisión
-de 0,5 dice que la mitad del contexto que recibe el generador es de otros
-documentos.
+correcto llega siempre y casi siempre primero. En la agencia, los cuatro
+casos que no recuperan el documento esperado son de enrutado y no de
+búsqueda: con la categoría correcta los 20 aciertan (§64). Lo que sí dice
+su precisión de 0,5 es que la mitad del contexto que recibe el generador es
+de otros documentos. Una recuperación híbrida (BM25 fusionado con la densa)
+se midió y no mejora nada en ninguno de los tres corpus (§64).
 
 No hay un umbral de aceptación fijado de antemano. La regla es otra:
 ninguna pasada baja respecto a la anterior sin que el motivo esté escrito,
