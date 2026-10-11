@@ -157,10 +157,27 @@ st.info(cfg.tenant.ai_act.aviso_usuario)
 
 asegurar_indice(cfg)
 
+
+def avisos_de_control(meta: dict) -> None:
+    """Lo que el control de acceso retuvo o redactó en esa respuesta.
+
+    Se pinta igual en el turno en curso y al repintar el historial: antes solo
+    salía bajo la última respuesta y desaparecía de las anteriores (E-0021).
+    """
+    if meta.get("denegados_por_permiso"):
+        st.caption(
+            f"Retenido por permiso: {', '.join(meta['denegados_por_permiso'])}. "
+            "Tu rol no alcanza esos documentos."
+        )
+    if meta.get("campos_redactados"):
+        st.caption(f"Campos redactados: {', '.join(meta['campos_redactados'])}.")
+
+
 for mensaje in st.session_state.historial:
     with st.chat_message(mensaje["rol"]):
         st.markdown(mensaje["texto"])
         if mensaje.get("meta"):
+            avisos_de_control(mensaje["meta"])
             with st.expander("Traza"):
                 st.json(mensaje["meta"])
 
@@ -248,21 +265,16 @@ if consulta:
         meta = {k: v for k, v in traza.items() if k not in ("respuesta", "contexto_recuperado")}
         for accion in traza.get("acciones_pendientes") or []:
             st.session_state.setdefault("acciones", {})[accion["id"]] = accion
-        if traza.get("denegados_por_permiso"):
-            st.caption(
-                f"Retenido por permiso: {', '.join(traza['denegados_por_permiso'])}. "
-                "Tu rol no alcanza esos documentos."
-            )
-        if traza.get("campos_redactados"):
-            st.caption(f"Campos redactados: {', '.join(traza['campos_redactados'])}.")
+        avisos_de_control(meta)
         with st.expander("Traza"):
             st.json(meta)
 
     st.session_state.historial.append(
         {"rol": "assistant", "texto": traza["respuesta"], "meta": meta}
     )
-    # La tarjeta de aprobación se pinta ANTES de procesar la consulta, así que
-    # una acción recién propuesta no se ve hasta la siguiente pasada. Visto en
-    # Render (E-0008): se fuerza la pasada aquí.
-    if traza.get("acciones_pendientes"):
-        st.rerun()
+    # La barra lateral (gasto, consultas del inquilino) y la tarjeta de
+    # aprobación se pintan ANTES de procesar la consulta, así que lo que esta
+    # respuesta cambia no se veía hasta la siguiente pasada: el contador iba
+    # un turno por detrás (E-0021) y una acción recién propuesta no aparecía
+    # (E-0008). Se fuerza la pasada después de cada respuesta.
+    st.rerun()
