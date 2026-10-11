@@ -151,6 +151,9 @@ def huella_activa(cfg: Config) -> dict:
         "quien_pregunta": huella(agent.BLOQUE_QUIEN_PREGUNTA) if cfg.gen_quien_pregunta else None,
         "datos": huella(agent.SYSTEM_GEN_DATOS),
         "mixto": huella(agent.SYSTEM_GEN_MIXTO_EXTRA),
+        # La reescritura solo cuenta si está activa: con ella encendida hay un
+        # prompt más en juego, y la versión tiene que decirlo (§66).
+        "memoria": huella(memoria.SYSTEM_REESCRITURA) if cfg.memoria_turnos == "reescritura" else None,
     }
     combinada = huella("|".join(f"{k}={v}" for k, v in sorted(partes.items())))
     return {"version": combinada, **partes}

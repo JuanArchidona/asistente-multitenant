@@ -4557,3 +4557,20 @@ como aviso" en una pregunta sobre visitas): en este banco no estropeó
 ningún caso, pero es un riesgo que crece con conversaciones largas. Y no
 se probó contra el control de acceso con historial: la consulta reescrita
 pasa por el mismo `where` que cualquier otra, por construcción.
+
+**Verificación en producción** (encargo E-0021, 11-10-2026, 20:00, servicio
+web en `6e49c96` con `MEMORIA_TURNOS=reescritura` puesto por el blueprint).
+Una conversación real de tres turnos como `eval_empleado`, leída después en
+el Postgres de producción: el segundo turno, "¿Y si no los gasto todos?",
+se reescribió como "¿Qué sucede con los días de vacaciones no disfrutados si
+no los gasto todos en el año?" (0,88 s) y respondió el arrastre de 5 días
+hasta el 31 de marzo; el tercero, "¿Y de asuntos propios?", como "¿Cuántos
+días de asuntos propios me corresponden al año según el Convenio Colectivo
+Interno...?" (1,01 s), 4 días no acumulables, que es lo que dice el
+convenio. Los dos cayeron en la muestra del juez de producción y los dos
+salieron **fiel**: los primeros veredictos legibles tras corregir el límite
+de tokens (§62). Dos salvedades: el primer turno ya adelantaba el arrastre,
+así que el segundo discrimina poco, y la evidencia de la memoria es la
+reescritura; y las tres líneas llevaban la misma huella de prompts que sin
+memoria, porque el prompt de reescritura no entraba en la versión. Corregido
+el mismo día con una prueba.

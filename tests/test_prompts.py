@@ -54,6 +54,15 @@ def test_la_huella_cambia_con_la_politica_y_con_quien_pregunta(cfg, cfg_factory)
     assert sin_quien["quien_pregunta"] is None
 
 
+def test_la_huella_cambia_al_activar_la_memoria(cfg, cfg_factory):
+    """Las primeras consultas con memoria en producción llevaban la misma huella
+    que sin ella: el prompt de reescritura no entraba en la versión (§66)."""
+    sin = huella_activa(cfg)
+    con = huella_activa(cfg_factory(memoria_turnos="reescritura"))
+    assert sin["memoria"] is None and con["memoria"]
+    assert sin["version"] != con["version"]
+
+
 def test_el_commit_sale_de_render_cuando_corre_alli(monkeypatch):
     monkeypatch.setenv("RENDER_GIT_COMMIT", "0123456789abcdef")
     assert commit_desplegado() == "0123456"
