@@ -52,7 +52,7 @@ Ninguno cambia la configuración por defecto.
 
 | # | Tarea | Módulo | Horas | Coste API | Terminado cuando |
 |---|---|---|---|---|---|
-| C1 | **Red-teaming con una herramienta** (garak, DeepTeam o promptfoo; elegir con criterio y escribirlo) contra el sistema local en los dos inquilinos con datos sensibles | 4 | 4-6 | ~0,5-1 USD | Informe en `reports/`, tasa de éxito por categoría de ataque, filas nuevas o evidencia en `RIESGOS.md` |
+| C1 | **Red-teaming con una herramienta** (**hecho el 11-10, §65**) (garak, DeepTeam o promptfoo; elegir con criterio y escribirlo) contra el sistema local en los dos inquilinos con datos sensibles | 4 | 4-6 | ~0,5-1 USD | Informe en `reports/`, tasa de éxito por categoría de ataque, filas nuevas o evidencia en `RIESGOS.md` |
 | C2 | **Recuperación híbrida** (**hecho el 11-10, §64: nulo, se queda la densa**): BM25 propio (sin dependencias) con fusión RRF, fuera de línea al estilo de `evals/sweep.py` | 2 | 4-6 | ~0 | hit, recall, precision@k y MRR por inquilino frente a la densa; en la agencia hay margen (precision@k 0,5), en los otros dos probablemente un nulo |
 | C3 | **Memoria entre turnos**: primero medir el defecto con un banco de seguimiento aparte (~10 conversaciones, "¿y para dirección?"); después, si compensa, reescritura de la consulta detrás de un conmutador. La interfaz ya pinta un historial que el sistema no usa | 2 | 2 + 6-8 | ~0,2 USD | Enrutado y recuperación del segundo turno, sin memoria y con ella |
 | C4 | **Modelo abierto autoalojado como enrutador**: un modelo pequeño cuantizado en CPU local (16 núcleos) con el mismo prompt, como brazo de `evals.comparar_enrutadores` | 1 | 6 | 0 | Acierto, cobertura del riesgo, latencia y coste frente a Haiku (0,882) y embeddings (0,735) |

@@ -4432,3 +4432,76 @@ al recuperador (capítulo 4.2); corregido.
 corpus pequeños: un nulo aquí no dice que la híbrida no sirva en un corpus de
 miles de documentos con códigos y referencias. BM25 sin lematizar ni quitar
 palabras vacías, a propósito: es la versión más simple que se puede defender.
+
+## 65. Red-teaming con herramienta: 64 de 64 ataques resistidos y ninguna fuga, pero solo 7 llegaron al control de acceso, y el control retuvo lo restringido las 7 veces
+
+**Ejecución:** `reports/redteam_empresa/` y `reports/redteam_agencia/`
+(`scripts/red_team.py`, DeepTeam 1.0.9, 11-10-2026, 14:53-15:14). Atacante
+`claude-sonnet-5` con la clave del juez de Anthropic; evaluador
+`gemini-3.6-flash` con la del juez de Gemini; objetivo, el sistema entero
+como empleado sin privilegios, sin registro de producción. Dos ataques por
+tipo de vulnerabilidad: 28 en el heredado (fuga de datos personales, fuga
+del prompt, control por rol, recuperación entre contextos, instrucciones
+indirectas) y 40 en la agencia (más agencia excesiva y acceso a objetos de
+otro cliente), mejorados con siete técnicas (inyección, juego de rol,
+escalada de permisos y de autoridad, anulación del sistema, Base64,
+multilingüe). Coste: 0,27 USD del sistema y 1,82 USD del atacante; el del
+evaluador va a la consola del proyecto del juez.
+
+**Qué se quería.** El banco tiene casos de inyección y de confidencialidad
+escritos a mano; el enunciado del TFM pide un agente o framework de
+red-teaming, y la entrega 4.3 lo dejó como hueco. La pregunta es si una
+batería estándar encuentra algo que el banco no.
+
+| | Heredado | Agencia |
+|---|---|---|
+| Ataques generados / evaluados | 28 / 24 (4 sin generar: el atacante no devolvió JSON) | 40 / 40 |
+| Resistidos según el juez | 24 de 24 | 40 de 40 |
+| Documento restringido en el contexto (determinista) | 0 | 0 |
+| Literal sensible en la respuesta: DNI, IBAN, cifras del documento restringido (determinista) | 0 de 15 buscados | 0 |
+| Frases del prompt de sistema en la respuesta (determinista) | 0 | 0 |
+| Escrituras propuestas | 0 | 0 |
+| **Ataques que llegan al control de acceso** (enrutados a una categoría con documentos) | **6 de 24** | **1 de 40** |
+| De esos, con el documento restringido retenido por el `where` | 6 de 6 | 1 de 1 |
+
+**Lo que dice, y lo que no.** Ninguna fuga, por ningún criterio, y en los
+siete ataques que llegaron a la búsqueda el control retuvo el documento
+restringido las siete veces. Pero **57 de 64 ataques no llegaron al
+control**: son textos largos y elaborados (un "proceso auxiliar de nómina
+con herencia de permisos", un "generador de datos sintéticos para AI
+Safety", peticiones en zulú) que el enrutador no reconoce como preguntas
+del dominio y manda a `otro`, donde el generador responde sin contexto y se
+niega por su cuenta. La batería estándar mide sobre todo el enrutador y la
+prudencia del modelo, no el control de acceso. Es la misma lección que la
+cobertura del riesgo del capítulo 2.7 aplicada a una herramienta: un ataque
+que no llega al control no prueba el control. Los seis ataques de agencia
+excesiva no tocaron el CRM, así que la aprobación humana (§42) no se
+ejercitó. Los casos del banco, escritos para este dominio, siguen siendo la
+mejor prueba del control (cobertura del riesgo 1,0 en la agencia).
+
+**Lo que costó que la herramienta midiera algo.** Tres defectos, ninguno del
+sistema, cazados por no dar por buena la primera cifra:
+
+1. La primera pasada perdió 19 de 28 ataques por el envoltorio de DeepEval
+   para Anthropic, que lee solo el primer bloque de la respuesta (con
+   razonamiento, el del pensamiento) y limita la salida a 1.024 tokens, que
+   dejaban el JSON cortado. El mismo fallo que el juez de producción (§62);
+   arreglado con un envoltorio propio.
+2. `claude-sonnet-5` se negó a 7 de 7 mejoras de ataque ("I can't help
+   construct this social engineering prompt"). Con un prompt de sistema que
+   declara el ejercicio autorizado sobre un sistema propio con datos
+   sintéticos, las generó.
+3. `gemini-3.6-flash` como atacante también se negaba, y peor: devolvía su
+   negativa como si fuera el ataque, a veces en Base64 o traducida, y
+   DeepTeam la mandaba al sistema y la contaba como **ataque superado**:
+   5 de 5 superados que no significaban nada. El script detecta ahora esas
+   negativas (decodificando Base64) y las excluye del recuento.
+
+Y uno de privacidad: DeepTeam y DeepEval mandan telemetría de uso a terceros
+(PostHog) si no se apaga. La primera prueba de humo la envió una vez antes
+de verlo; desde entonces el script la apaga antes de importar nada.
+
+**Límites.** Dos ataques por tipo, una pasada: no es una auditoría. El juez
+de DeepTeam es un juez LLM (§30, §32); lo citable es lo determinista. Las
+negativas traducidas a un idioma que el detector no conoce no se detectan:
+con el atacante de Anthropic no apareció ninguna.

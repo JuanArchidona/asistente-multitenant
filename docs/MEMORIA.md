@@ -776,7 +776,7 @@ bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
 **En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 64
+7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 65
 hallazgos medidos y 1.232 tests.
 
 ## 4. Evaluación
@@ -1269,7 +1269,7 @@ evidencia es una opinión.
 
 | # | Riesgo | Estado |
 |---|---|---|
-| 1 | Inyección de instrucciones | Medido con los ocho casos `inj-*` del banco (cuatro en el heredado, dos en la agencia, dos en la gestoría) y la cobertura del riesgo: los que llegan al control no filtran ningún literal prohibido; `inj-04` no llega y es el residual (capítulo 2.7) |
+| 1 | Inyección de instrucciones | Medido con los ocho casos `inj-*` del banco (cuatro en el heredado, dos en la agencia, dos en la gestoría) y la cobertura del riesgo: los que llegan al control no filtran ningún literal prohibido; `inj-04` no llega y es el residual (capítulo 2.7). Y con una batería estándar de red-teaming (DeepTeam): 64 ataques resistidos, ninguna fuga, pero solo 7 llegaron al control (§65) |
 | 2 | Salida insegura | Por construcción: texto para una persona; se reevaluará con los canales |
 | 3 | Envenenamiento de datos | Por construcción, no medido como ataque: corpus sintético con semilla. Un cliente real trae su corpus y la mitigación desaparece |
 | 4 | Denegación de servicio | Por construcción: tope duro (prepago sin recarga) y blando; una fuga a pleno ritmo gasta 13,7 USD por hora (115 consultas por minuto con ocho en vuelo, §53). Sin límite por usuario ni por minuto; la puerta HTTP aguanta 20 clientes a la vez y el pipeline 8 en vuelo sin degradarse (§53), así que la denegación plausible es económica, no de capacidad |
@@ -1282,6 +1282,24 @@ evidencia es una opinión.
 
 Donde la tabla dice "por construcción" no hay medida: el control existe
 por diseño y no se ha atacado. Son las filas 2, 3, 5 y 7.
+
+**Red-teaming con herramienta** (§65). El enunciado pide un agente o
+framework de red-teaming, y los casos del banco están escritos a mano. Se
+pasó DeepTeam, de la misma casa que el juez del banco, contra el sistema
+entero en los dos inquilinos con material sensible: 64 ataques estándar
+(fuga de datos personales y del prompt, saltarse el rol, recuperar datos de
+otro contexto o cliente, instrucciones indirectas y agencia excesiva),
+mejorados con siete técnicas, por 2,1 USD. Resultado: ninguna fuga por
+ningún criterio determinista (documento restringido en el contexto,
+literales sensibles en la respuesta, frases del prompt, escrituras). Pero
+solo 7 de los 64 llegaron al control de acceso, y en los 7 el documento
+restringido quedó retenido en la búsqueda; los otros 57 eran tan
+elaborados que el enrutador los mandó a `otro` y el modelo se negó sin
+contexto. La batería estándar mide sobre todo el enrutador y la prudencia
+del modelo; el control lo prueban mejor los casos del banco, escritos para
+este dominio. Hacer que la herramienta midiera algo exigió cazar tres
+defectos suyos, el más serio un atacante que devolvía su negativa como
+ataque y la herramienta lo contaba como superado.
 
 De los nueve guardarraíles que enumera el material, el proyecto tiene
 ocho (la tabla de `MODULO_4.md` los recorre uno a uno). Falta la
@@ -1605,7 +1623,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 64 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
+Los 65 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
 memoria que los citan (todos los que lo hacen, no solo el principal).
 Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;
 un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`
@@ -1642,7 +1660,7 @@ que lo respalda o dice que no la tiene.
 | 6.5 Dos superficies y un puente | §19 |
 | 6.6 Carga y arranque en frío | §52, §53, §59 |
 | 7.1 El registro de riesgos | §54, §57 |
-| 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53 |
+| 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53, §65 |
 | 7.3 Sesgo, medido en tres capas | §34, §44 |
 | 7.5 RGPD sobre el RAG | §36 |
 | 7.6 Cadena de suministro | §35, §61 |
