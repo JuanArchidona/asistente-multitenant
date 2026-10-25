@@ -5,6 +5,94 @@
 > `BITACORA_3.3.md`.
 
 
+## 2026-10-25 — Sesión 15: dos correcciones simuladas, la memoria reescrita para leerse, y el TFM entregado
+
+**12 commits, 2 hallazgos (§67, §68), 1.255 tests** (JUnit; la sesión empezó
+en 1.239). Coste en modelos: céntimos (unas cinco consultas reales de
+comprobación, unos 0,05 USD); las correcciones simuladas y los análisis de
+legibilidad los hizo la app de Claude con las cuentas de Juan.
+
+**Hecho:**
+
+- **Lectura final de la memoria con recuentos por comando**: siete cifras
+  viejas (1.124 tests, 59 hallazgos, 5.400 líneas...), el capítulo de
+  límites diciendo que el registro vivía en disco efímero, y unas
+  conclusiones que ponían la fuga real en el inquilino equivocado.
+- **Primera corrección simulada** (E-0022, nota estimada 8,5), con la app
+  de tutor y los `eval_*`: **CI en rojo** porque `pip-audit` encontró 54
+  avisos publicados tras el 11-10 (subidos 7 paquetes; pillow 13 exigía
+  streamlit 1.66.1); **respuesta cortada por `max_tokens` sin aviso** (ahora
+  `respuesta_truncada` en traza y registro y aviso al usuario, marca por
+  hilo en el proveedor); **tope blando sumando el disco efímero** (ahora lee
+  Postgres, también en los canales); **README de la 3.3** (hoy el del TFM);
+  **guion no reproducible** (rehecho con `eval_*`, OP-2026-110 verificada
+  contra el sistema real, fecha futura, coste medido). Hallazgo 67.
+- **Segunda corrección simulada** (E-0023, 9,0): el **resultado de
+  herramienta recortado a 6.000 caracteres también era silencioso**, y el
+  modelo dio como mínimo de la cartera 80.000 euros con el de 74.000 en la
+  parte cortada. Ahora `resultados_recortados`, aviso al usuario y un
+  marcador que prohíbe totales y rangos. Hallazgo 68.
+- **Descripción del repositorio en GitHub** (E-0024; el token de `gh` daba
+  403).
+- **La memoria reescrita** tras dos análisis de legibilidad de Gemini y
+  ChatGPT con el mismo prompt (E-0025, E-0026): índice en el PDF, capítulos
+  en el orden del enunciado, ninguna `§` en la prosa (línea de evidencia por
+  apartado, anexo B con el título de cada hallazgo, generado y vigilado por
+  test), glosario, detalle a anexos, conclusión antes que cifra, siglas
+  explicadas. Cuerpo de 17.843 a unas 11.800 palabras, 32 páginas; notas de
+  4-5/5-6/7 a 8/10/9 y 7/8/8,5. Script de comprobación: ninguna cifra sin
+  respaldo en la versión anterior o en los hallazgos.
+- **TFM entregado** (E-0027) el 25-10 a las 13:19: "Enviado para
+  calificar", intento 1 de 3, PDF de `5468fcc` (823.892 bytes, igual que el
+  local), y en "Texto en línea" el repositorio, el servicio y los cuatro
+  `eval_*` con contraseñas que pegó Juan.
+
+**Decisiones:**
+
+- **Marcar los recortes y leer el tope de Postgres** (Juan): los dos son
+  fallbacks silenciosos que la regla prohíbe. Los límites no cambian; son
+  línea base.
+- **Mantener el nombre del documento retenido en la web** (Juan): dice que
+  existe y a quién pedirlo, no su contenido; WhatsApp y correo solo dan el
+  número. Declarado en la memoria.
+- **Reescribir la memoria entera**, con unas 25 páginas de cuerpo, línea de
+  evidencia más anexo y lectura de Juan al final (Juan, sobre las
+  propuestas de ChatGPT, porque la estructura de Gemini dejaba fuera el
+  módulo 2 y el uso por terceros, y sus reescrituras cambiaban cifras).
+- **Anexo D.3 (incidencias de los canales) se queda**: en anexo no estorba.
+- **Entregar ya** (Juan): cuenta la mejor de tres y compra una ronda de
+  feedback.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] **Leer el feedback del tutor** cuando llegue y decidir si se
+      reentrega antes del 31-10 a las 12 de la noche (quedan 2 intentos).
+- [ ] Decidir si se versionan las respuestas literales de Gemini y ChatGPT
+      (`docs/entrega/Claude outputs/`) y los prompts y la plantilla del
+      comentario (`puente/PROMPT_LEGIBILIDAD*.md`,
+      `puente/COMENTARIO_ENTREGA.md`); hoy están sin seguimiento. La
+      plantilla no lleva contraseñas.
+- [ ] Tras el feedback, si da tiempo: B7 (alertas), B8 (deriva), C4-C7.
+- [ ] Tras el 31-10, apagar servicios (CLAUDE.md §8); el Postgres gratuito
+      caduca el 10-11.
+
+**Notas:**
+
+- **Una corrección desde fuera es una medida distinta, no una repetición**:
+  catorce sesiones desde dentro no vieron la CI roja, el README viejo ni los
+  dos recortes, porque el banco no mira nada de eso.
+- **Catorce días sin commits bastaron para romper la CI**: la cadena de
+  suministro cambia debajo aunque nadie toque el código.
+- **Un recuento que existe no es una cifra en su contexto**: la comprobación
+  automática dio cero cifras sin respaldo, y la relectura encontró dos mal
+  atribuidas (el 10 de 10 era de la empresa, no de la agencia; los "14
+  fallos" no contaban la gestoría).
+- Gemini 3.1 Pro respondió dos veces "no tengo esa capacidad" al primer
+  intento con el PDF; a la segunda conversación funcionó.
+- La shell rompe los heredocs largos con apóstrofos: los scripts de edición
+  van por fichero en el scratchpad.
+
+
 ## 2026-10-11 — Sesión 14: llega el Módulo 5, no hay defensa, y el plan de entrega se ejecuta casi entero en un día
 
 **27 commits, 7 hallazgos (§60-§66), 1.239 tests** (JUnit; la sesión empezó
