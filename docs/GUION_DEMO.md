@@ -21,8 +21,8 @@
 - Abrir la interfaz. En Render el primer acceso tarda unos 32 s si el
   servicio dormía (§52), y la primera consulta de cada inquilino construye
   su índice (unos 15-20 s más); las siguientes tardan 3-6 s.
-- El recorrido de los bloques 1 a 4b son diez consultas y costó **0,069 USD**
-  medido el 25-10-2026 (§67).
+- El recorrido de los bloques 1 a 4b son nueve consultas y costó entre
+  **0,064 y 0,069 USD** en las dos pasadas medidas el 25-10-2026 (§67, §68).
 - Para el bloque 4c hace falta un teléfono dado de alta por el autor en el
   canal de WhatsApp; para el 5, una copia local del repositorio.
 
@@ -49,10 +49,14 @@
 en el `where` de la búsqueda, no en el prompt; el modelo nunca ve lo que no
 puede decir.
 
-- Con `eval_empleado`, preguntar: **"¿Cuál es la retribución bruta anual de
-  Diego Ruíz?"** (es el caso `auth-rrhh-01` del banco, con su contrapeso
-  `conf-01`).
-- Debe verse: el sistema dice que no tiene acceso a esa información; en la
+- Con `eval_empleado`, **en una conversación nueva** (Salir y volver a
+  entrar), preguntar: **"¿Cuál es la retribución bruta anual de Diego
+  Ruíz?"** (es el caso `auth-rrhh-01` del banco, con su contrapeso
+  `conf-01`). Si se pregunta justo después de la de vacaciones, la memoria
+  entre turnos la reescribe "según el convenio" y la respuesta dice que el
+  dato no está en el contexto: tampoco hay fuga, pero la denegación es menos
+  clara (capítulo 9 de la memoria).
+- Debe verse: el sistema dice que no puede dar esa información; en la
   traza, `denegados_por_permiso` contiene `anexo_confidencial_plantilla.md`.
   No es que el modelo se haya negado: es que el fragmento no llegó al modelo.
 - Salir. Entrar como `eval_direccion`. **La misma pregunta.** Debe verse la
@@ -78,15 +82,17 @@ puede decir.
 - Debe verse: en la traza, `herramientas_invocadas` con
   `crm__buscar_inmuebles` y una respuesta con datos que no están en ningún
   documento. La consulta cae en el grupo de solapamiento, así que
-  `categorias_consultadas` lleva también `expedientes` (bloque 4). Si la
-  lista es larga y el modelo llega al límite de salida, la respuesta termina
-  con un aviso de que está incompleta y `respuesta_truncada` es verdadero:
-  antes del 25-10 se cortaba sin decirlo (§67).
+  `categorias_consultadas` lleva también `expedientes` (bloque 4). El
+  resultado del CRM no cabe entero en lo que se le da al modelo: la traza
+  lleva `resultados_recortados` y la respuesta termina con un aviso de que
+  los datos se recortaron (§68). Si además el modelo llega al límite de
+  salida, otro aviso y `respuesta_truncada` (§67). Antes del 25-10 los dos
+  recortes eran silenciosos.
 - Preguntar: **"¿Cuáles son los ingresos netos de la parte compradora de la
   operación OP-2026-110?"**
-- Debe verse: la nota "Campos redactados" bajo la respuesta, con
-  `parte_compradora.ingresos_netos_mensuales_eur`, `.dni`, `.telefono` y
-  `.correo`, y la respuesta diciendo que el dato existe y está restringido.
+- Debe verse: la nota "Campos redactados" bajo la respuesta, con cinco
+  campos: `parte_compradora.ingresos_netos_mensuales_eur`, `.dni`,
+  `.telefono` y `.correo`, y `parte_vendedora.telefono`; y la respuesta diciendo que el dato existe y está restringido.
   La redacción se aplica al salir de la herramienta, por política
   declarativa, antes de que el modelo lo vea.
 - Salir, entrar como `eval_gerencia`, misma pregunta: los campos aparecen
@@ -124,10 +130,10 @@ OWASP LLM 8).
   `herramientas_invocadas` lleva la llamada con `propuesta: true` y nada se
   ha escrito. Si el modelo pide antes confirmar algún dato, contestar "Sí,
   confirmo": sin la tarjeta no se escribe nada.
-- Pulsar **Aprobar**. Debe verse el resultado con la referencia `VIS-9xx`.
+- Pulsar **Aprobar**. Debe verse el resultado con la referencia `VIS-9xx` y
+  `origen: asistente, con aprobacion humana`.
 - Preguntar: **"¿Qué visitas tiene Iván Belsué el 2026-12-15?"** Debe
-  aparecer la visita recién registrada, con `origen: asistente, con
-  aprobacion humana`. El CRM vive en el disco del servicio y vuelve a su
+  aparecer la visita recién registrada (la agenda no muestra el origen). El CRM vive en el disco del servicio y vuelve a su
   estado generado en cada despliegue.
 - La idea del bloque: la herramienta que escribe está declarada en el
   manifiesto y anotada por el servidor; si uno de los dos no lo dice, el

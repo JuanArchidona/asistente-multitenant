@@ -4620,3 +4620,55 @@ acabó en "no está en el contexto", que es el caso de denegación parcial que
 el §47 decidió no tocar) y que la latencia de la cartera en frío llegó a
 20 s frente a los 4,1 s de la ficha del capítulo 5.4, que se midió en
 caliente.
+
+
+## 68. La segunda corrección simulada encontró el recorte que faltaba: lo que entra al modelo también se cortaba en silencio, y el modelo afirmó un mínimo que estaba en la parte cortada
+
+**Ejecución:** sin carpeta en `reports/`. Registro del encargo E-0023
+(25-10-2026, 11:10-11:30, servicio en `e3040d0`, la versión con lo del §67
+corregido), y una consulta real a la agencia lanzada desde Claude Code tras
+el arreglo (0,011 USD).
+
+**Qué se quería.** Repetir la corrección del §67 sobre la versión
+corregida, sin dar por buenos sus arreglos, y ver si el 9-10 quedaba
+despejado.
+
+**Resultado.** Nota estimada 9,0 (8,5 en el §67). De las once
+discrepancias que listó la primera pasada, ninguna empeoró y la mayoría
+están corregidas; siguen, declaradas, la falta de coste por consulta en la
+traza de la interfaz, el seguimiento del salario con memoria entre turnos,
+la latencia en frío y la falta de alertas. Y una nueva, la que frena la nota: la consulta de
+cartera llamó a `crm__buscar_inmuebles` con límite 100, el resultado
+redactado medía unos 6.800 caracteres y `recortar_resultado` lo cortó en
+6.000 con el marcador "[...resultado recortado...]". El modelo respondió
+"los 48 inmuebles abarcan precios desde 80.000 euros"; en `crm.json` el
+mínimo en venta es INM-2026-131, a 74.000, en la parte recortada. La traza
+guardaba la longitud (6.028) pero ningún campo decía que hubo recorte, y la
+respuesta tampoco.
+
+Es la otra mitad del §67: allí se cortaba lo que sale del modelo, aquí lo
+que entra. El §41 ya había movido el recorte detrás de la redacción para
+que no dejara pasar datos sin redactar; lo que no había hecho era
+anunciarlo.
+
+**Lo que se cambia.** El límite de 6.000 caracteres no se toca. El
+marcador dice ahora cuánto se muestra, cuánto había y que no se den
+totales, mínimos, máximos ni rangos del conjunto; la traza lleva
+`resultados_recortados` con las herramientas afectadas, el registro de
+producción lo guarda, y la respuesta termina con un aviso al usuario. Con
+la misma consulta tras el arreglo: `resultados_recortados:
+["crm__buscar_inmuebles"]`, la respuesta lista los inmuebles sin dar rango
+del conjunto y termina con el aviso; 0,011 USD y 6,5 s de generación.
+
+**Lo que también salió, menor.** Cifras de la memoria que el §67 había
+dejado a medio actualizar (1.239 tests y 66 hallazgos en el capítulo 3.5
+frente a 1.249 y 67 en otros), el guion que contaba diez consultas donde
+hay nueve y cuatro campos redactados donde salen cinco, la agenda que no
+muestra el origen de la visita aprobada, y el repositorio sin descripción
+en GitHub. Corregidos el mismo día.
+
+**Límites.** Igual que el §67: el corrector es un modelo, su nota es una
+estimación, y es una pasada por bloque. El cambio del marcador cambia lo
+que el modelo lee en los casos con resultados largos; ningún caso del banco
+de la agencia lo comprueba todavía, así que su efecto sobre las cifras del
+banco está sin medir.

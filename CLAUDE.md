@@ -35,7 +35,7 @@ Una afirmación sin número no vale.**
 
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
-servicio público desplegado. **1239 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
+servicio público desplegado. **1.251 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
 
 | Pieza | Estado |
 |---|---|
@@ -193,7 +193,7 @@ render.yaml       Blueprint de Render
 
 ```bash
 uv sync --group judge
-uv run pytest                                      # 1183 tests con el grupo langgraph, sin llamadas a API
+uv run pytest                                      # 1.251 tests con el grupo langgraph, sin llamadas a API
 uv run ruff check src evals tests mcp_servers scripts
 
 uv run python -m src.ingest_cli                    # indexa el inquilino activo

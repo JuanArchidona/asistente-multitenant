@@ -53,7 +53,7 @@ Requiere Python 3.11+ y [`uv`](https://docs.astral.sh/uv/).
 git clone https://github.com/JuanArchidona/asistente-multitenant
 cd asistente-multitenant
 uv sync --group judge --group app --group langgraph
-uv run pytest                         # 1.249 pruebas, ninguna llama a una API de pago
+uv run pytest                         # 1.251 pruebas, ninguna llama a una API de pago
 
 cp .env.example .env                  # claves propias: Anthropic, Gemini (sistema, juez, embeddings)
 uv run python -m src.ingest_cli       # indexa el inquilino activo (TENANT_ID, por defecto empresa_servicios)
