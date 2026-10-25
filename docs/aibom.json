@@ -87,7 +87,7 @@
     {
       "type": "library",
       "name": "pypdf",
-      "version": "6.20.0",
+      "version": "6.21.2",
       "source": "https://pypi.org/simple",
       "group": "material"
     },
@@ -129,7 +129,7 @@
     {
       "type": "library",
       "name": "streamlit",
-      "version": "1.64.0",
+      "version": "1.66.1",
       "source": "https://pypi.org/simple",
       "group": "app"
     },
@@ -151,7 +151,7 @@
       "type": "library",
       "transitive": true,
       "name": "aiohttp",
-      "version": "3.14.3",
+      "version": "3.14.5",
       "source": "https://pypi.org/simple"
     },
     {
@@ -235,7 +235,7 @@
       "type": "library",
       "transitive": true,
       "name": "certifi",
-      "version": "2026.7.22",
+      "version": "2026.10.23",
       "source": "https://pypi.org/simple"
     },
     {
@@ -312,7 +312,7 @@
       "type": "library",
       "transitive": true,
       "name": "filelock",
-      "version": "3.32.2",
+      "version": "4.2.4",
       "source": "https://pypi.org/simple"
     },
     {
@@ -641,42 +641,49 @@
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-api",
-      "version": "1.44.0",
+      "version": "1.45.1",
+      "source": "https://pypi.org/simple"
+    },
+    {
+      "type": "library",
+      "transitive": true,
+      "name": "opentelemetry-exporter-otlp-common",
+      "version": "0.66b1",
       "source": "https://pypi.org/simple"
     },
     {
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-exporter-otlp-proto-common",
-      "version": "1.44.0",
+      "version": "1.45.1",
       "source": "https://pypi.org/simple"
     },
     {
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-exporter-otlp-proto-grpc",
-      "version": "1.44.0",
+      "version": "1.45.1",
       "source": "https://pypi.org/simple"
     },
     {
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-proto",
-      "version": "1.44.0",
+      "version": "1.45.1",
       "source": "https://pypi.org/simple"
     },
     {
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-sdk",
-      "version": "1.44.0",
+      "version": "1.45.1",
       "source": "https://pypi.org/simple"
     },
     {
       "type": "library",
       "transitive": true,
       "name": "opentelemetry-semantic-conventions",
-      "version": "0.65b0",
+      "version": "0.66b1",
       "source": "https://pypi.org/simple"
     },
     {
@@ -718,7 +725,7 @@
       "type": "library",
       "transitive": true,
       "name": "pillow",
-      "version": "12.3.0",
+      "version": "13.0.0",
       "source": "https://pypi.org/simple"
     },
     {
@@ -1032,13 +1039,6 @@
     {
       "type": "library",
       "transitive": true,
-      "name": "toml",
-      "version": "0.10.2",
-      "source": "https://pypi.org/simple"
-    },
-    {
-      "type": "library",
-      "transitive": true,
       "name": "tqdm",
       "version": "4.70.0",
       "source": "https://pypi.org/simple"
@@ -1166,7 +1166,7 @@
       "type": "library",
       "transitive": true,
       "name": "yarl",
-      "version": "1.24.5",
+      "version": "1.25.1",
       "source": "https://pypi.org/simple"
     },
     {

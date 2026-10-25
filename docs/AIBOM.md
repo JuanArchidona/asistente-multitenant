@@ -32,13 +32,13 @@
 | `mcp` | 2.2.0 | runtime | https://pypi.org/simple |
 | `psycopg` | 3.3.6 | runtime | https://pypi.org/simple |
 | `pydantic` | 2.13.4 | runtime | https://pypi.org/simple |
-| `pypdf` | 6.20.0 | material | https://pypi.org/simple |
+| `pypdf` | 6.21.2 | material | https://pypi.org/simple |
 | `pytest` | 9.1.1 | dev | https://pypi.org/simple |
 | `python-docx` | 1.2.0 | material | https://pypi.org/simple |
 | `python-dotenv` | 1.2.2 | runtime | https://pypi.org/simple |
 | `python-pptx` | 1.0.2 | material | https://pypi.org/simple |
 | `ruff` | 0.16.2 | dev | https://pypi.org/simple |
-| `streamlit` | 1.64.0 | app | https://pypi.org/simple |
+| `streamlit` | 1.66.1 | app | https://pypi.org/simple |
 | `yt-dlp` | 2026.8.19 | material | https://pypi.org/simple |
 
 Los 148 transitivos estan en `docs/aibom.json`, con version y origen.
