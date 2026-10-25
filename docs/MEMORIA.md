@@ -1,25 +1,13 @@
 ---
 title: "Asistente interno multi-tenant de conocimiento y datos para empresas de servicios profesionales"
-subtitle: "Memoria técnica del Trabajo Fin de Máster — borrador 2"
+subtitle: "Memoria técnica del Trabajo Fin de Máster"
 author: "Juan Archidona Ahijado — Máster en IA Generativa Avanzada, The Bridge"
-date: "26 de septiembre de 2026"
+date: "25 de octubre de 2026"
 lang: es
 ---
 
-> **Estado: borrador 2, revisado el 26-09-2026** tras dos lecturas hostiles
-> de cifras (24-09: 35 correcciones; 26-09: 35 más, informe en
-> `docs/REVISION_MEMORIA_2026-09-26.md`) y una lectura lineal de texto el
-> mismo día (`docs/LECTURA_MEMORIA_2026-09-26.md`). Este bloque se quita
-> al entregar. Estructura completa y
-> cifras tomadas de `HALLAZGOS.md`, `ALCANCE.md` y `RIESGOS.md`; cada cifra
-> lleva el hallazgo (§N) que la respalda y, cuando existe, la ejecución de
-> `reports/`. Lo que está entre corchetes y en mayúsculas es un hueco que hay
-> que cerrar antes de entregar. El enunciado y los criterios llegaron con el
-> Módulo 5 el 11-10-2026 (`docs/MODULO_5.md`): no hay defensa oral, se evalúa
-> este documento con el repositorio, módulo a módulo. La guía de lectura que
-> sigue al resumen dice dónde está cada cosa que el enunciado pide.
-
 **Repositorio:** <https://github.com/JuanArchidona/asistente-multitenant>
+
 **Servicio desplegado:** <https://asistente-multitenant.onrender.com>
 
 ## Resumen
@@ -35,11 +23,11 @@ que se defiende tiene una medida detrás; las que no la tienen lo dicen.
 
 El proyecto parte de las entregas 2.1, 2.3, 3.1 y 3.3 del máster, que ya
 cubrían cuatro de los seis pasos del flujo y traían un banco de evaluación
-de 109 casos. Sobre esa base se construyeron, en cinco días de
-construcción y dos de medidas de operación, siete piezas: la
-multi-tenencia, la rama estructurada, la capa de control de acceso, la
-observabilidad, la interfaz web autenticada y desplegada, el análisis de
-IA responsable y un canal de WhatsApp. Todo el código y toda la
+de 109 casos. Sobre esa base se construyeron, en diez jornadas de trabajo
+entre el 20-09 y el 11-10-2026, siete piezas: la multi-tenencia, la rama
+estructurada, la capa de control de acceso, la observabilidad, la
+interfaz web autenticada y desplegada, el análisis de IA responsable y
+dos canales más, WhatsApp y correo. Todo el código y toda la
 documentación se produjeron con un asistente de código dirigido por el
 autor; el capítulo 1.3 dice qué es de quién y qué salvedad llevan las
 cifras de tiempo.
@@ -161,7 +149,8 @@ Cinco reglas que se derivan y que el repositorio hace cumplir con tests:
 se escribieron con un copiloto, Claude Code, dirigido por el autor; el
 capítulo 3.5 cuenta cómo, qué decidió el autor y con qué mecanismos se
 controló lo que el copiloto producía. El trabajo se cuenta en sesiones, no
-en horas: cinco días de construcción y dos de medidas de operación. Las
+en horas: catorce sesiones en diez jornadas, entre el 20-09 y el
+11-10-2026. Las
 cifras de tiempo de trabajo que la memoria da (5 min 42 s el alta de un
 cliente, 19 min el prototipo de LangGraph) son tiempo del asistente con el
 proyecto en contexto, y lo dicen donde aparecen. Quien quiera saber qué
@@ -224,7 +213,7 @@ agnosticidad (capítulo 8.1).
 ### 2.1 El flujo
 
 ```
-entrada (interfaz, WhatsApp)
+entrada (interfaz, WhatsApp, correo)
   → autenticación: la credencial fija el inquilino y los roles
   → clasificador: categoría y destino (documental | estructurado | ambos | otro)
   → recuperación
@@ -238,8 +227,8 @@ entrada (interfaz, WhatsApp)
 ```
 
 Todo es Python sin framework de orquestación (capítulo 3.1). El código del
-núcleo son unas 5.400 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.124 tests que corren en menos de 20 segundos sin llamar a ningún
+núcleo son unas 7.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
+1.239 tests que corren en menos de 20 segundos sin llamar a ningún
 proveedor; son recuentos de `wc -l` y `pytest`, no hallazgos. Cuánto de
 eso es nuevo y cuánto heredado se dice en el capítulo 1.2: la 3.3 traía el
 clasificador, la recuperación, la generación y el banco; lo demás es de
@@ -366,7 +355,7 @@ aparte, descubre sus herramientas y las ofrece al modelo con tool-calling
 nativo del SDK. El servidor de la agencia (`mcp_servers/agencia_crm.py`)
 expone cinco herramientas sobre un CRM sintético generado con semilla fija.
 
-Dos hallazgos que decidieron el diseño de esta rama:
+Tres hallazgos que decidieron el diseño de esta rama:
 
 - **La rama estructurada responde lo que ningún documento contiene** (§4):
   es el caso de uso que justifica que exista.
@@ -448,7 +437,7 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   número de teléfono es la credencial y fija el inquilino, aviso del
   artículo 50 en la primera conversación, aprobación humana por texto,
   firma del webhook obligatoria y el teléfono nunca entra en el registro.
-  Está probado con 29 pruebas de mensajes simulados y **en vivo** con un
+  Está probado con 34 pruebas de mensajes simulados y **en vivo** con un
   número y dos preguntas (§51): la de vacaciones respondió como en la web
   y la del salario denegó sin el dato y sin fuga, en menos de un minuto
   cada una a precisión de minuto. La latencia interna en producción,
@@ -470,7 +459,7 @@ cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
   con DKIM o SPF en `pass`, R-24), o rechaza el correo sin consultar. La
   aprobación va en la primera línea de la respuesta, la respuesta enhebra
   en la conversación y el sondeo del buzón es por IMAP con la librería
-  estándar, sin paquetes nuevos. Probado con 34 pruebas de correos
+  estándar, sin paquetes nuevos. Probado con 54 pruebas de correos
   simulados y una consulta simulada contra el sistema real (5,26 s), y
   **medido en vivo** sobre un buzón de Gmail dedicado (§55, §56): 24 s de
   extremo a extremo la primera consulta, con el índice construido en ese
@@ -643,8 +632,9 @@ entre categorías vecinas es semántica, no de identificadores.
 
 ### 3.4 El resto de la pila
 
-Cinco piezas heredadas del patrón del máster y una propia; ninguna con
-alternativa medida, y por eso cada una dice qué se mediría si se cambiara:
+Cinco piezas heredadas del patrón del máster, una propia, una exclusión y
+la cadena de despliegue; ninguna con alternativa medida, y por eso cada
+una dice qué se mediría si se cambiara:
 
 - **`uv`** con `pyproject.toml`, `uv.lock` y `.python-version`; `ruff`.
   Mantenimiento y riesgo: el lock reproducible es la fuente del AIBOM
@@ -762,6 +752,11 @@ copiloto acierte, sino que sus errores se ven. Con fecha y fuente:
   53 (`docs/REVISION_MEMORIA_2026-09-26.md`).
 - 27-09: un recuento de tests hecho con la barra de progreso sumaba
   caracteres de la línea de cierre; se cuenta con JUnit.
+- 25-10: la lectura final antes de entregar, con cada recuento rehecho
+  por comando, encontró siete cifras viejas (1.124 tests que eran 1.239,
+  59 hallazgos que eran 66), un límite que seguía diciendo que el
+  registro vivía en un disco efímero cuando ya persistía en una base, y
+  unas conclusiones que situaban la fuga real en el inquilino equivocado.
 
 Y un caso en el que el control llegó tarde, que también se dice: una
 entrega del Módulo 4 extraída de este repositorio por la app salió con dos
@@ -778,8 +773,8 @@ solo**: la cadena termina en el autor. Las acciones de facturación las
 bloquea el propio control de permisos de la app y las hace el autor, como
 pasó al fijar el límite de gasto el 11-10.
 
-**En cifras**, entre el 20-09 y el 11-10-2026: 125 commits del TFM (más los
-7 heredados de la 3.3), 13 sesiones con su entrada de bitácora, 66
+**En cifras**, entre el 20-09 y el 11-10-2026: 145 commits del TFM (más los
+7 heredados de la 3.3), 14 sesiones con su entrada de bitácora, 66
 hallazgos medidos y 1.239 tests.
 
 ## 4. Evaluación
@@ -1080,16 +1075,16 @@ Lo que la ficha no incluye, y hay que decir al presentarla:
   en un proyecto de Google con facturación y un límite de inversión de
   5 EUR al mes, igual que la del juez en el suyo (§57): los dos gastos se
   leen por separado y los dos tienen tope duro.
-- **Infraestructura.** En el despliegue actual el servicio corre en el
-  plan gratuito de Render, que duerme antes de 20 minutos sin tráfico y
-  tarda entre 32 y 61 s en despertar (capítulo 6.6). El plan de pago más
-  barato que lo elimina, Starter, cuesta 7 USD al mes por servicio (precio
-  de fuentes secundarias a 26-09-2026): 14 USD al mes para la interfaz y
-  el canal, coste fijo independiente del volumen que se suma aparte. Es
-  también lo que haría persistente el registro de producción (capítulo
-  6.1). El servicio de correo ya está en ese plan, que Render llama
-  `0.5c-512mb`, porque el gratuito bloquea la salida SMTP (§55): 7 USD al
-  mes reales desde el 27-09, no hipotéticos.
+- **Infraestructura.** En el despliegue actual la interfaz y el canal de
+  WhatsApp corren en el plan gratuito de Render, que duerme antes de 20
+  minutos sin tráfico y tarda entre 32 y 61 s en despertar (capítulo 6.6).
+  El plan de pago más barato que lo elimina, `0.5c-512mb`, cuesta 7 USD al
+  mes por servicio, y no es una estimación: el servicio de correo está en
+  él desde el 27-09 porque el gratuito bloquea la salida SMTP (§55). Los
+  tres servicios despiertos serían 21 USD al mes, coste fijo independiente
+  del volumen que se suma aparte. El registro de producción va a un
+  Postgres gratuito que caduca el 10-11-2026 (capítulo 6.1); un despliegue
+  real lo pasaría al plan de pago de la base.
 - **Evaluación.** Mantener el banco cuesta entre 0,06 y 0,16 USD por
   inquilino y pasada sin juez y, si se pasa el juez, en torno a 0,40 USD
   las tres pasadas de Gemini sobre dos bancos (§32). Es coste por cambio,
@@ -1140,7 +1135,7 @@ respuesta ni el razonamiento del juez. Mandar la muestra a Gemini es una
 transferencia más, aceptada por el autor y registrada (R-18). Las primeras
 consultas reales lo pusieron a prueba: tres de tres sin citas inventadas,
 la versión en cada línea, y un juez que devolvía su veredicto cortado
-porque el límite de salida que le puse no dejaba sitio a su razonamiento;
+porque el límite de salida que tenía no dejaba sitio a su razonamiento;
 corregido el mismo día, con una prueba (§62). Nadie
 recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
 es un límite declarado (capítulo 9).
@@ -1181,8 +1176,9 @@ AI Act y el riesgo de vigilancia del Módulo 4 se escribe, no se resuelve
 
 Render, desde `render.yaml`: primer despliegue en 1 min 32 s (§38). Se
 paró en el login por exigir la clave del juez, que la interfaz no usa;
-arreglado. Seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las
-contraseñas solo las tiene el autor, y dar de alta o de baja un usuario
+arreglado. Seis usuarios, dos por inquilino, más cuatro de evaluación
+(`eval_*`) para quien corrija, en `APP_USUARIOS_JSON`; las contraseñas
+solo las tiene el autor, y dar de alta o de baja un usuario
 exige cambiar esa variable y redesplegar. Cuatro hallazgos (§38, §39, §41,
 §42) salieron de probar el servicio desplegado y no el banco; el §41 es la
 fuga por tamaño del capítulo 2.6.
@@ -1273,9 +1269,9 @@ evidencia es una opinión.
 | # | Riesgo | Estado |
 |---|---|---|
 | 1 | Inyección de instrucciones | Medido con los ocho casos `inj-*` del banco (cuatro en el heredado, dos en la agencia, dos en la gestoría) y la cobertura del riesgo: los que llegan al control no filtran ningún literal prohibido; `inj-04` no llega y es el residual (capítulo 2.7). Y con una batería estándar de red-teaming (DeepTeam): 64 ataques resistidos, ninguna fuga, pero solo 7 llegaron al control (§65) |
-| 2 | Salida insegura | Por construcción: texto para una persona; se reevaluará con los canales |
+| 2 | Salida insegura | Por construcción: texto para una persona en los tres canales; la interfaz no interpreta HTML y el correo envía texto plano |
 | 3 | Envenenamiento de datos | Por construcción, no medido como ataque: corpus sintético con semilla. Un cliente real trae su corpus y la mitigación desaparece |
-| 4 | Denegación de servicio | Por construcción: tope duro (prepago sin recarga) y blando; una fuga a pleno ritmo gasta 13,7 USD por hora (115 consultas por minuto con ocho en vuelo, §53). Sin límite por usuario ni por minuto; la puerta HTTP aguanta 20 clientes a la vez y el pipeline 8 en vuelo sin degradarse (§53), así que la denegación plausible es económica, no de capacidad |
+| 4 | Denegación de servicio | Por construcción: tope duro (prepago sin recarga y, desde el 11-10, 10 USD al mes para la clave desplegada) y blando; una fuga a pleno ritmo gasta 13,7 USD por hora (115 consultas por minuto con ocho en vuelo, §53). Sin límite por usuario ni por minuto; la puerta HTTP aguanta 20 clientes a la vez y el pipeline 8 en vuelo sin degradarse (§53), así que la denegación plausible es económica, no de capacidad |
 | 5 | Cadena de suministro | Por construcción: AIBOM generado y vigilado por test; destapó el §35 al generarse |
 | 6 | Divulgación de información confidencial | Lo más fuerte del proyecto: permiso en el `where`, redacción, cobertura del riesgo, una fuga real cerrada, aislamiento por colección |
 | 7 | Complementos no seguros | Por construcción: servidores MCP como procesos aparte. Medido solo en el puente del autor: sin lista de denegación la sesión hija leía el `.env` entero (§19) |
@@ -1505,8 +1501,9 @@ capítulo 8.3 y aquí solo se remite.
   constante, pero sin límite de intentos, sin caducidad de sesión, sin
   límite de gasto por usuario (R-08) y sin alta de usuarios sin
   redesplegar (capítulo 6.3).
-- **El registro de producción vive en un disco efímero** y no sobrevive a
-  un reinicio del plan gratuito (capítulo 6.1).
+- **El registro de producción persiste en un Postgres gratuito** que
+  caduca el 10-11-2026 (capítulo 6.1); la copia en disco del servicio
+  sigue siendo efímera.
 - **Nadie recibe alertas**: el tope blando es un suelo, se comprueba al
   consultar, y no hay límite por usuario ni por minuto.
 - **La moderación de contenido** no existe (capítulo 7.2).
@@ -1527,8 +1524,8 @@ capítulo 8.3 y aquí solo se remite.
 **Lo que queda fuera por decisión** está en la tabla del capítulo 8.3, con
 su motivo y su fecha.
 
-**Para pasar de demostración a piloto**, por este orden: plan de pago con
-disco persistente para el registro, límites por usuario y por minuto, alta
+**Para pasar de demostración a piloto**, por este orden: plan de pago para
+la base del registro y para los servicios que hoy duermen, límites por usuario y por minuto, alta
 de usuarios sin redesplegar, moderación de contenido, y el corpus real de
 un cliente con su propia evaluación de envenenamiento y su contrato de
 encargado (capítulo 7.5).
@@ -1545,7 +1542,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 59 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 66 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/PROMPTS.md` | Catálogo de prompts: uso, modelo, temperatura, huella y evidencia | Generado desde el código; el test falla si difiere |
@@ -1588,7 +1585,7 @@ Lo que se defiende, en tres frases con su número:
 2. **El control de acceso está antes del modelo y está medido**: cobertura
    del riesgo 1,0 en la agencia, `fuga_literal` 10 de 10 en la línea base
    vigente, una fuga real
-   encontrada y cerrada en el heredado, y ninguna escritura sin una persona
+   encontrada y cerrada en la rama estructurada, y ninguna escritura sin una persona
    que la apruebe.
 3. **El evaluador también se evaluó**: 4 de 24 veredictos del juez eran
    falsos y todos en el mismo sentido, y por eso ninguna decisión del
@@ -1611,9 +1608,9 @@ proveedor antes de apoyar una justificación en su conmutación.
 
 ```bash
 git clone https://github.com/JuanArchidona/asistente-multitenant
-uv sync --group judge --group app
+uv sync --group judge --group app --group langgraph
 cp .env.example .env            # claves: sistema, juez, embeddings
-uv run pytest                   # 1124 tests con el grupo langgraph, sin llamadas a API
+uv run pytest                   # 1.239 tests con el grupo langgraph, sin llamadas a API
 uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
 uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
 uv run streamlit run app.py
