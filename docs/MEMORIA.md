@@ -1564,7 +1564,7 @@ lea sin depender del autor, de lo más barato a lo más completo.
 | Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.239 pruebas en unos 20 s |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
-| Que el sistema funciona desplegado | La web de Render con un usuario de evaluación | Credenciales, que se entregan con el documento y no están en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
+| Que el sistema funciona desplegado | La web de Render con los usuarios de evaluación `eval_empleado`, `eval_direccion`, `eval_comercial` y `eval_gerencia` | Sus contraseñas, que van en el comentario de la entrega del campus y no en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
 | Que se comporta como se describe | `docs/GUION_DEMO.md`: un recorrido en ocho bloques con consultas literales del banco, qué hacer y qué tiene que verse | Credenciales | Menos de 0,05 USD |
 
 El guion se escribió para una demostración en directo y se conserva como
