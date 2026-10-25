@@ -49,3 +49,8 @@ datos/*/visitas_registradas.jsonl
 
 # Identificador local de telemetria de DeepTeam (scripts/red_team.py)
 .deepteam/
+
+# Respuestas literales de otros modelos a los analisis de legibilidad de la
+# memoria (E-0025, E-0026): se quedan en local; el resumen esta en el registro
+# del puente y en la bitacora del 25-10.
+docs/entrega/Claude outputs/
