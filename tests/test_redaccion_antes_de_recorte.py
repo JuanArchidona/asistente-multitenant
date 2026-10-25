@@ -11,7 +11,7 @@ import json
 
 from src.agent import Sistema
 from src.gobernanza import MARCA_RESTRINGIDO, MARCA_RETENIDA, TEXTO_RETENIDO, Usuario
-from src.mcp_cliente import MAX_CARACTERES_RESULTADO, recortar_resultado
+from src.mcp_cliente import MAX_CARACTERES_RESULTADO, fue_recortado, recortar_resultado
 from src.tenant import cargar_tenant
 
 AGENCIA = cargar_tenant("agencia_inmobiliaria")
@@ -61,8 +61,8 @@ def test_el_recorte_se_aplica_a_lo_ya_redactado(cfg_factory):
     cfg = cfg_factory(tenant=AGENCIA)
     mcp = MCPFalso(_resultado_grande())
     salida = _ejecutor(cfg, mcp, [])("crm__buscar_inmuebles", {"limite": 100})
-    assert salida.endswith("[...resultado recortado...]")
-    assert len(salida) <= MAX_CARACTERES_RESULTADO + len("\n[...resultado recortado...]")
+    assert salida[MAX_CARACTERES_RESULTADO:].startswith("\n[RESULTADO RECORTADO")
+    assert fue_recortado(len(salida))
 
 
 def test_lo_que_no_es_json_no_llega_al_modelo_con_politica_de_campos(cfg_factory):
@@ -86,4 +86,7 @@ def test_un_resultado_pequeno_se_redacta_igual_que_antes(cfg_factory):
 def test_recortar_resultado_deja_pasar_lo_corto_y_marca_lo_largo():
     assert recortar_resultado("corto") == "corto"
     largo = "x" * (MAX_CARACTERES_RESULTADO + 5)
-    assert recortar_resultado(largo).endswith("[...resultado recortado...]")
+    recortado = recortar_resultado(largo)
+    assert recortado.startswith(largo[:MAX_CARACTERES_RESULTADO])
+    assert f"de {len(largo)} caracteres" in recortado and "No des totales" in recortado
+    assert fue_recortado(len(recortado)) and not fue_recortado(len("corto"))

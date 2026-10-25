@@ -292,6 +292,8 @@ class Registro:
             "contexto_vacio": bool(traza.get("contexto_vacio")),
             # La respuesta paró en el límite de salida y se avisó al usuario.
             "respuesta_truncada": bool(traza.get("respuesta_truncada")),
+            # Herramientas cuyo resultado llegó recortado al modelo (§68).
+            "resultados_recortados": traza.get("resultados_recortados") or [],
             "respuesta_chars": len(respuesta),
             "respuesta_hash": _hash(respuesta) if respuesta else None,
             "latencia_total_s": round(

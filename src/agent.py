@@ -30,7 +30,7 @@ from typing import Self
 from .config import Config
 from .evaluacion_produccion import calidad_determinista, juez_desde_config, lanzar, nuevo_id
 from .gobernanza import USUARIO_ANONIMO, Usuario, redactar_json
-from .mcp_cliente import ClienteMCP, recortar_resultado
+from .mcp_cliente import ClienteMCP, fue_recortado, recortar_resultado
 from .memoria import reescribir
 from .provider import ChatProvider, get_chat
 from .retriever import Recuperado, Retriever
@@ -262,19 +262,42 @@ AVISO_RESPUESTA_TRUNCADA = (
 )
 
 
+AVISO_RESULTADO_RECORTADO = (
+    "\n\n(Aviso: los datos consultados no cabían enteros y se recortaron antes de "
+    "responder, así que la respuesta puede no cubrir todos los resultados. Acota "
+    "la consulta para verlos todos.)"
+)
+
+
 def _cortada_en(traza_herramientas: list[dict]) -> bool:
     """Si el bucle de herramientas terminó por el límite de salida (provider)."""
     return any(paso.get("respuesta_truncada") for paso in traza_herramientas)
 
 
+def _recortadas_en(traza_herramientas: list[dict]) -> list[str]:
+    """Herramientas cuyo resultado llegó recortado al modelo (§68)."""
+    return [
+        paso["herramienta"]
+        for paso in traza_herramientas
+        if "herramienta" in paso and fue_recortado(paso.get("caracteres_resultado", 0))
+    ]
+
+
 def _avisar_si_cortada(traza: dict) -> dict:
     """Quien lee la respuesta se entera de que está incompleta.
 
-    El límite de salida (`MAX_TOKENS_SUT`) es la línea base y no se toca; lo
-    que se cambia es que el corte deje de ser silencioso.
+    Dos límites, los dos de la línea base y los dos sin tocar: el de salida
+    (`MAX_TOKENS_SUT`, §67) y el de entrada de cada herramienta
+    (`MAX_CARACTERES_RESULTADO`, §68). Lo que cambia es que dejen de ser
+    silenciosos.
     """
+    respuesta = traza.get("respuesta") or ""
+    if traza.get("resultados_recortados"):
+        respuesta = respuesta.rstrip() + AVISO_RESULTADO_RECORTADO
     if traza.get("respuesta_truncada"):
-        traza["respuesta"] = (traza.get("respuesta") or "").rstrip() + AVISO_RESPUESTA_TRUNCADA
+        respuesta = respuesta.rstrip() + AVISO_RESPUESTA_TRUNCADA
+    if respuesta != (traza.get("respuesta") or ""):
+        traza["respuesta"] = respuesta
     return traza
 
 
@@ -855,6 +878,7 @@ class Sistema:
             "campos_redactados": sorted(set(redactados_totales)),
             "respuesta": respuesta,
             "respuesta_truncada": cortada,
+            "resultados_recortados": _recortadas_en(traza_mcp),
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_recuperacion, 3),
             "latencia_generacion_s": round(t_gen, 3),
@@ -911,6 +935,7 @@ class Sistema:
             "campos_redactados": sorted(set(redactados_totales)),
             "respuesta": respuesta,
             "respuesta_truncada": _cortada_en(traza),
+            "resultados_recortados": _recortadas_en(traza),
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_recuperacion, 3),
             "latencia_generacion_s": round(t_gen, 3),

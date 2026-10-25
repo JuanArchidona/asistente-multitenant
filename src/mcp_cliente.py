@@ -45,10 +45,30 @@ MAX_CARACTERES_RESULTADO = 6000
 
 
 def recortar_resultado(texto: str) -> str:
-    """Acota lo que llega al modelo. Se aplica a lo ya redactado (§41)."""
+    """Acota lo que llega al modelo. Se aplica a lo ya redactado (§41).
+
+    El marcador le dice al modelo qué falta y qué no puede afirmar. Antes era
+    "[...resultado recortado...]" y no bastaba: con 6.000 de 6.800 caracteres de
+    la cartera delante, el modelo dio "desde 80.000 euros" como mínimo de los 48
+    inmuebles, y el de 74.000 estaba en la parte recortada (§68).
+    """
     if len(texto) > MAX_CARACTERES_RESULTADO:
-        return texto[:MAX_CARACTERES_RESULTADO] + "\n[...resultado recortado...]"
+        return texto[:MAX_CARACTERES_RESULTADO] + (
+            f"\n[RESULTADO RECORTADO: se muestran {MAX_CARACTERES_RESULTADO} de "
+            f"{len(texto)} caracteres y faltan elementos. No des totales, mínimos, "
+            "máximos ni rangos del conjunto; di que la lista está incompleta y, si "
+            "hace falta, acota la búsqueda con filtros.]"
+        )
     return texto
+
+
+def fue_recortado(caracteres_entregados: int) -> bool:
+    """Si un resultado de herramienta llegó recortado al modelo.
+
+    Solo un resultado recortado supera `MAX_CARACTERES_RESULTADO`, porque lleva
+    el marcador detrás; la traza del proveedor ya guarda esa longitud.
+    """
+    return caracteres_entregados > MAX_CARACTERES_RESULTADO
 
 # Arranque: lanzar un proceso por servidor y negociar el protocolo. Si tarda
 # mas que esto, algo va mal y es mejor saberlo en el arranque del sistema.

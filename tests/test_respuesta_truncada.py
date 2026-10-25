@@ -94,9 +94,49 @@ def test_la_rama_de_herramientas_lee_la_marca_de_su_traza(cfg):
 
 def test_el_registro_de_produccion_guarda_la_marca(tmp_path):
     registro = Registro("t", raiz=tmp_path)
-    linea = registro.componer({"respuesta": "x", "respuesta_truncada": True}, {})
+    linea = registro.componer(
+        {"respuesta": "x", "respuesta_truncada": True, "resultados_recortados": ["crm__buscar"]}, {}
+    )
     assert linea["respuesta_truncada"] is True
-    assert registro.componer({"respuesta": "x"}, {})["respuesta_truncada"] is False
+    assert linea["resultados_recortados"] == ["crm__buscar"]
+    vacia = registro.componer({"respuesta": "x"}, {})
+    assert vacia["respuesta_truncada"] is False and vacia["resultados_recortados"] == []
+
+
+# --- El recorte de lo que entra: el resultado de una herramienta (§68) ---
+#
+# La segunda corrección simulada (E-0023) vio "los 48 inmuebles, desde 80.000
+# euros" cuando el de 74.000 estaba en la parte del resultado que se recortó
+# antes de dárselo al modelo. Ni la traza ni la respuesta lo decían.
+
+def test_un_resultado_recortado_se_marca_en_la_traza(cfg):
+    class ChatConHerramientas(ChatProvider):
+        def completar(self, system, user, model, temperature=None):
+            return '{"categoria": "cartera", "justificacion": "x", "confianza": 0.9}'
+
+        def completar_con_herramientas(self, system, user, model, herramientas, ejecutar, **_):
+            return "Hay 48 inmuebles.", [
+                {"vuelta": 1, "herramienta": "crm__buscar", "caracteres_resultado": 6250},
+                {"vuelta": 1, "herramienta": "crm__detalle", "caracteres_resultado": 900},
+            ]
+
+    sistema = Sistema(cfg, chat=ChatConHerramientas())
+    sistema._mcp = SimpleNamespace(esquemas_anthropic=lambda: [{"name": "crm__buscar"}])
+    traza = sistema._responder_con_datos("¿cartera?", 0.0, sistema.usuario)
+    assert traza["resultados_recortados"] == ["crm__buscar"]
+
+
+def test_el_usuario_se_entera_de_los_dos_limites():
+    from src.agent import AVISO_RESULTADO_RECORTADO, _avisar_si_cortada
+
+    traza = _avisar_si_cortada({"respuesta": "Hay 48.", "resultados_recortados": ["crm__buscar"]})
+    assert traza["respuesta"] == "Hay 48." + AVISO_RESULTADO_RECORTADO
+    ambas = _avisar_si_cortada(
+        {"respuesta": "Hay", "resultados_recortados": ["x"], "respuesta_truncada": True}
+    )
+    assert ambas["respuesta"] == "Hay" + AVISO_RESULTADO_RECORTADO + AVISO_RESPUESTA_TRUNCADA
+    sin_nada = {"respuesta": "Entera.", "resultados_recortados": [], "respuesta_truncada": False}
+    assert _avisar_si_cortada(dict(sin_nada)) == sin_nada
 
 
 # --- Los proveedores ---
