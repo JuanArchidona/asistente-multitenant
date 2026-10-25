@@ -651,7 +651,7 @@ Y `tfm-sistema` debería haber subido de 1,26 a **1,385** (a 3/15) o **1,343** (
 > 0,055, es decir el arreglo funciona **y** el precio del repo estaba mal. La
 > tercera fila —que el arreglo no funcionase— queda descartada.
 
-## 19. Confinar al directorio de trabajo no es confinar a lo que se puede ensenar
+## 19. Confinar al directorio de trabajo no es confinar a lo que se puede enseñar
 
 **Fuente:** la primera consulta real al puente desde la app, el 21-09-2026, y lo
 que esa respuesta dejaba ver de pasada.
@@ -782,7 +782,7 @@ El laboratorio dice cuántos casos fallan; el registro de producción dice qué 
 pasa a quien pregunta. Y sube la prioridad de la decisión pendiente de consultar
 las dos ramas ante una consulta ambigua, que en el banco parecía cosmética.
 
-## 21. Una prediccion escrita antes de mirar convierte una cifra en una medida
+## 21. Una predicción escrita antes de mirar convierte una cifra en una medida
 
 **Fuente:** la consola del proveedor el 22-09-2026, contra la tabla de tres
 filas que el hallazgo 18 dejó escrita la noche anterior.
@@ -871,7 +871,7 @@ en vez de su método no valida el cálculo, lo fosiliza.** El precio llevaba
 semanas mal con la suite en verde, porque la suite comprobaba que 0,1252 entre 3
 son 0,0417.
 
-## 22. No elegir sale mas barato que elegir mal, y se puede medir cuanto
+## 22. No elegir sale más barato que elegir mal, y se puede medir cuánto
 
 **Ejecuciones:** `agencia_solapamiento` y `agencia_solapamiento_v2` contra
 `agencia_expedientes_v2` como línea base, más `empresa_regresion_solapamiento`
@@ -1028,7 +1028,7 @@ y las que salen idénticas tres veces son las que el modelo no duda porque la
 pregunta admite de verdad las dos respuestas. Eso se arregla cambiando lo que el
 sistema hace con la duda, no insistiéndole al modelo en que no dude.
 
-## 23. Una metrica determinista se puede ejecutar sobre el pasado, y esta se estreno midiendose a si misma
+## 23. Una métrica determinista se puede ejecutar sobre el pasado, y esta se estrenó midiéndose a sí misma
 
 **Ejecuciones:** censo retroactivo sobre las 22 carpetas de `reports/`, sin una
 sola llamada a API, más `citas_agencia` y `citas_empresa` (reevaluación de
@@ -1172,7 +1172,7 @@ ejecutarla, es a cuántas ejecuciones se puede aplicar.** Una métrica de juez
 mide el futuro; una determinista mide también el pasado, y con él responde
 preguntas sobre el sistema que ya nadie iba a pagar por contestar.
 
-## 24. Ir a montar el instrumento independiente destapo que el instrumento no lo era
+## 24. Ir a montar el instrumento independiente destapó que el instrumento no lo era
 
 **Fuente:** el 22-09-2026, al preparar un juez que no fuera de la familia del
 generador. No hubo que ejecutar nada: los dos defectos estaban en el camino que
@@ -1304,7 +1304,7 @@ comentario del código es honesto pero insuficiente. **La limitación tiene que
 viajar con el número**, porque el número es lo que se cita y el comentario es lo
 que se queda en el repositorio.
 
-## 25. La prerruta determinista no se construye, y la razon es una cuenta de dos minutos
+## 25. El enrutado previo por identificador no se construye, y la razón es una cuenta de dos minutos
 
 **Fuente:** el banco del inquilino C cruzado con las tres pasadas del §22. Sin
 coste: solo leer el golden set y las trazas ya guardadas.
@@ -1365,7 +1365,7 @@ dia. La cuenta que la descarta —cruzar los casos que derivan con los casos que
 llevan identificador— se podia haber hecho antes de proponerla; se propuso
 primero y se comprobo despues, que es el orden equivocado y el barato.
 
-## 26. El juez nunca corrio a temperatura 0, y el parametro estaba puesto
+## 26. El juez nunca corrió a temperatura 0, y el parámetro estaba puesto
 
 **Fuente:** el codigo instalado de DeepEval, el 22-09-2026. Coste cero. Salio de
 mirar por que el enrutador no fija temperatura, no de buscar un fallo en el juez.
@@ -1428,7 +1428,7 @@ el camino. Las dos veces habia una linea de codigo que describia una intencion y
 nada que comprobara el hecho.
 
 
-## 27. La varianza del enrutador costaba un parametro, no el triple de llamadas
+## 27. La varianza del enrutador costaba un parámetro, no el triple de llamadas
 
 **Ejecuciones:** `evals/estabilidad_router.py` sobre los dos inquilinos, 5
 muestras por consulta y por brazo (910 llamadas al enrutador, **0,57 USD**), mas
@@ -1573,7 +1573,7 @@ algo degrada, se marca"— vale para la aritmetica: **el valor neutro de una sum
 es indistinguible de la ausencia de un sumando.**
 
 
-## 29. La conmutacion de proveedor era una forma, no un hecho
+## 29. La conmutación de proveedor era una forma, no un hecho
 
 **Fuente:** el 22-09-2026, al usar por primera vez el camino de Gemini para
 montar el juez de otra familia.
@@ -1628,7 +1628,7 @@ lo que comprueban es que el modelo que se le pasa al cliente sea del proveedor
 elegido, que es exactamente lo que nadie habia mirado.
 
 
-## 30. El juez escribe el razonamiento correcto y le pone el numero equivocado
+## 30. El juez escribe el razonamiento correcto y le pone el número equivocado
 
 **Ejecuciones:** `juez_anthropic_a`, `juez_anthropic_b` y `juez_gemini_a`, las
 tres sobre **las mismas trazas** de `empresa_temp0`, dimension `inyeccion`, 4
@@ -1746,7 +1746,7 @@ Y una tarea concreta: **`pii_leakage` no se puede seguir agregando como esta.**
 Quitarla del banco mueve `casos_ok` de cuatro casos heredados, asi que es una
 decision de linea base y no un arreglo de paso.
 
-## 31. La metrica de PII penalizaba al sistema por explicar lo que se negaba a revelar
+## 31. La métrica de PII penalizaba al sistema por explicar lo que se negaba a revelar
 
 **Fuente:** al retirar `pii_leakage` del banco (§30), releyendo las ejecuciones
 con juez que ya estaban en `reports/`. Coste cero: ninguna llamada nueva.
@@ -1963,7 +1963,7 @@ lo que la genero**, y nada avisa. La defensa que ha funcionado hoy es escribir a
 lado de cada cifra de que ejecucion sale y sobre que unidad esta, para que al
 cambiar la unidad la cifra chirrie en vez de mentir.
 
-## 33. La comparacion de prompts la decide una metrica sin varianza, y el juez no puede decidirla
+## 33. La comparación de prompts la decide una métrica sin varianza, y el juez no puede decidirla
 
 **Ejecuciones:** `remedida_baseline_1..3` y `remedida_endurecido_1..3`, juez de
 Gemini a temperatura 0 sobre las trazas de `baseline` y `endurecido` del

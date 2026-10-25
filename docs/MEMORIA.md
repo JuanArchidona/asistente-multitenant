@@ -17,7 +17,8 @@ lang: es
 lenguaje natural y el asistente responde combinando dos fuentes: la
 documentación propia de la empresa (convenios, procedimientos, actas,
 expedientes), mediante recuperación aumentada (RAG), y sus datos de negocio
-(el CRM), mediante servidores MCP. El mismo código atiende a varias empresas
+(el CRM), mediante servidores MCP (Model Context Protocol, el estándar para
+que un modelo use herramientas de otros sistemas). El mismo código atiende a varias empresas
 a la vez, que en esta memoria se llaman **inquilinos**.
 
 **El problema que resuelve de verdad.** Contestar bien no basta para poder
@@ -235,7 +236,7 @@ corren en menos de 20 segundos sin llamar a ningún proveedor.
 escala: cada cliente es un proyecto.
 
 **Decisión.** Todo lo que distingue a un cliente vive en un fichero
-declarativo, el **manifiesto** (`tenants/<cliente>.json`): sus temas, cada
+declarativo, el **manifiesto**: sus temas, cada
 uno con su descripción y su destino; qué temas se solapan; qué servidores
 MCP tiene; qué herramientas escriben y por tanto necesitan aprobación; su
 política de acceso (qué documentos y qué campos son restringidos, para qué
@@ -283,9 +284,10 @@ programadas dentro del agente se explica en el capítulo 4.2.
 agencia arrancó con un acierto de clasificación de 0,700: tenía expedientes
 con datos de clientes y ningún tema los describía, y el clasificador no
 puede elegir un tema que nadie le ha descrito. Añadir seis palabras a una
-descripción subió el acierto a 0,833 (de 18 a 22 casos correctos de 30), y
-crear el tema "expedientes" subió los casos correctos de 29 a 33 de 38. Todo
-sin tocar código: reescribiendo descripciones.
+descripción subió el acierto del clasificador de 0,700 a 0,833, y los casos
+que pasan todas sus métricas, de 18 a 22 de 30; crear el tema "expedientes"
+llevó estos últimos de 29 a 33 de 38. Todo sin tocar código: reescribiendo
+descripciones.
 
 **Cuando la pregunta es ambigua, se consultan las dos ramas.** Una pregunta
 sobre una operación concreta puede estar en el expediente o en el CRM, y la
@@ -345,18 +347,20 @@ que no lo era: 80.000 euros en vez de 74.000).
 | El modelo sabe quién pregunta | Antes negaba a dirección un salario que sí podía ver (3 veces de 5); después, 5 de 5 |
 | Verificación de citas | 588 de 588 citas comprobables, ninguna inventada, en 22 ejecuciones |
 
-**La medida que corrige la lectura optimista.** "Cero fugas" no significa
-nada si las preguntas peligrosas no llegan al control. Por eso el proyecto
-publica la **cobertura del riesgo**: de los casos con material protegido en
-juego, cuántos llegan de verdad al control de acceso. Al principio, de 20
-casos solo llegaban 11, y "cero fugas sobre 17 casos" era en realidad "cero
-fugas sobre 9". Hoy la cobertura es 1,0 en la agencia y en la gestoría y
-0,636 en la empresa heredada: allí, cuatro preguntas peligrosas se
-clasifican como "otro" y no llegan al control. Arreglarlo es trabajo del
-clasificador, no del control de acceso, y tocar el clasificador heredado
-rompería la comparación con la entrega anterior; queda declarado como
-riesgo residual. Las muestras son pequeñas (7 casos en la empresa y 9 en
-la agencia), y por eso cada uno está en la traza con su razón.
+**La medida que corrige la lectura optimista: la cobertura del riesgo.**
+"Cero fugas" no significa nada si las preguntas peligrosas no llegan al
+control. Por eso el proyecto mide también qué fracción de los casos con
+material protegido llega de verdad al control de acceso.
+
+- **Hoy**: 1,0 en la agencia y en la gestoría; 0,636 en la empresa
+  heredada, donde cuatro preguntas peligrosas se clasifican como "otro" y
+  no llegan al control.
+- **Por qué importa**: al principio, de 20 casos solo llegaban 11, y "cero
+  fugas sobre 17 casos" era en realidad "cero fugas sobre 9".
+- **Lo que queda**: subir el 0,636 es trabajo del clasificador, y tocar el
+  heredado rompería la comparación con la entrega anterior; queda como
+  riesgo residual. Las muestras son pequeñas (7 casos en la empresa y 9 en
+  la agencia), y por eso cada caso está en la traza con su razón.
 
 **Lo que el control deja ver, por decisión.** La interfaz web dice bajo cada
 respuesta qué documentos retuvo el permiso ("Retenido por permiso:
@@ -408,7 +412,8 @@ hablando con una IA) se muestra al empezar.
   despierto y 13,9 s tras despertar.
 - **Correo** (un buzón de Gmail dedicado): la dirección del remitente es la
   credencial. Como un remitente se puede falsificar, el canal exige que el
-  servidor de correo haya verificado el origen (DKIM o SPF) y rechaza el
+  servidor de correo haya verificado el origen (con DKIM o SPF, las firmas
+que prueban que un correo viene del dominio que dice) y rechaza el
   resto sin consultar. Probado con 54 pruebas automáticas y en vivo: 19-24 s
   de extremo a extremo, casi todo espera del buzón; dentro del sistema,
   4,6-7,8 s. Es el único servicio de pago, porque el plan gratuito de Render
@@ -433,17 +438,19 @@ automáticos de Google en el buzón) están en el anexo D.
 
 **Se midieron dos alternativas, y las dos perdieron por razones distintas.**
 
-*Un clasificador sin modelo de lenguaje.* En lugar de preguntar a Haiku, se
-compara la pregunta con la descripción de cada tema mediante vectores. Es
-cuatro veces más rápido (0,32 s frente a 1,12 s) y no cuesta nada de chat,
+*Un clasificador sin modelo de lenguaje.* **Conclusión: Haiku se queda,
+porque acierta más.** En lugar de preguntar a Haiku, se compara la pregunta
+con la descripción de cada tema mediante vectores. Es cuatro veces más
+rápido (0,32 s frente a 1,12 s) y no cuesta nada de chat,
 pero acierta menos con clientes que no ha visto (0,735 frente a 0,882 en
 68 casos), sobre todo en temas definidos por el tipo de documento, como las
-actas. Haiku se queda. Aun así, el clasificador por vectores llevó al
+actas. Aun así, el clasificador por vectores llevó al
 control de acceso los 13 casos de riesgo, incluidos los que Haiku manda a
 "otro"; la mejora que sugiere es dar ejemplos en las descripciones de los
 temas, no entrenar un modelo.
 
-*Otra familia como redactor.* Se repitieron los bancos de la empresa y de
+*Otra familia como redactor.* **Conclusión: como redactores empatan, y
+Haiku se queda por latencia.** Se repitieron los bancos de la empresa y de
 la gestoría con Gemini haciendo de clasificador y de redactor. El primer
 intento murió por la cuota gratuita (20 peticiones al día: 73 de 82 casos
 fallaron); con facturación y un tope de 5 EUR al mes salió así:
@@ -453,20 +460,20 @@ fallaron); con facturación y un tope de 5 EUR al mes salió así:
 | Empresa (53) | 48 | 51 | 46 | 46 / 46 |
 | Gestoría (29) | 28 | 27 | 27 | 27 / 27 |
 
-Como redactor, **empate**: 73 de 73 en los casos que ambos clasificaron
-bien, a la mitad de coste (0,00099 frente a 0,00198 USD) y con 1,9 veces la
-latencia (6,2 s de media frente a 3,3). Toda la diferencia está en la
-clasificación. Haiku se queda porque la latencia pesa en un asistente y el
-empate no justifica romper la comparación con todo lo medido; pero el
-cambio de proveedor queda demostrado como plan de contingencia real, no
-como una promesa.
+En los casos que ambos clasificaron bien, los dos aciertan 73 de 73.
+Gemini cuesta la mitad (0,00099 frente a 0,00198 USD por consulta) y tarda
+1,9 veces más (6,2 s de media frente a 3,3); la diferencia de casos
+correctos viene toda de la clasificación. En un asistente la latencia
+pesa, y el empate no justifica romper la comparación con todo lo medido.
+Lo que sí deja es el cambio de proveedor demostrado como plan de
+contingencia real, no como una promesa.
 
 *Evidencia: hallazgos 17, 24, 29, 32, 35, 48, 54 y 57.*
 
 ### 3.2 Configuración y prompts
 
-**Cómo se consume el modelo.** Por API, con el SDK de cada proveedor y su
-llamada a herramientas nativa. Cada llamada tiene un límite de 1.024 tokens
+**Cómo se consume el modelo.** Por API, con el SDK (la librería oficial)
+de cada proveedor y su mecanismo nativo de llamada a herramientas. Cada llamada tiene un límite de 1.024 tokens
 de salida; si el modelo llega al límite, la respuesta lo avisa en lugar de
 cortarse sin más. Hay una clave de API para el sistema y otra para el juez,
 para separar en la factura lo que cuesta funcionar de lo que cuesta
@@ -504,8 +511,8 @@ Quedan fechados para no mezclar nunca dos cifras que miden cosas distintas:
 | 22-09-2026 | Temperatura del clasificador a 0; juez por defecto a Gemini | Menos variación; juez independiente y 5,5 veces más barato | `ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic` |
 | 23-09-2026 | El redactor sabe quién pregunta | De 2 de 5 a 5 de 5 al entregar un dato autorizado | `GEN_QUIEN_PREGUNTA=0` |
 
-**Todos los prompts están catalogados** en `docs/PROMPTS.md`, generado
-desde el código y vigilado por una prueba: cada uno con su uso, modelo,
+**Todos los prompts están catalogados** en un fichero generado desde el
+código y vigilado por una prueba (anexo D.4): cada uno con su uso, modelo,
 temperatura y una huella. Cada línea del registro de producción lleva esa
 huella y el commit desplegado, de modo que cualquier cifra se puede separar
 por versión de prompt.
@@ -518,7 +525,7 @@ por versión de prompt.
 cifras salen de los tokens contados en las últimas pasadas del banco de
 cada uno, que mezclan consultas cortas y largas, de una rama y de dos:
 
-| Cliente | Coste por consulta | Tokens de entrada | Latencia media / p95 |
+| Cliente | Coste por consulta | Tokens de entrada | Latencia media / p95 (la que no supera el 95 % de las consultas) |
 |---|---|---|---|
 | Empresa (solo documentos) | 0,00198 USD | 973 | 3,28 s / 4,36 s |
 | Gestoría (solo documentos) | 0,00211 USD | 1.130 | 2,95 s / 4,01 s |
@@ -570,8 +577,9 @@ las claves de desarrollo no salen de la máquina del autor. Una fuga a
 pleno ritmo (115 consultas por minuto) gastaría 13,7 USD por hora y
 agotaría ese límite en 44 minutos. El **tope blando** lo pone el propio
 sistema sobre el gasto registrado: al superarlo deja de consultar y lo
-dice. Es un suelo, porque no cuenta los vectores de búsqueda ni lo gastado
-fuera de la aplicación, y no hay límite por usuario.
+dice. Es una cota inferior del gasto real, porque no cuenta los vectores
+de búsqueda ni lo gastado fuera de la aplicación, y no hay límite por
+usuario.
 
 **Lo que la contabilidad no ve.** La contabilidad propia mide el banco de
 pruebas, no todo el proyecto: no ve un 22 % del gasto de la clave
@@ -660,7 +668,7 @@ facturación, que hizo a mano, y la revisión. Algunas decisiones del autor:
 | 25-10 | Marcar las respuestas cortadas y leer el tope de gasto de la base persistente, tras la corrección simulada |
 
 **El método: la especificación manda sobre la conversación.** Un fichero
-de instrucciones del proyecto (`CLAUDE.md`) es la fuente única de verdad: si
+de instrucciones del proyecto es la fuente única de verdad: si
 algo de una conversación lo contradice, gana el fichero. El copiloto lo
 carga al empezar cada sesión. Dos rutinas estructuran cada jornada: una de
 arranque, que lee el diario de sesiones y el estado del repositorio, y una
@@ -683,16 +691,13 @@ copiloto acierte, sino que sus errores se ven:
   inflado; lo destapó una predicción escrita antes de mirar la factura.
 - El experimento de sesgo hizo tres afirmaciones falsas antes de acertar
   (capítulo 7.3).
-- Un tiempo de trabajo apuntado como "1 h 50 min" fueron 19 minutos según
-  la historia de git; desde entonces el tiempo se mide así.
 - Dos lecturas críticas de esta memoria en septiembre encontraron 35
   correcciones cada una.
 - El 25 de octubre, dos **correcciones simuladas**, con la app de Claude en
   el papel del tutor y los usuarios de evaluación, encontraron lo que
   ninguna lectura desde dentro había visto: la integración continua en
   rojo, dos recortes silenciosos, un tope de gasto que se reiniciaba y un
-  guion de demostración que un tercero no podía seguir. La nota estimada
-  pasó de 8,5 a 9,0 tras corregirlo.
+  guion de demostración que un tercero no podía seguir.
 
 Y un caso en que el control llegó tarde: una entrega del Módulo 4 extraída
 de este repositorio salió con dos afirmaciones falsas que la revisión
@@ -779,8 +784,9 @@ están en el anexo D.
 ### 5.3 Evaluar al evaluador
 
 El profesor de la entrega 3.3 pidió evaluar también al juez y su
-estabilidad. El resultado cambia cómo se lee cualquier puntuación de un
-juez de este tipo:
+estabilidad. **Conclusión: una puntuación de juez no se lee sin su
+razonamiento, y ninguna decisión del proyecto depende de una.** Cuatro
+medidas llevan ahí:
 
 - **El número contradice su propio razonamiento.** Con las mismas
   respuestas y el mismo prompt, el juez de Anthropic escribió "mereciendo
@@ -790,8 +796,8 @@ juez de este tipo:
 - **Se equivoca siempre hacia el mismo lado.** En una prueba de 4 casos
   repetidos 6 veces, 4 de los 24 veredictos eran falsos, y los cuatro
   suspendían lo que debía aprobar. La temperatura 0 no lo arreglaba. Por
-  tanto, el número de casos correctos de una pasada con juez es un suelo,
-  y promediar pasadas empeora la cifra en vez de corregirla.
+  tanto, el número de casos correctos de una pasada con juez es una cota
+  inferior, y promediar pasadas empeora la cifra en vez de corregirla.
 - **No puede decidir comparaciones finas.** Al comparar los dos prompts
   candidatos, 5 y 6 de 10 casos cambiaban de veredicto entre tres pasadas
   idénticas. La comparación la decidió la fuga literal, que no varía.
@@ -799,10 +805,7 @@ juez de este tipo:
   no admite el parámetro y la librería de evaluación lo descartaba en
   silencio, lo que explica parte de la variación medida en la entrega 3.3.
 
-De ahí salen dos reglas que se aplican en toda la memoria: **una puntuación
-de juez no se lee sin su razonamiento**, y **ninguna decisión depende de
-una métrica de juez**. El juez sigue siendo útil para vigilar la
-producción (capítulo 6.2), donde da un veredicto de tres valores con su
+El juez sigue siendo útil para vigilar la producción (capítulo 6.2), donde da un veredicto de tres valores con su
 razón y no un número.
 
 Además se retiró una métrica de datos personales que puntuaba al revés:
@@ -815,13 +818,11 @@ personas.
 
 ### 5.4 Lo que el banco enseñó sobre medir
 
-Siete veces el error estaba en el instrumento de medida y no en el sistema:
-dos defectos del banco de la agencia, la mitad de los casos de seguridad
-que no llegaban al control, la métrica de datos personales invertida, dos
-casos de la gestoría con expectativas mal escritas, un comparador que no
-ignoraba las negritas, un número escrito con letra y un caso que aprobaba a
-un sistema que no había respondido. Todos se corrigieron por escrito, con
-el motivo, antes de sacar conclusiones.
+Siete veces el error estaba en el instrumento de medida y no en el
+sistema. Dos ejemplos: la mitad de los casos de seguridad no llegaban al
+control de acceso, así que no probaban nada; y un caso de robustez
+aprobaba a un sistema que no había respondido. Todos se corrigieron por
+escrito, con el motivo, antes de sacar conclusiones.
 
 Y dos reglas de método que salieron del proyecto: **una predicción escrita
 antes de mirar convierte una cifra en una medida**, y **una hipótesis que
@@ -834,7 +835,7 @@ sale de los datos no se confirma con los mismos datos** (capítulo 7.3).
 ### 6.1 Despliegue y paso automatizado a producción
 
 **Dónde y cómo.** Los tres servicios (web, WhatsApp, correo) están en
-Render, definidos en un fichero del repositorio (`render.yaml`). El primer
+Render, definidos en un fichero del repositorio. El primer
 despliegue tardó 1 min 32 s. Hay seis usuarios del autor (dos por cliente)
 y cuatro de evaluación para quien corrija.
 
@@ -851,8 +852,11 @@ como excepción escrita porque afectan a un modo de ChromaDB que este
 sistema no usa. El 25 de octubre, tras catorce días sin cambios, aparecieron
 avisos nuevos publicados en ese tiempo; la integración continua se puso en
 rojo, el servicio siguió en la última versión buena y se actualizaron siete
-paquetes. Es el mantenimiento que el criterio 9-10 pide no dejar a cargo de
-nadie: el sistema avisa y se protege solo.
+paquetes. La detección y la protección son automáticas: la integración
+continua encuentra la vulnerabilidad y el despliegue se detiene sin que
+nadie lo vigile. Actualizar los paquetes sí exige a una persona, y como no
+hay alertas (capítulo 6.2), esa persona se entera al mirar la integración
+continua.
 
 *Evidencia: hallazgos 38, 60, 61 y 67.*
 
@@ -941,6 +945,12 @@ pago (capítulo 3.3) el servicio no dormiría.
 
 ### 6.6 Cómo lo comprueba un tercero
 
+**Alcance.** Lo desplegado es una **demostración verificable**, no un
+servicio listo para un cliente real: un tercero puede comprobar cada
+afirmación de esta memoria sin depender del autor, pero dar servicio a un
+cliente exigiría lo que lista el capítulo 8.3 para pasar a piloto (plan de
+pago, alertas, límites por usuario, alta de usuarios sin redesplegar).
+
 No hay defensa oral, así que este documento y el repositorio tienen que
 bastar. De lo más barato a lo más completo:
 
@@ -950,7 +960,7 @@ bastar. De lo más barato a lo más completo:
 | Que cada cifra tiene respaldo | Cada hallazgo del anexo B lleva a su ejecución guardada en el repositorio | Nada | — |
 | Que el banco da lo que dice | Pasar el banco de un cliente (anexo A) | Claves propias de Anthropic y Gemini | 0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web, con los usuarios `eval_empleado`, `eval_direccion`, `eval_comercial` y `eval_gerencia` | Sus contraseñas, que van en el comentario de la entrega, no en el repositorio público | Unos 32 s si el servicio dormía |
-| Que se comporta como se describe | El guion de demostración (`docs/GUION_DEMO.md`): cada paso con su pregunta literal y lo que tiene que verse | Las mismas credenciales | 0,064-0,069 USD los bloques de la web |
+| Que se comporta como se describe | El guion de demostración del repositorio (anexo D.4): cada paso con su pregunta literal y lo que tiene que verse | Las mismas credenciales | 0,064-0,069 USD los bloques de la web |
 
 WhatsApp y el correo solo atienden a números y direcciones dados de alta;
 probarlos exige que el autor añada los de quien evalúa.
@@ -965,7 +975,7 @@ entregas aparte.
 
 ### 7.1 El registro de riesgos
 
-Un registro con 24 riesgos (`docs/RIESGOS.md`) clasifica cada uno con
+Un registro con 24 riesgos (anexo D.4) clasifica cada uno con
 cuatro marcos: el cuadrante de la matriz de Rumsfeld (conocido o
 desconocido), su casilla del OWASP Top 10 para LLM, su técnica de MITRE
 ATLAS y su dominio de AIUC-1, más la evidencia que lo respalda, el control
@@ -1090,7 +1100,7 @@ Comisión y el BOE.
 
 ### 7.6 Cadena de suministro
 
-Un inventario de dependencias y modelos (`docs/AIBOM.md`) se genera desde el
+Un inventario de dependencias y modelos (anexo D.4) se genera desde el
 fichero de bloqueo de versiones y la configuración, y una prueba falla si
 está desactualizado: 18 paquetes directos y 148 indirectos, todos con
 versión fijada, y cada modelo con su precio o la marca de que no lo tiene.
@@ -1132,7 +1142,7 @@ conoce el negocio, y ese tiempo no está medido.
 | Enmascarar datos personales en la pregunta | No montado: el enmascarado actúa sobre lo que devuelve el CRM (capítulo 2.4). Enmascarar la pregunta exige un detector de nombres en español sin medir y rompería las preguntas por nombre que dirección sí puede hacer ("el salario de Laura Gómez") | Con datos reales de un cliente |
 | Moderación de contenido | No montada: asistente interno, usuarios autenticados, sin contenido de terceros salvo los documentos del cliente; el red-teaming no la pidió | Si se abre a clientes externos |
 | Varios agentes (planificador y especialistas) | En contra: el flujo es un clasificador y dos ramas; un planificador añadiría al menos +0,0005 USD (+25 %) y +1,1 s por consulta sin un solo fallo del banco que lo pida | Si aparecen tareas de varios pasos |
-| Optimizar prompts con DSPy | En contra: optimizaría contra el banco, que no tiene casos reservados, y el número subiría sin significar nada fuera de él | Con un conjunto reservado |
+| Optimizar prompts automáticamente (con DSPy) | En contra: optimizaría contra el banco, que no tiene casos reservados, y el número subiría sin significar nada fuera de él | Con un conjunto reservado |
 | Caché de prompts | No aplica: el mínimo que el proveedor guarda son 4.096 tokens y una consulta usa entre 973 y 2.671 | Si el contexto crece |
 | Entorno de preproducción | No montado: la puerta es la integración continua y el banco; duplicar servicios duplicaría credenciales y superficie expuesta | Con más de un desarrollador |
 | Migrar el modelo de vectores | No antes de entregar: invalida el índice y todas las medidas de búsqueda | Antes del 14-05-2028 |
@@ -1193,20 +1203,16 @@ evaluación y su contrato de encargo.
 
 ## 9. Conclusiones
 
-Lo que el proyecto demuestra, con su número:
+Los tres resultados del resumen ejecutivo sostienen tres afirmaciones:
 
-1. **El aislamiento entre clientes es estructural**, no un filtro que se
-   pueda olvidar: una colección por cliente, y una prueba que falla si se
-   abre la equivocada. Dar de alta un cliente nuevo costó 5 min 42 s y
-   ningún fichero de código.
-2. **El control de acceso está antes del modelo y está medido**: en la
-   agencia, todos los casos con material protegido llegan al control; en los
-   tres bancos, ninguna respuesta contiene un dato prohibido; la fuga real que tuvo la rama del CRM
-   se encontró y se cerró; y ninguna escritura se ejecuta sin que una
-   persona la apruebe.
-3. **El evaluador también se evaluó**: el juez automático se equivocó en 4
-   de 24 veredictos, siempre en el mismo sentido, y por eso las decisiones
-   se apoyan en métricas que no varían.
+1. **Un cliente nuevo es configuración, no desarrollo**, y el aislamiento
+   entre clientes no depende de que nadie se acuerde de filtrar.
+2. **La confidencialidad no depende del modelo**: lo que un usuario no
+   puede ver no llega al modelo, la fuga real que tuvo el proyecto se
+   encontró y se cerró, y ninguna escritura se ejecuta sin una persona.
+3. **Las decisiones se apoyan en medidas que no varían**, porque el
+   evaluador automático también se midió y se equivoca en un solo
+   sentido.
 
 La aportación propia, en una frase: convertir el asistente de documentos de
 una empresa en un sistema para varias, con dos fuentes de datos, en el que
@@ -1271,21 +1277,21 @@ Esta tabla se genera desde el texto y una prueba falla si difiere.
 | 16 | El coste del banco no es el coste del proyecto | 3.3 |
 | 17 | Evaluar cuesta diecisiete veces más que funcionar | 3.1, 3.3 |
 | 18 | La clave del juez estaba en todas partes menos donde importaba | 3.2, 4.3 |
-| 19 | Confinar al directorio de trabajo no es confinar a lo que se puede ensenar | 7.2 |
+| 19 | Confinar al directorio de trabajo no es confinar a lo que se puede enseñar | 7.2 |
 | 20 | "El control actuó" no significa que nadie intentara colarse | 6.2 |
-| 21 | Una prediccion escrita antes de mirar convierte una cifra en una medida | 3.3, 4.3, 5.4, 8.3 |
-| 22 | No elegir sale mas barato que elegir mal, y se puede medir cuanto | 2.3, 2.4, 3.3 |
-| 23 | Una metrica determinista se puede ejecutar sobre el pasado, y esta se estreno midiendose a si misma | 2.4, 5.1, 6.2 |
-| 24 | Ir a montar el instrumento independiente destapo que el instrumento no lo era | 3.1, 3.2, 5.3 |
-| 25 | La prerruta determinista no se construye, y la razon es una cuenta de dos minutos | — |
-| 26 | El juez nunca corrio a temperatura 0, y el parametro estaba puesto | 3.2, 5.3, 8.3 |
-| 27 | La varianza del enrutador costaba un parametro, no el triple de llamadas | 2.3, 3.2 |
+| 21 | Una predicción escrita antes de mirar convierte una cifra en una medida | 3.3, 4.3, 5.4, 8.3 |
+| 22 | No elegir sale más barato que elegir mal, y se puede medir cuánto | 2.3, 2.4, 3.3 |
+| 23 | Una métrica determinista se puede ejecutar sobre el pasado, y esta se estrenó midiéndose a sí misma | 2.4, 5.1, 6.2 |
+| 24 | Ir a montar el instrumento independiente destapó que el instrumento no lo era | 3.1, 3.2, 5.3 |
+| 25 | El enrutado previo por identificador no se construye, y la razón es una cuenta de dos minutos | — |
+| 26 | El juez nunca corrió a temperatura 0, y el parámetro estaba puesto | 3.2, 5.3, 8.3 |
+| 27 | La varianza del enrutador costaba un parámetro, no el triple de llamadas | 2.3, 3.2 |
 | 28 | Un modelo sin precio costaba cero, y el agujero estaba dentro de la contabilidad | 8.3 |
-| 29 | La conmutacion de proveedor era una forma, no un hecho | 3.1, 8.3 |
-| 30 | El juez escribe el razonamiento correcto y le pone el numero equivocado | 5.3, 6.2, 7.2 |
-| 31 | La metrica de PII penalizaba al sistema por explicar lo que se negaba a revelar | 3.2, 5.3, 5.4 |
+| 29 | La conmutación de proveedor era una forma, no un hecho | 3.1, 8.3 |
+| 30 | El juez escribe el razonamiento correcto y le pone el número equivocado | 5.3, 6.2, 7.2 |
+| 31 | La métrica de PII penalizaba al sistema por explicar lo que se negaba a revelar | 3.2, 5.3, 5.4 |
 | 32 | Al juez la temperatura no le hace nada, y sus errores van todos en el mismo sentido | 3.1, 3.3, 5.3, 7.2, 8.2 |
-| 33 | La comparacion de prompts la decide una metrica sin varianza, y el juez no puede decidirla | 3.2, 5.3, 8.2 |
+| 33 | La comparación de prompts la decide una métrica sin varianza, y el juez no puede decidirla | 3.2, 5.3, 8.2 |
 | 34 | Medir sesgo sin control no es medir mal, es afirmar cosas falsas y alarmantes | 4.3, 7.3 |
 | 35 | El inventario destapó, al generarse, que el modelo de embeddings está en retirada y cuesta cero | 3.1, 3.3, 7.2, 7.6, 8.2, 8.3 |
 | 36 | Un borrado efectivo del índice tarda 1,5 segundos, y se comprueba contra la colección | 7.5 |
@@ -1345,6 +1351,7 @@ Esta tabla se genera desde el texto y una prueba falla si difiere.
 | Traza | El registro detallado de una consulta: tema, fuentes, herramientas, retenciones, tiempos |
 | Hallazgo | Una medición documentada en `docs/HALLAZGOS.md`, con la ejecución que la respalda |
 | Por diseño | Un control que existe pero no se ha atacado ni medido |
+| Cota inferior | Una cifra que, por cómo se mide, solo puede quedarse corta: el valor real es igual o mayor |
 
 ## Anexo D. Detalle técnico
 
@@ -1356,7 +1363,10 @@ una guardada en `reports/<nombre>/`: `empresa_quien` (empresa),
 es el de la pasada `gestoria_agregacion`, de la que reevalúa las trazas).
 
 **Calidad de la búsqueda** en esas pasadas, sobre los casos con un
-documento esperado:
+documento esperado. El acierto (hit rate) y el recall@k dicen si el
+documento correcto aparece entre los recuperados; la precisión@k, qué
+parte de lo recuperado es el documento correcto; y el MRR, lo arriba que
+aparece (1,0 es siempre el primero):
 
 | Banco | Casos | Acierto (hit rate) | Recall@k | Precision@k | MRR |
 |---|---|---|---|---|---|
