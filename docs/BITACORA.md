@@ -7,7 +7,7 @@
 
 ## 2026-10-25 — Sesión 15: dos correcciones simuladas, la memoria reescrita para leerse, y el TFM entregado
 
-**12 commits, 2 hallazgos (§67, §68), 1.255 tests** (JUnit; la sesión empezó
+**11 commits, 2 hallazgos (§67, §68), 1.255 tests** (JUnit; la sesión empezó
 en 1.239). Coste en modelos: céntimos (unas cinco consultas reales de
 comprobación, unos 0,05 USD); las correcciones simuladas y los análisis de
 legibilidad los hizo la app de Claude con las cuentas de Juan.
