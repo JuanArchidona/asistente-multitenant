@@ -61,6 +61,8 @@ que no está, o está a medias, lo dice el capítulo 9.
 | 3 | Gestión del código y pases a producción automatizados | 3.4, 6.3 |
 | 4 | Análisis de riesgos | 7.1, 7.2 |
 | 4 | Controles de seguridad implementados | 2.3, 2.7, 7.2 |
+| 4 | Agente o framework de red-teaming | 7.2 (DeepTeam, §65) |
+| 4 | Anonimización y enmascarado de datos | 2.6 (redacción a la salida de las herramientas), 8.3 (enmascarado de la consulta, decidido en contra) |
 | 4 | Regulación aplicable (AI Act, RGPD) | 7.4, 7.5 |
 | 4 | Sesgo y cadena de suministro | 7.3, 7.6 |
 
@@ -75,7 +77,8 @@ expedientes) y sistemas de datos (CRM, agenda, cartera). Un empleado que
 pregunta "¿qué visitas tiene Iván el jueves?" necesita el CRM; uno que
 pregunta "¿cuántos días de vacaciones me corresponden?" necesita el
 convenio; y uno que pregunta "¿quiénes son las partes de la operación 118?"
-necesita los dos, porque el dato vive en el expediente y en el CRM.
+no sabe, ni tiene por qué saber, si ese dato está en el expediente escrito
+o en el CRM, así que el sistema tiene que poder mirar en los dos.
 
 Un asistente que solo hace RAG responde lo que está escrito y se inventa
 lo que no. Uno que solo llama herramientas no sabe de procedimientos. Y en
@@ -228,7 +231,7 @@ entrada (interfaz, WhatsApp, correo)
 
 Todo es Python sin framework de orquestación (capítulo 3.1). El código del
 núcleo son unas 7.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.239 tests que corren en menos de 20 segundos sin llamar a ningún
+1.249 tests que corren en menos de 20 segundos sin llamar a ningún
 proveedor; son recuentos de `wc -l` y `pytest`, no hallazgos. Cuánto de
 eso es nuevo y cuánto heredado se dice en el capítulo 1.2: la 3.3 traía el
 clasificador, la recuperación, la generación y el banco; lo demás es de
@@ -675,7 +678,10 @@ una dice qué se mediría si se cambiara:
   servicios, vigilado por `tests/test_despliegue.py`): un test roto no llega
   a producción: medido con un commit roto a propósito, que se quedó fuera
   mientras los verdes se desplegaban en 77 y 109 s (§60). Es lo que el
-  Módulo 3 llama automatizar los pases a producción.
+  Módulo 3 llama automatizar los pases a producción. La puerta se probó sola
+  el 25-10: tras catorce días sin commits, la auditoría de dependencias
+  encontró avisos nuevos, la CI se puso en rojo y el servicio se quedó en el
+  último commit verde hasta que se subieron los paquetes (§67).
 
 ### 3.5 Desarrollo con un copiloto: reparto, método y control
 
@@ -757,6 +763,11 @@ copiloto acierte, sino que sus errores se ven. Con fecha y fuente:
   59 hallazgos que eran 66), un límite que seguía diciendo que el
   registro vivía en un disco efímero cuando ya persistía en una base, y
   unas conclusiones que situaban la fuga real en el inquilino equivocado.
+- 25-10: una corrección simulada, con la app de Claude en el papel del
+  tutor y los usuarios de evaluación, encontró lo que ninguna lectura desde
+  dentro había visto: la CI en rojo, una respuesta cortada sin aviso, un
+  tope de gasto que se reiniciaba, el README de la 3.3 y un guion que un
+  tercero no podía reproducir. Todo cerrado el mismo día (§67).
 
 Y un caso en el que el control llegó tarde, que también se dice: una
 entrega del Módulo 4 extraída de este repositorio por la app salió con dos
@@ -962,7 +973,7 @@ confirma con los mismos datos, está donde se aprendió (capítulo 7.3).
 | Pasada completa de los dos bancos con el juez nuevo | 0,73 USD (una de Anthropic) o 0,40 USD (tres de Gemini), como mínimo | §32 |
 | Experimento de sesgo, las tres capas | 0,0046 USD (recuperación y enrutado) y 0,27 USD (generación, 336 respuestas) | §34, §44 |
 | Solapamiento consultando dos ramas | +40 % por caso en el grupo, +0,5 s | §22 |
-| Recorrido completo del guion de demostración | menos de 0,05 USD, estimación a partir del coste por consulta; no medida | `GUION_DEMO.md` |
+| Recorrido del guion de demostración, bloques 1 a 4b | 0,069 USD, diez consultas, medido por un tercero | §67 |
 
 Hay tres cifras de coste por consulta en esta memoria y miden cosas
 distintas: 0,0021 USD (capítulo 1.2) es la del documento de concepto,
@@ -985,9 +996,11 @@ la propia contabilidad tuvo están en el capítulo 8.4.
   propia en un espacio con **límite de 10 USD al mes**, que a ese ritmo de
   fuga se agota en 44 minutos; las claves de desarrollo no salen de la
   máquina del autor.
-- **Tope blando**: `TOPE_GASTO_USD` en la interfaz, sobre el registro de
-  producción. Es un suelo: excluye embeddings y lo gastado fuera de la
-  interfaz, y no hay límite por usuario ni por minuto (R-08).
+- **Tope blando**: `TOPE_GASTO_USD` en la interfaz y los canales, sobre el
+  registro de producción. Es un suelo: excluye embeddings y lo gastado fuera
+  de la interfaz, y no hay límite por usuario ni por minuto (R-08). Hasta el
+  25-10-2026 sumaba el fichero del disco efímero y volvía a cero en cada
+  despertar del servicio; ahora lee la base persistente (§67).
 - **Una clave para el sistema y otra para el juez**, el feedback de la 3.3
   aplicado desde el scaffold: separa en facturación lo que cuesta el
   sistema de lo que cuesta evaluarlo. La clave del juez estaba en todas
@@ -1109,8 +1122,9 @@ Cada consulta real deja una línea en el registro del inquilino: usuario,
 categoría, rama, fuentes, documentos denegados por permiso, campos
 redactados, tokens, coste en dólares y latencia (§20). Las que fallan
 quedan con `_fallo` y su tipo de error desde que la primera pulsación del
-simulacro de incidentes destapó que no dejaban rastro (§46). El registro
-no guarda la respuesta. `observabilidad_cli` resume por inquilino:
+simulacro de incidentes destapó que no dejaban rastro (§46), y las que el
+modelo dejó a medias por el límite de salida, con `respuesta_truncada` y
+un aviso en la propia respuesta (§67). El registro no guarda la respuesta. `observabilidad_cli` resume por inquilino:
 consultas, coste acumulado, latencia p95, cuántas veces alguien pidió lo
 que no le toca; y aplica la política de retención del capítulo 6.2. Desde
 el 11-10-2026 cada línea lleva además la versión con que se respondió: el
@@ -1307,6 +1321,17 @@ interno sobre documentación propia el vector es la consulta, la inyección
 lo cubre en parte y la categoría `otro` filtra lo que está fuera de
 ámbito.
 
+**Lo que el control deja ver, por decisión.** Bajo cada respuesta, la
+interfaz web nombra los documentos que el permiso retuvo ("Retenido por
+permiso: anexo_confidencial_plantilla.md"), también a quien no tiene el rol
+y aunque la pregunta no los pidiera, porque el filtro retiene el documento
+en toda consulta a su fuente; WhatsApp y el correo solo dicen cuántos.
+Revela que el documento existe y cómo se llama, no una palabra de su
+contenido. Se decidió mantenerlo el 25-10-2026 (§67): quien pregunta sabe
+que la respuesta existe y a quién pedirla, que es lo mismo que el §47 quiso
+al dejar de presentar la denegación como ausencia. Un cliente que no quiera
+revelar ni el nombre tendría la variante de los canales ya escrita.
+
 ### 7.3 Sesgo, medido en tres capas
 
 Pares de consultas emparejadas que solo difieren en un rasgo (género,
@@ -1452,6 +1477,7 @@ no haya que buscarlo en dos sitios:
 | Optimizar prompts con DSPy | Decidido en contra: optimizaría contra el banco, que no tiene un conjunto reservado, y el número subiría sin decir nada fuera de él (capítulo 9) | Con un conjunto reservado |
 | Caché de prompts | No aplicable: el mínimo cacheable de `claude-haiku-4-5` son 4.096 tokens y una consulta usa entre 973 y 2.671 de entrada en total (5.4) | Si el contexto crece |
 | Entorno de preproducción | No montado: la puerta es la CI (que el despliegue espera, §60) y el banco; un segundo juego de servicios duplicaría credenciales y la superficie expuesta | Con más de un desarrollador |
+| Enmascarar datos personales en la consulta | No montado: la redacción actúa sobre lo que devuelven las herramientas (capítulo 2.6), y la consulta del empleado llega al proveedor tal cual. Enmascararla exige un detector de entidades en español que no está medido, y rompería las preguntas por nombre que el control de acceso tiene que poder contestar a quien sí tiene el rol ("el salario de Laura Gómez"). Con datos sintéticos no viaja ningún dato real (R-18) | Con el corpus real de un cliente |
 | Moderación de contenido | No montada: asistente interno, usuarios autenticados en listas cerradas, sin contenido generado por terceros más allá del corpus del cliente; el red-teaming del capítulo 7.2 no la pidió | Si se abre a clientes externos |
 | KPI de negocio de un piloto | Sin medir: no hay usuarios reales. El que se mediría es la fracción de consultas resueltas sin acudir al contacto alternativo, frente al tiempo que hoy cuesta la misma consulta por correo interno | En el piloto |
 
@@ -1478,7 +1504,7 @@ capítulo 8.3 y aquí solo se remite.
 
 **Lo que el banco no mide.**
 
-- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador, apagado en el banco y activado en la web por decisión del autor el mismo día (WhatsApp y el correo no guardan historial); conversaciones largas siguen sin medirse.
+- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador, apagado en el banco y activado en la web por decisión del autor el mismo día (WhatsApp y el correo no guardan historial); conversaciones largas siguen sin medirse. La reescritura puede arrastrar la fuente del turno anterior: en la corrección simulada, un seguimiento sobre un salario se reescribió "según el convenio" y acabó en "no está en el contexto", que es el caso de denegación parcial que el §47 decidió no tocar (§67).
 - **Lo escribió quien construyó el sistema, y no hay conjunto reservado.**
   Las descripciones de categoría de la agencia se afinaron en tres
   iteraciones sobre el mismo banco (§6); el umbral del enrutador por
@@ -1542,7 +1568,7 @@ función que no se solapa con la de los demás:
 |---|---|---|
 | `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
 | `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 66 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
+| `docs/HALLAZGOS.md` | 67 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
 | `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
 | `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
 | `docs/PROMPTS.md` | Catálogo de prompts: uso, modelo, temperatura, huella y evidencia | Generado desde el código; el test falla si difiere |
@@ -1561,11 +1587,11 @@ lea sin depender del autor, de lo más barato a lo más completo.
 
 | Qué | Cómo | Qué hace falta | Cuánto |
 |---|---|---|---|
-| Que el código hace lo que dice | `uv sync` y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.239 pruebas en unos 20 s |
+| Que el código hace lo que dice | `uv sync` con los grupos del anexo A y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.249 pruebas en unos 20 s (diez menos sin el grupo `langgraph`) |
 | Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
 | Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
 | Que el sistema funciona desplegado | La web de Render con los usuarios de evaluación `eval_empleado`, `eval_direccion`, `eval_comercial` y `eval_gerencia` | Sus contraseñas, que van en el comentario de la entrega del campus y no en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
-| Que se comporta como se describe | `docs/GUION_DEMO.md`: un recorrido en ocho bloques con consultas literales del banco, qué hacer y qué tiene que verse | Credenciales | Menos de 0,05 USD |
+| Que se comporta como se describe | `docs/GUION_DEMO.md`: un recorrido en ocho bloques con consultas literales, los usuarios de evaluación, qué hacer y qué tiene que verse | Credenciales | 0,069 USD los bloques web (§67) |
 
 El guion se escribió para una demostración en directo y se conserva como
 recorrido reproducible: cada bloque dice qué consulta lanzar, desde qué rol
@@ -1610,7 +1636,7 @@ proveedor antes de apoyar una justificación en su conmutación.
 git clone https://github.com/JuanArchidona/asistente-multitenant
 uv sync --group judge --group app --group langgraph
 cp .env.example .env            # claves: sistema, juez, embeddings
-uv run pytest                   # 1.239 tests con el grupo langgraph, sin llamadas a API
+uv run pytest                   # 1.249 tests con el grupo langgraph, sin llamadas a API
 uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
 uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
 uv run streamlit run app.py
@@ -1623,7 +1649,7 @@ Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
 
 ## Anexo B. Índice de hallazgos por capítulo
 
-Los 66 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
+Los 67 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
 memoria que los citan (todos los que lo hacen, no solo el principal).
 Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;
 un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`
@@ -1632,6 +1658,7 @@ que lo respalda o dice que no la tiene.
 | Capítulo | Hallazgos citados |
 |---|---|
 | Resumen | §5, §8, §22, §30, §32, §40, §43, §45 |
+| Guía de lectura: lo que pide el enunciado y dónde está | §65 |
 | 1.3 El criterio de evaluación, y el método que impone | §3, §45, §46, §47 |
 | 2.3 Aislamiento estructural | §10, §13, §14, §37, §43, §53 |
 | 2.4 El clasificador | §1, §6, §12, §15, §22, §27 |
@@ -1643,24 +1670,24 @@ que lo respalda o dice que no la tiene.
 | 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57, §66 |
 | 3.2 Servidores MCP frente a herramientas cableadas | §7 |
 | 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
-| 3.4 El resto de la pila | §19, §26, §38, §51, §52, §60 |
-| 3.5 Desarrollo con un copiloto: reparto, método y control | §16, §17, §18, §21, §34, §39, §58 |
+| 3.4 El resto de la pila | §19, §26, §38, §51, §52, §60, §67 |
+| 3.5 Desarrollo con un copiloto: reparto, método y control | §16, §17, §18, §21, §34, §39, §58, §67 |
 | 4.1 El banco | §11, §23, §30, §31, §42, §47 |
 | 4.2 Resultados en la línea base vigente | §42, §45, §49, §64 |
 | 4.3 Evaluar al evaluador | §8, §24, §26, §30, §32, §33, §40 |
 | 4.5 Lo que el banco enseñó sobre el método | §3, §11, §21, §31, §45, §47, §49, §54 |
-| 5.1 Lo que cuesta funcionar y lo que cuesta medir | §17, §21, §22, §32, §34, §44 |
-| 5.2 Tope de gasto y una clave por fin | §16, §18, §24, §53 |
+| 5.1 Lo que cuesta funcionar y lo que cuesta medir | §17, §21, §22, §32, §34, §44, §67 |
+| 5.2 Tope de gasto y una clave por fin | §16, §18, §24, §53, §67 |
 | 5.3 Lo que la contabilidad no ve | §16, §35, §37 |
 | 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37, §55, §57 |
-| 6.1 El registro de producción | §20, §23, §30, §46, §62 |
+| 6.1 El registro de producción | §20, §23, §30, §46, §62, §67 |
 | 6.2 Retención y supresión | §37 |
 | 6.3 Despliegue | §38, §39, §41, §42 |
 | 6.4 Plan de incidentes, pulsado en frío | §46, §57, §63 |
 | 6.5 Dos superficies y un puente | §19 |
 | 6.6 Carga y arranque en frío | §52, §53, §59 |
 | 7.1 El registro de riesgos | §54, §57 |
-| 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §53, §65 |
+| 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §47, §53, §65, §67 |
 | 7.3 Sesgo, medido en tres capas | §34, §44 |
 | 7.5 RGPD sobre el RAG | §36 |
 | 7.6 Cadena de suministro | §35, §61 |
@@ -1668,5 +1695,5 @@ que lo respalda o dice que no la tiene.
 | 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
 | 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §48, §50, §51, §54, §57, §60 |
 | 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
-| 9. Límites y lo que queda fuera | §6, §48, §55, §56, §57, §58, §59, §66 |
-| 10.2 Cómo lo comprueba un tercero | §52 |
+| 9. Límites y lo que queda fuera | §6, §47, §48, §55, §56, §57, §58, §59, §66, §67 |
+| 10.2 Cómo lo comprueba un tercero | §52, §67 |

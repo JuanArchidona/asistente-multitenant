@@ -4574,3 +4574,49 @@ así que el segundo discrimina poco, y la evidencia de la memoria es la
 reescritura; y las tres líneas llevaban la misma huella de prompts que sin
 memoria, porque el prompt de reescritura no entraba en la versión. Corregido
 el mismo día con una prueba.
+
+
+## 67. Una corrección simulada desde fuera encontró lo que catorce sesiones desde dentro no vieron: la CI en rojo por avisos nuevos, una respuesta cortada sin aviso, un tope que se reiniciaba y un guion que un tercero no podía reproducir
+
+**Ejecución:** sin carpeta en `reports/`. La evidencia es el registro del
+encargo E-0022 (25-10-2026, 10:32-10:45, servicio web en `870c6d6`), en el
+que la app de Claude hizo de tutor: leyó la memoria contra el enunciado y
+ejecutó los bloques 1, 2, 3, 4 y 4b del guion con los cuatro usuarios
+`eval_*`; las ejecuciones 139 y 140 de la CI en GitHub Actions; y cuatro
+consultas reales a la agencia lanzadas el mismo día desde Claude Code para
+comprobar el guion rehecho (0,036 USD).
+
+**Qué se quería.** El enunciado pone el 9-10 en que un tercero pueda
+consumir el proyecto sin carga de mantenimiento. Todo lo medido hasta aquí
+lo midió quien construyó el sistema. La pregunta era qué ve alguien que
+llega sin contexto, con el documento y las credenciales de evaluación.
+
+**Resultado.** Nota estimada por el corrector simulado: 8,5, con el 9-10
+frenado por lo que sigue. Contrastado contra el repositorio, todo se
+sostiene:
+
+| Encontrado | Causa | Estado |
+|---|---|---|
+| CI en rojo en los dos commits del 25-10 | `pip-audit` encontró 54 avisos publicados después del 11-10 en seis paquetes (aiohttp, certifi, filelock, opentelemetry-api, pillow, pypdf). La auditoría hizo su trabajo: el despliegue condicionado a la CI (§60) dejó el servicio en el último commit verde | Cerrado: siete paquetes subidos (pillow 13 exigía streamlit 1.66.1), auditoría limpia salvo las cinco excepciones de chromadb (§61) |
+| Lista de cartera cortada a media línea, sin ninguna señal | El proveedor paraba en `max_tokens` y el sistema no miraba el motivo de parada. Es un fallback silencioso | Cerrado: el corte se marca en la traza (`respuesta_truncada`) y en el registro, y la respuesta lo avisa. El límite no cambia: es la línea base. No se reprodujo en vivo al comprobarlo (8,1 s, el modelo resumió la lista) |
+| El gasto de la barra lateral empezaba en 0 | El tope blando sumaba el fichero del disco efímero aunque el registro ya persistiera en Postgres (§62): volvía a cero en cada despertar | Cerrado: el tope y la barra leen el almacén persistente si existe |
+| El README del repositorio era el de la entrega 3.3 | Nunca se rehízo al reorientar el proyecto | Cerrado: README del TFM |
+| El guion no se podía reproducir en tres bloques | Nombraba los usuarios del autor; preguntaba por la operación 118, que el CRM sintético excluye a propósito; la visita del 4b estaba en una fecha pasada; prometía menos de 0,05 USD y costó 0,069 | Cerrado: rehecho con los `eval_*`, la operación OP-2026-110 (verificada: redacta ingresos, DNI, teléfono y correo sin el rol y los entrega con él), una fecha futura y el coste medido |
+| La memoria (1.1) y el guion decían que la operación 118 "vive en el expediente y en el CRM" | Falso por diseño del generador del CRM | Cerrado: el texto dice que el sistema consulta las dos ramas y responde con la que tiene el dato |
+| Quien no tiene el rol ve el nombre del fichero retenido | La nota "Retenido por permiso" de la web nombra el documento; WhatsApp y el correo solo dan el número | Decidido no cambiarlo (Juan, 25-10): revela que existe, no su contenido, y declararlo en la memoria |
+
+**Lo que enseña.** Las cuatro primeras filas no las podía encontrar el
+banco: el banco no mira la CI, no lee la barra lateral, no ejecuta el guion
+y no abre el README. Y la primera es un fallo que aparece sin tocar el
+código: catorce días sin commits bastaron para que la cadena de suministro
+cambiara debajo. Una lectura desde fuera es una medida distinta, no una
+repetición de las de dentro.
+
+**Límites.** El corrector es un modelo con el mismo repositorio delante, no
+el tutor, y su nota es una estimación. Una sola pasada por bloque. Quedan
+sin tratar dos observaciones suyas: que la reescritura de la memoria entre
+turnos arrastra la fuente del turno anterior (el seguimiento del salario
+acabó en "no está en el contexto", que es el caso de denegación parcial que
+el §47 decidió no tocar) y que la latencia de la cartera en frío llegó a
+20 s frente a los 4,1 s de la ficha del capítulo 5.4, que se midió en
+caliente.

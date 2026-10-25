@@ -1,44 +1,47 @@
 # Guion de la demostración
 
-> Para la defensa, en vivo o grabada. Quince minutos en ocho bloques si se
-> hace entero, más dos de preparación sin público; cada
-> bloque se puede saltar sin romper el siguiente. Cada paso dice **qué se
-> enseña**, **qué se hace** y **qué tiene que verse**, para que quien lo
-> ejecute (o quien lo grabe) sepa cuándo ha salido bien. Las consultas son
-> literales: todas están en el golden set o en el registro de producción, así
-> que su comportamiento está medido y no se improvisa delante del tribunal.
+> Un recorrido reproducible por quien corrija o por cualquier tercero, sobre
+> el servicio desplegado (`https://asistente-multitenant.onrender.com`) o en
+> local. Se escribió el 23-09-2026 para una demostración en directo y se
+> rehízo el 25-10-2026 tras una corrección simulada (E-0022) que lo ejecutó
+> con los usuarios de evaluación y encontró tres bloques que un tercero no
+> podía reproducir. Cada paso dice **qué se enseña**, **qué se hace** y **qué
+> tiene que verse**; cada bloque se puede saltar sin romper el siguiente. Las
+> consultas son literales y su comportamiento está medido.
 >
-> Credenciales de ejemplo (`usuarios.example.json`): contraseña `cambiar`
-> para los cuatro usuarios. Escrito el 23-09-2026.
+> **Usuarios**: `eval_empleado` (sin roles) y `eval_direccion` (rol
+> `rrhh_direccion`) en la empresa de servicios; `eval_comercial` (sin el rol `direccion`)
+> y `eval_gerencia` (rol `direccion`) en la agencia inmobiliaria. Las
+> contraseñas van en el comentario de la entrega del campus, no en este
+> repositorio, que es público. En local, `usuarios.example.json` define
+> usuarios equivalentes con la contraseña `cambiar`.
 
-## 0. Antes de empezar (2 minutos, sin público)
+## 0. Antes de empezar (2 minutos)
 
-- Abrir la interfaz (`uv run streamlit run app.py`, o la URL de Render) y
-  entrar una vez con cada inquilino para que los dos índices estén
-  construidos. En Render el primer acceso tarda: el plan gratuito duerme el
-  servicio y el índice se reconstruye.
-- Despertar también el servicio de WhatsApp: abrir
-  `https://asistente-whatsapp-n2s9.onrender.com/salud` (tiene que decir `ok`
-  y el commit) y mandar una pregunta cualquiera desde el teléfono
-  registrado, para que su índice esté construido antes de que mire nadie.
-  Un servicio dormido tarda 42-61 s en despertar, y la interfaz 32 s
-  (§52); el webhook de Meta no se pierde mientras tanto, espera, pero la
-  primera respuesta llegaría con ese retraso encima.
-- Tener a mano `uv run python -m src.observabilidad_cli` en una terminal.
-- Comprobar el crédito de los proveedores. La demo entera cuesta menos de
-  0,05 USD; el riesgo no es el gasto, es quedarse a cero.
+- Abrir la interfaz. En Render el primer acceso tarda unos 32 s si el
+  servicio dormía (§52), y la primera consulta de cada inquilino construye
+  su índice (unos 15-20 s más); las siguientes tardan 3-6 s.
+- El recorrido de los bloques 1 a 4b son diez consultas y costó **0,069 USD**
+  medido el 25-10-2026 (§67).
+- Para el bloque 4c hace falta un teléfono dado de alta por el autor en el
+  canal de WhatsApp; para el 5, una copia local del repositorio.
 
 ## 1. Un inquilino, un empleado, una pregunta (2 minutos)
 
 **Qué se enseña:** el sistema funciona, cita la fuente y avisa de que es una IA.
 
-- Entrar como `empleado` (empresa de servicios).
+- Entrar como `eval_empleado` (empresa de servicios).
 - Señalar el aviso azul: es el artículo 50.1 del AI Act, y el texto lo declara
   el manifiesto del inquilino, no la interfaz.
 - Preguntar: **"¿Cuántos días de vacaciones me corresponden al año?"**
-- Debe verse: la respuesta cita `convenio_colectivo.md`; en la traza,
-  `categoria: rrhh`, `confianza`, las fuentes y el coste en dólares de esa
-  consulta.
+- Debe verse: 23 días laborables citando `convenio_colectivo.md`; en la
+  traza, `categoria: rrhh`, `confianza` y las fuentes con su distancia. El
+  gasto acumulado está en la barra lateral, leído del registro de producción.
+- Debajo de la respuesta aparece "Retenido por permiso:
+  anexo_confidencial_plantilla.md" aunque la pregunta no lo pidiera: el anexo
+  vive en la misma fuente y el filtro lo retiene en toda consulta a ella. La
+  nota nombra el documento y no su contenido, por decisión (capítulo 7.2 de
+  la memoria): quien pregunta sabe que existe y a quién pedirlo.
 
 ## 2. El control de acceso va dentro de la búsqueda (3 minutos)
 
@@ -46,79 +49,91 @@
 en el `where` de la búsqueda, no en el prompt; el modelo nunca ve lo que no
 puede decir.
 
-- Con `empleado`, preguntar: **"¿Cuál es la retribución bruta anual de Diego
-  Ruíz?"** (es el caso `auth-rrhh-01` del banco, con su contrapeso `conf-01`).
+- Con `eval_empleado`, preguntar: **"¿Cuál es la retribución bruta anual de
+  Diego Ruíz?"** (es el caso `auth-rrhh-01` del banco, con su contrapeso
+  `conf-01`).
 - Debe verse: el sistema dice que no tiene acceso a esa información; en la
-  traza, `denegados_por_permiso` contiene `anexo_confidencial_plantilla.md` y
-  `sin_acceso_a_lo_pedido` es verdadero. Señalar que no es que el modelo se
-  haya negado: es que el fragmento no llegó al modelo.
-- Salir. Entrar como `direccion` (rol `rrhh_direccion`). **La misma
-  pregunta.** Debe verse la respuesta con el dato (68.000 euros) y el anexo
-  citado.
-- Hay una historia detrás de este paso que vale la pena contar (§39, §40):
-  hasta el 23-09 el generador no sabía quién preguntaba, y con la pregunta
-  "¿Cuál es el salario de Laura Gómez?" le negaba el dato a `direccion` 3
-  veces de 5 obedeciendo la cabecera "CONFIDENCIAL" del anexo, aunque el
-  control de acceso ya se lo hubiera entregado. Desde que el prompt lleva
-  quién pregunta y que su contexto está autorizado, 5 de 5 con las dos
-  preguntas. Si aun así sale una negativa, se enseña la traza: el anexo está
-  en las fuentes, el control funcionó, y el modelo se puso una regla que
-  nadie le dio.
-- Frase para el tribunal: "Un prompt que dice 'no reveles el salario' deja el
-  salario en la ventana de contexto. Aquí no está en la ventana."
+  traza, `denegados_por_permiso` contiene `anexo_confidencial_plantilla.md`.
+  No es que el modelo se haya negado: es que el fragmento no llegó al modelo.
+- Salir. Entrar como `eval_direccion`. **La misma pregunta.** Debe verse la
+  respuesta con el dato (68.000 euros) y el anexo citado.
+- La historia detrás de este paso (§39, §40): hasta el 23-09 el generador no
+  sabía quién preguntaba, y le negaba el dato a dirección 3 veces de 5
+  obedeciendo la cabecera "CONFIDENCIAL" del anexo, aunque el control de
+  acceso ya se lo hubiera entregado. Desde que el prompt lleva quién pregunta,
+  5 de 5.
+- La idea del bloque: un prompt que dice "no reveles el salario" deja el
+  salario en la ventana de contexto. Aquí no está en la ventana.
 
 ## 3. Otro inquilino, otra rama: datos vivos por MCP (3 minutos)
 
 **Qué se enseña:** agnosticidad (mismo código, otro cliente sin tocar un
-`.py`) y la rama estructurada.
+`.py`) y la rama estructurada con redacción de campos.
 
-- Salir. Entrar como `comercial` (agencia). Señalar en la barra lateral que
-  cambian el inquilino, las categorías y la clasificación por el AI Act
-  (anexo III, punto 5b, con excepción 6.3). Todo sale de `tenants/agencia_inmobiliaria.json`.
+- Salir. Entrar como `eval_comercial` (agencia). Cambian el inquilino, la
+  clasificación por el AI Act de la barra lateral (anexo III, punto 5b, con
+  excepción 6.3) y las categorías que sugiere el campo de pregunta. Todo sale
+  de `tenants/agencia_inmobiliaria.json`.
 - Preguntar: **"¿Qué inmuebles hay publicados en la cartera y a qué precio?"**
-- Debe verse: `rama: estructurada`, `herramientas` con la llamada al CRM por
-  MCP, y la respuesta con datos que no están en ningún documento.
+- Debe verse: en la traza, `herramientas_invocadas` con
+  `crm__buscar_inmuebles` y una respuesta con datos que no están en ningún
+  documento. La consulta cae en el grupo de solapamiento, así que
+  `categorias_consultadas` lleva también `expedientes` (bloque 4). Si la
+  lista es larga y el modelo llega al límite de salida, la respuesta termina
+  con un aviso de que está incompleta y `respuesta_truncada` es verdadero:
+  antes del 25-10 se cortaba sin decirlo (§67).
 - Preguntar: **"¿Cuáles son los ingresos netos de la parte compradora de la
-  operación OP-2026-118?"**
-- Debe verse: campos redactados (`ingresos_netos_mensuales_eur`, `dni`,
-  `telefono`) en la traza y en la nota bajo la respuesta. La redacción se
-  aplica al salir de la herramienta, por política declarativa.
-- Salir, entrar como `gerencia` (rol `direccion`), misma pregunta: los
-  campos aparecen.
+  operación OP-2026-110?"**
+- Debe verse: la nota "Campos redactados" bajo la respuesta, con
+  `parte_compradora.ingresos_netos_mensuales_eur`, `.dni`, `.telefono` y
+  `.correo`, y la respuesta diciendo que el dato existe y está restringido.
+  La redacción se aplica al salir de la herramienta, por política
+  declarativa, antes de que el modelo lo vea.
+- Salir, entrar como `eval_gerencia`, misma pregunta: los campos aparecen
+  (1.980 euros).
 
 ## 4. La ambigüedad no se elige, se consulta (1 minuto)
 
 **Qué se enseña:** el grupo de solapamiento `expedientes`/`cartera`, medido
 en el §22: cobertura del riesgo de 0,778 a 1,0 por consultar las dos ramas.
 
-- Con `gerencia`: **"¿Quiénes son las partes de la operación OP-2026-118?"**
-- Debe verse en la traza `categorias_consultadas` con dos categorías y
-  fuentes de las dos ramas. El dato vive en el expediente y en el CRM, y
-  pedirle al enrutador que elija era pedirle que resolviera una ambigüedad
-  que no está en la pregunta.
+- Con `eval_gerencia`: **"¿Quiénes son las partes de la operación
+  OP-2026-118?"**
+- Debe verse en la traza `categorias_consultadas` con las dos categorías: la
+  búsqueda en los expedientes y la llamada al CRM. Responde el expediente
+  (`expediente_2026_118_confidencial.md`), y la respuesta dice que el CRM no
+  tiene esa operación. Es lo esperado: el generador del CRM sintético excluye
+  a propósito las operaciones y personas del corpus, para que nadie aparezca
+  con datos distintos en las dos fuentes.
+- La idea del bloque: el enrutador no puede saber por la pregunta si una
+  operación está en el expediente, en el CRM o en los dos; pedirle que elija
+  era pedirle que resolviera una ambigüedad que no está en la pregunta. El
+  sistema consulta las dos y responde con la que tiene el dato.
 
 ## 4b. El modelo propone, la persona aprueba (2 minutos)
 
 **Qué se enseña:** human-in-the-loop sobre una escritura real en el CRM (§42,
 OWASP LLM 8).
 
-- Con `gerencia`: **"Registra una visita al inmueble INM-2026-147 el
-  2026-10-02 a las 10:00 para Marta Pérez Soria con el comercial Iván
+- Con `eval_gerencia`: **"Registra una visita al inmueble INM-2026-147 el
+  2026-12-15 a las 10:00 para Laura Espinosa Gil con el comercial Iván
   Belsué."**
 - Debe verse: la respuesta resume la visita y dice que está pendiente de
   aprobación; debajo aparece la tarjeta "Acciones pendientes de tu
   aprobación" con los argumentos exactos. En la traza,
   `herramientas_invocadas` lleva la llamada con `propuesta: true` y nada se
-  ha escrito.
+  ha escrito. Si el modelo pide antes confirmar algún dato, contestar "Sí,
+  confirmo": sin la tarjeta no se escribe nada.
 - Pulsar **Aprobar**. Debe verse el resultado con la referencia `VIS-9xx`.
-- Preguntar: **"¿Qué visitas tiene Iván Belsué el 2026-10-02?"** Debe
+- Preguntar: **"¿Qué visitas tiene Iván Belsué el 2026-12-15?"** Debe
   aparecer la visita recién registrada, con `origen: asistente, con
-  aprobacion humana`.
-- Frase para el tribunal: "La herramienta que escribe está declarada en el
+  aprobacion humana`. El CRM vive en el disco del servicio y vuelve a su
+  estado generado en cada despliegue.
+- La idea del bloque: la herramienta que escribe está declarada en el
   manifiesto y anotada por el servidor; si uno de los dos no lo dice, el
-  sistema no arranca. El modelo no tiene forma de ejecutarla."
+  sistema no arranca. El modelo no tiene forma de ejecutarla.
 
-## 4c. El mismo sistema por WhatsApp (1 minuto, teléfono en pantalla)
+## 4c. El mismo sistema por WhatsApp (1 minuto, con un teléfono dado de alta)
 
 **Qué se enseña:** el canal no es otro sistema; el número es la credencial
 y fija el inquilino (§51, `docs/CANAL_WHATSAPP.md`).
@@ -129,12 +144,9 @@ y fija el inquilino (§51, `docs/CANAL_WHATSAPP.md`).
   en la web, citando el convenio.
 - **"¿Cuál es la retribución bruta anual de Diego Ruíz?"**: denegación sin
   el dato y la línea "Retenido por permiso". Es el mismo control que en el
-  bloque 2, sin volver a explicarlo.
-- Si se tiene abierto Render, en *Logs* del servicio aparece una línea por
-  mensaje con huella, inquilino y latencia interna; el teléfono no sale.
-- Frase para el tribunal: "No hay una versión de WhatsApp del sistema. Hay
-  un canal de dos ficheros y 572 líneas, docstrings incluidas, que traduce un número en un usuario y un inquilino,
-  y todo lo demás es lo que acaban de ver."
+  bloque 2.
+- En *Logs* del servicio de Render aparece una línea por mensaje con huella,
+  inquilino y latencia interna; el teléfono no sale.
 
 ## 5. Lo que se mide (2 minutos, terminal)
 
@@ -142,19 +154,16 @@ y fija el inquilino (§51, `docs/CANAL_WHATSAPP.md`).
 
 - `uv run python -m src.observabilidad_cli`: consultas, coste acumulado por
   inquilino, latencia p95, cuántas veces alguien pidió lo que no le toca.
-  Señalar que el coste excluye los embeddings y que el propio informe lo
-  dice (§37).
+  El coste excluye los embeddings y el propio informe lo dice (§37). Leer
+  el registro de producción exige la URL de su base, que solo tiene el autor.
 - Abrir `reports/`: cada cifra de la memoria tiene su carpeta.
-- Si hay tiempo, `uv run python -m evals.runner --etiqueta demo --sin-juez`
+- Con claves propias, `uv run python -m evals.runner --etiqueta demo --sin-juez`
   sobre la agencia: 40 casos en menos de un minuto, sin coste de juez.
-- Si preguntan por LangGraph (y suelen): el mismo sistema encadenado por
-  un grafo existe, `ORQUESTADOR=langgraph`, y está medido (§50): mismas 106
-  llamadas y mismos 51.559 tokens de entrada que la línea base en los 53
-  casos del heredado, +0,011 s de latencia, y a cambio 95 líneas de
-  orquestación frente a 21 y 14 paquetes. Enseñar `reports/langgraph_empresa`
-  al lado de `reports/empresa_quien`. Frase para el tribunal: "No es que no
-  sepamos usarlo; es que lo medimos y para un flujo de un turno no compra
-  nada."
+- LangGraph: el mismo sistema encadenado por un grafo existe,
+  `ORQUESTADOR=langgraph`, y está medido (§50): mismas 106 llamadas y mismos
+  51.559 tokens de entrada que la línea base en los 53 casos del heredado,
+  +0,011 s de latencia, y a cambio 95 líneas de orquestación frente a 21 y
+  14 paquetes. `reports/langgraph_empresa` al lado de `reports/empresa_quien`.
 
 ## 6. Cierre (1 minuto)
 
@@ -165,17 +174,17 @@ Tres frases, cada una con un número detrás:
   minutos y cuarenta y dos segundos sin tocar un fichero de código, y su banco
   da 28 de 29."
 - "El control de acceso está medido: cobertura del riesgo 1,0 en la agencia,
-  y una fuga real encontrada y cerrada en el heredado."
+  y una fuga real encontrada y cerrada en la rama estructurada."
 - "El evaluador también se evaluó: 4 de 24 veredictos del juez eran falsos y
   todos en el mismo sentido, y por eso ninguna decisión del proyecto cuelga
   de él."
 
-## Si algo falla en directo
+## Si algo falla
 
 | Síntoma | Qué hacer |
 |---|---|
-| Render tarda en despertar | Esperar; mientras, enseñar `reports/` en la terminal |
-| WhatsApp no contesta en un minuto | El servicio estaba dormido y Meta reintenta el webhook: la respuesta llega; mientras, seguir con el bloque 5 y volver al teléfono al final |
-| Error del proveedor (cuota, crédito) | Es el tope duro actuando: decirlo y pasar al bloque 5 |
-| Tope blando alcanzado | Subir `TOPE_GASTO_USD` en Render o enseñar la traza del registro: el tope funcionó |
-| El CRM no responde | La traza lo dice (`error`), no lo disimula: es la regla de nada de fallbacks silenciosos, y se enseña tal cual |
+| Render tarda en despertar | Esperar unos 32 s; la primera consulta de cada inquilino tarda además lo que cuesta construir su índice |
+| WhatsApp no contesta en un minuto | El servicio estaba dormido y Meta reintenta el webhook: la respuesta llega |
+| Error del proveedor (cuota, crédito) | El mensaje dice qué pasó y a quién acudir (§63): es el tope duro actuando |
+| Tope blando alcanzado | La interfaz deja de consultar y lo dice: el tope funcionó |
+| El CRM no responde | La traza lo dice (`error`), no lo disimula: es la regla de nada de fallbacks silenciosos |
