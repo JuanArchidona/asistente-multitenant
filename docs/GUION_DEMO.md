@@ -40,7 +40,7 @@
 - Debajo de la respuesta aparece "Retenido por permiso:
   anexo_confidencial_plantilla.md" aunque la pregunta no lo pidiera: el anexo
   vive en la misma fuente y el filtro lo retiene en toda consulta a ella. La
-  nota nombra el documento y no su contenido, por decisión (capítulo 7.2 de
+  nota nombra el documento y no su contenido, por decisión (capítulo 2.4 de
   la memoria): quien pregunta sabe que existe y a quién pedirlo.
 
 ## 2. El control de acceso va dentro de la búsqueda (3 minutos)
@@ -55,7 +55,7 @@ puede decir.
   `conf-01`). Si se pregunta justo después de la de vacaciones, la memoria
   entre turnos la reescribe "según el convenio" y la respuesta dice que el
   dato no está en el contexto: tampoco hay fuga, pero la denegación es menos
-  clara (capítulo 9 de la memoria).
+  clara (capítulo 8.3 de la memoria).
 - Debe verse: el sistema dice que no puede dar esa información; en la
   traza, `denegados_por_permiso` contiene `anexo_confidencial_plantilla.md`.
   No es que el modelo se haya negado: es que el fragmento no llegó al modelo.

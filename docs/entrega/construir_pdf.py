@@ -73,6 +73,11 @@ def md_a_html(pandoc: str, entrada: Path, salida: Path, css: Path) -> None:
             "--embed-resources",
             "--css", str(css),
             "--metadata", "lang=es",
+            # Índice de capítulos y apartados al principio: lo echaron en
+            # falta Juan y las dos lecturas externas de la memoria (E-0025).
+            "--toc",
+            "--toc-depth=3",
+            "--metadata", "toc-title=Índice",
             "--output", str(salida),
         ],
         check=True,

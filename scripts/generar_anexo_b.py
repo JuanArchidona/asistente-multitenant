@@ -1,15 +1,19 @@
-"""Regenera el anexo B de la memoria: qué hallazgos cita cada capítulo.
+"""Regenera el anexo B de la memoria: cada hallazgo, qué midió y dónde se usa.
 
     uv run python scripts/generar_anexo_b.py              # reescribe el anexo en docs/MEMORIA.md
     uv run python scripts/generar_anexo_b.py --comprobar  # sale con 1 si está viejo
 
-Se hacía a mano y se quedaba viejo: la bitácora del 27-09 lo dejó anotado, y
-la regla que salió de las dos lecturas hostiles de la memoria es que los
-recuentos se rehacen con el comando, no se editan. Las citas `§N` se leen del
-texto de cada capítulo (los de nivel `## N.` también, por su texto antes del
-primer apartado), y no cuentan las que son secciones de `ALCANCE.md` (§5.c,
-§5.d), que no son hallazgos. `tests/test_anexo_b.py` falla si el anexo
-difiere de lo que sale del texto.
+Desde el 25-10-2026 la memoria no cita hallazgos dentro de la prosa: dos
+lecturas externas (Gemini y ChatGPT, encargo E-0025) coincidieron en que las
+cientos de referencias `§N` impedían seguir el texto. Cada apartado termina
+con una línea `*Evidencia: hallazgos 22 y 47.*`, y este anexo dice, para cada
+hallazgo, su título y los apartados que lo usan, de modo que el lector sabe
+qué es el 22 sin abrir otro fichero.
+
+Se genera y no se edita porque el anexo hecho a mano se quedaba viejo (la
+bitácora del 27-09 lo dejó anotado). `tests/test_anexo_b.py` falla si el
+anexo difiere de lo que sale del texto, si una línea de evidencia cita un
+hallazgo que no existe o si vuelve a aparecer una `§` en la memoria.
 """
 import re
 import sys
@@ -19,53 +23,70 @@ RAIZ = Path(__file__).resolve().parents[1]
 MEMORIA = RAIZ / "docs" / "MEMORIA.md"
 HALLAZGOS = RAIZ / "docs" / "HALLAZGOS.md"
 
-INICIO = "## Anexo B. Índice de hallazgos por capítulo"
-RE_CITA = re.compile(r"§(\d+)")
+INICIO = "## Anexo B. Los hallazgos y dónde se usan"
 RE_CABECERA = re.compile(r"^(#{2,3}) (.+)$")
+RE_EVIDENCIA = re.compile(r"^\*Evidencia: (.+)\*$")
+RE_TITULO = re.compile(r"^## (\d+)\. (.+)$", re.MULTILINE)
+MAX_TITULO = 120
 
 
-def hallazgos_existentes() -> set[int]:
-    return {int(n) for n in re.findall(r"^## (\d+)\.", HALLAZGOS.read_text(encoding="utf-8"), re.MULTILINE)}
+def titulos() -> dict[int, str]:
+    """Número y título de cada hallazgo de HALLAZGOS.md."""
+    return {int(n): t.strip() for n, t in RE_TITULO.findall(HALLAZGOS.read_text(encoding="utf-8"))}
 
 
-def _citas(texto: str, validos: set[int]) -> set[int]:
-    salida = set()
-    for m in RE_CITA.finditer(texto):
-        antes = texto[max(0, m.start() - 16): m.start()]
-        despues = texto[m.end(): m.end() + 2]
-        if re.search(r"ALCANCE(\.md)?`?\s*$", antes) or re.match(r"\.[a-z0-9]", despues):
-            continue
-        n = int(m.group(1))
-        if n in validos:
-            salida.add(n)
-    return salida
+def titulo_breve(titulo: str) -> str:
+    """La primera afirmación del título: hasta el primer ':' o ';' si lo que
+    queda antes ya se entiende solo, y nunca más de `MAX_TITULO` caracteres."""
+    for corte in (": ", "; "):
+        cabeza = titulo.split(corte)[0]
+        if len(cabeza) >= 25:
+            titulo = cabeza
+            break
+    if len(titulo) > MAX_TITULO:
+        titulo = titulo[:MAX_TITULO].rsplit(" ", 1)[0] + "..."
+    return titulo.replace("|", "/")
 
 
-def secciones(texto: str) -> list[tuple[str, str]]:
-    """(título, texto) de cada capítulo y apartado hasta el anexo B."""
+def numeros_de_evidencia(linea: str) -> set[int]:
+    m = RE_EVIDENCIA.match(linea.strip())
+    return {int(n) for n in re.findall(r"\d+", m.group(1))} if m else set()
+
+
+def etiqueta(titulo_seccion: str) -> str:
+    """'2.4 El control de acceso...' -> '2.4'; los apartados sin número, por su nombre."""
+    m = re.match(r"^(\d+(?:\.\d+)?)\.? ", titulo_seccion)
+    return m.group(1) if m else titulo_seccion
+
+
+def usos(texto: str) -> dict[int, list[str]]:
+    """Para cada hallazgo, los apartados cuya línea de evidencia lo cita."""
     cuerpo = texto.split(INICIO)[0]
-    salida, titulo, buffer = [], None, []
+    salida: dict[int, list[str]] = {}
+    seccion = None
     for linea in cuerpo.splitlines():
-        m = RE_CABECERA.match(linea)
-        if m:
-            if titulo is not None:
-                salida.append((titulo, "\n".join(buffer)))
-            titulo, buffer = m.group(2).strip(), []
-        elif titulo is not None:
-            buffer.append(linea)
-    if titulo is not None:
-        salida.append((titulo, "\n".join(buffer)))
+        if m := RE_CABECERA.match(linea):
+            seccion = etiqueta(m.group(2).strip())
+            continue
+        for n in sorted(numeros_de_evidencia(linea)):
+            salida.setdefault(n, [])
+            if seccion not in salida[n]:
+                salida[n].append(seccion)
     return salida
 
 
 def tabla(texto: str) -> tuple[str, int]:
-    validos = hallazgos_existentes()
-    filas = []
-    for titulo, cuerpo in secciones(texto):
-        citas = _citas(cuerpo, validos)
-        if citas:
-            filas.append(f"| {titulo} | {', '.join(f'§{n}' for n in sorted(citas))} |")
-    return "\n".join(["| Capítulo | Hallazgos citados |", "|---|---|", *filas]), len(validos)
+    existentes = titulos()
+    citados = usos(texto)
+    inexistentes = sorted(set(citados) - set(existentes))
+    if inexistentes:
+        raise ValueError(f"La memoria cita hallazgos que no existen: {inexistentes}")
+    filas = [
+        f"| {n} | {titulo_breve(t)} | {', '.join(citados.get(n, [])) or '—'} |"
+        for n, t in sorted(existentes.items())
+    ]
+    # Las rayas del separador fijan el ancho relativo de las columnas en pandoc.
+    return "\n".join(["| Nº | Qué se midió | Dónde se usa |", "|-|------------|---|", *filas]), len(existentes)
 
 
 def regenerar(texto: str) -> str:
@@ -77,11 +98,12 @@ def regenerar(texto: str) -> str:
     tabla_md, total = tabla(texto)
     anexo = (
         f"{INICIO}\n\n"
-        f"Los {total} hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta\n"
-        "memoria que los citan (todos los que lo hacen, no solo el principal).\n"
-        "Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;\n"
-        "un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`\n"
-        "que lo respalda o dice que no la tiene.\n\n"
+        f"Los {total} hallazgos de `docs/HALLAZGOS.md`, con lo que midió cada uno y\n"
+        "los apartados de esta memoria que se apoyan en él. Cada hallazgo, en ese\n"
+        "fichero, explica la medida completa y nombra la ejecución guardada en\n"
+        "`reports/` que la respalda, o dice que no la tiene. Los que no se usan en\n"
+        "la memoria aparecen con una raya: son medidas intermedias o superadas.\n"
+        "Esta tabla se genera desde el texto y una prueba falla si difiere.\n\n"
         f"{tabla_md}\n"
     )
     return texto[:i] + anexo + texto[fin:]

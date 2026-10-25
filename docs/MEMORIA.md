@@ -10,243 +10,1370 @@ lang: es
 
 **Servicio desplegado:** <https://asistente-multitenant.onrender.com>
 
-## Resumen
+## Resumen ejecutivo
 
-Un asistente interno que responde consultas de los empleados de una empresa
-de servicios profesionales combinando dos fuentes: la documentación propia
-de la empresa, por recuperación aumentada (RAG), y sus datos de negocio,
-por servidores MCP. El mismo código sirve a varios clientes (inquilinos)
-sin tocar un fichero de Python: todo lo que distingue a uno vive en un
-manifiesto declarativo. El control de acceso se aplica **antes** de que el
-modelo vea nada, la única escritura la aprueba una persona, y cada decisión
-que se defiende tiene una medida detrás; las que no la tienen lo dicen.
+**Qué es.** Un asistente interno para empresas de servicios profesionales
+(gestorías, agencias inmobiliarias, consultoras). Un empleado le pregunta en
+lenguaje natural y el asistente responde combinando dos fuentes: la
+documentación propia de la empresa (convenios, procedimientos, actas,
+expedientes), mediante recuperación aumentada (RAG), y sus datos de negocio
+(el CRM), mediante servidores MCP. El mismo código atiende a varias empresas
+a la vez, que en esta memoria se llaman **inquilinos**.
 
-El proyecto parte de las entregas 2.1, 2.3, 3.1 y 3.3 del máster, que ya
-cubrían cuatro de los seis pasos del flujo y traían un banco de evaluación
-de 109 casos. Sobre esa base se construyeron, en once jornadas de trabajo
-entre el 20-09 y el 25-10-2026, siete piezas: la multi-tenencia, la rama
-estructurada, la capa de control de acceso, la observabilidad, la
-interfaz web autenticada y desplegada, el análisis de IA responsable y
-dos canales más, WhatsApp y correo. Todo el código y toda la
-documentación se produjeron con un asistente de código dirigido por el
-autor; el capítulo 1.3 dice qué es de quién y qué salvedad llevan las
-cifras de tiempo.
+**El problema que resuelve de verdad.** Contestar bien no basta para poder
+desplegarlo: lo que decide si una empresa lo acepta es **quién puede ver
+qué**. El convenio es para todos; los salarios, solo para dirección; los
+ingresos de un comprador, solo para quien lleva la operación. Este sistema
+aplica ese control **antes** de que el modelo de lenguaje vea nada: lo que
+un usuario no puede ver no llega nunca a la ventana de contexto del modelo,
+así que el modelo no puede filtrarlo aunque quiera.
 
-Tres cifras que resumen lo que se defiende:
+**Qué hay construido.** Tres inquilinos sintéticos con su documentación, sus
+datos y su banco de pruebas; las dos ramas de consulta (documentos y CRM);
+el control de acceso; una escritura en el CRM que solo se ejecuta si una
+persona la aprueba; tres canales (web, WhatsApp y correo) desplegados en
+Render; un registro de producción con evaluación automática de la calidad de
+las respuestas; y un análisis de riesgos, sesgo y cumplimiento del AI Act.
 
-| Afirmación | Cifra | Dónde está medida |
-|---|---|---|
-| Dar de alta un cliente nuevo no exige código | **5 min 42 s**, cero ficheros `.py`, 25 de 28 casos de su banco en dos iteraciones; 27 de 28 tras revisar dos expectativas del banco | §43, §45 |
-| El control de acceso está en la búsqueda, no en el prompt | Cobertura del riesgo **1,0** en la agencia; `fuga_literal` **10 de 10** en la línea base vigente; una fuga real encontrada y cerrada | §5, §8, §22, §40 |
-| El evaluador también se evaluó | **4 de 24** veredictos del juez LLM eran falsos, y los cuatro en el mismo sentido; ninguna decisión del proyecto cuelga de él | §30, §32 |
+**Tres resultados, con su número:**
 
-## Guía de lectura: lo que pide el enunciado y dónde está
+| Qué se quería demostrar | Resultado medido |
+|---|---|
+| Dar de alta un cliente nuevo no exige programar | Un tercer inquilino se montó en **5 min 42 s** sin tocar una línea de código; su banco de pruebas pasó 27 de 28 casos tras corregir dos expectativas mal escritas |
+| El control de acceso funciona y no depende del modelo | En la agencia, **todos** los casos con material protegido llegan al control (cobertura 1,0), y en los tres bancos **ninguna** respuesta contiene un dato prohibido (10 de 10, 9 de 9 y 6 de 6 casos) |
+| El evaluador automático también se evaluó | El juez basado en un modelo de lenguaje se equivocó en **4 de 24** veredictos, siempre en el mismo sentido; por eso ninguna decisión del proyecto depende de él |
 
-El enunciado del proyecto final pide cubrir los cuatro módulos del máster.
-Esta tabla lo recorre en su orden y dice en qué capítulo está cada cosa; lo
-que no está, o está a medias, lo dice el capítulo 9.
+**Cómo se trabajó.** El proyecto parte de cuatro entregas anteriores del
+máster y se desarrolló en once jornadas, entre el 20 de septiembre y el 25
+de octubre de 2026, con un copiloto de código (Claude Code) dirigido por el
+autor. La regla que guía todo el documento es la del propio máster: cada
+decisión se justifica con una medida, y lo que no se ha medido se dice.
 
-| Módulo | Lo que pide el enunciado | Dónde |
-|---|---|---|
-| 1 | Qué modelos se emplean y por qué | 3.3 |
-| 1 | Configuración, forma de consumo, parámetros y prompts, incluidos los candidatos | 2.4, 2.8, 3.3, 4.4 y `docs/PROMPTS.md` |
-| 1 | Costes anticipados según niveles de uso | 5.1, 5.4 |
-| 2 | Flujo de acciones, niveles de autonomía e intervención humana | 2.1, 2.6, 2.7 |
-| 2 | Por qué el framework, y los controles intermedios | 3.1, 3.2, 2.7 |
-| 2 | Cómo se usaron los copilotos y cómo se controló su salida | **3.5** |
-| 2 | Cómo un proceso de negocio se aterriza en un proceso técnico | 1.1, 1.4, 2.2 |
-| 3 | Despliegue | 2.9, 6.3 |
-| 3 | Cómo se evalúa ahora: tests, LLM como juez, evaluadores no subjetivos | 4 |
-| 3 | Cómo se sabe cómo va en producción | 6.1, 6.6 |
-| 3 | Gestión del código y pases a producción automatizados | 3.4, 6.3 |
-| 4 | Análisis de riesgos | 7.1, 7.2 |
-| 4 | Controles de seguridad implementados | 2.3, 2.7, 7.2 |
-| 4 | Agente o framework de red-teaming | 7.2 (DeepTeam, §65) |
-| 4 | Anonimización y enmascarado de datos | 2.6 (redacción a la salida de las herramientas), 8.3 (enmascarado de la consulta, decidido en contra) |
-| 4 | Regulación aplicable (AI Act, RGPD) | 7.4, 7.5 |
-| 4 | Sesgo y cadena de suministro | 7.3, 7.6 |
+**Cómo comprobarlo.** El capítulo 6.6 explica qué puede verificar un tercero
+y cómo: desde pasar las 1.255 pruebas automáticas sin coste hasta recorrer
+el sistema desplegado con los usuarios de evaluación.
 
-## 1. Definición del problema y contexto de uso real
+## Cómo leer esta memoria
+
+**Dónde está lo que pide el enunciado.** El enunciado del proyecto final
+pide cubrir los cuatro módulos del máster. Los capítulos siguen ese orden:
+
+| Módulo | Lo que pide el enunciado | Capítulo |
+|--|----------|-----|
+| 1 | Qué modelos se usan y por qué | 3.1 |
+| 1 | Configuración, forma de consumo, parámetros y prompts candidatos | 3.2 |
+| 1 | Costes anticipados según niveles de uso | 3.3 |
+| 2 | Flujo de acciones, niveles de autonomía e intervención humana | 2.1, 2.5 |
+| 2 | Cómo un proceso de negocio se convierte en un proceso técnico | 1.1, 2.2 |
+| 2 | Por qué ese framework y qué controles intermedios | 4.1, 4.2, 2.4 |
+| 2 | Cómo se usaron los copilotos y cómo se controló su salida | 4.3 |
+| 3 | Despliegue y paso automatizado a producción | 6.1 |
+| 3 | Evaluación: tests, LLM como juez, evaluadores no subjetivos | 5 |
+| 3 | Monitorización y rendimiento en producción | 6.2 |
+| 4 | Análisis de riesgos y controles de seguridad | 7.1, 7.2, 2.4 |
+| 4 | Red-teaming con una herramienta | 7.2 |
+| 4 | Anonimización y enmascarado de datos | 2.4 (a la salida de las herramientas), 8.2 (en la consulta, decidido en contra) |
+| 4 | Regulación (AI Act, RGPD), sesgo y cadena de suministro | 7.3 a 7.6 |
+| Nota 9-10 | Que un tercero pueda usarlo sin carga de mantenimiento | 6.1, 6.6 |
+
+**Las evidencias.** Cada cifra sale de una medición guardada en el
+repositorio. Las mediciones están numeradas como **hallazgos** en el
+fichero `docs/HALLAZGOS.md`, cada uno con la ejecución que lo respalda. Para
+no interrumpir la lectura, el texto no los cita en cada frase: al final de
+cada apartado, una línea en cursiva dice qué hallazgos lo sostienen, y el
+**anexo B** da el título de cada uno. El **anexo C** es un glosario con los
+términos técnicos que se repiten (inquilino, enrutador, cobertura del
+riesgo, corte de línea base...).
+
+## 1. El problema y el punto de partida
 
 ### 1.1 El problema
 
-Una empresa de servicios profesionales (una gestoría, una agencia
-inmobiliaria, una consultora) tiene su conocimiento repartido en dos
-sitios que no se hablan: documentos (convenios, procedimientos, actas,
-expedientes) y sistemas de datos (CRM, agenda, cartera). Un empleado que
-pregunta "¿qué visitas tiene Iván el jueves?" necesita el CRM; uno que
-pregunta "¿cuántos días de vacaciones me corresponden?" necesita el
-convenio; y uno que pregunta "¿quiénes son las partes de la operación 118?"
-no sabe, ni tiene por qué saber, si ese dato está en el expediente escrito
-o en el CRM, así que el sistema tiene que poder mirar en los dos.
+Una empresa de servicios profesionales tiene su conocimiento repartido en
+dos sitios que no se hablan: **documentos** (convenios, procedimientos,
+actas, expedientes) y **sistemas de datos** (CRM, agenda, cartera de
+inmuebles). Tres preguntas lo ilustran:
 
-Un asistente que solo hace RAG responde lo que está escrito y se inventa
-lo que no. Uno que solo llama herramientas no sabe de procedimientos. Y en
-cualquiera de los dos, el problema que decide si se puede desplegar no es
-la calidad de la respuesta sino **quién puede ver qué**: el convenio es
-para todos, el anexo con los salarios es para dirección, y la solvencia de
-un comprador es para quien lleva la operación.
+- "¿Cuántos días de vacaciones me corresponden?" se responde con el
+  convenio, un documento.
+- "¿Qué visitas tiene Iván el jueves?" se responde con el CRM, un sistema
+  de datos que cambia cada día.
+- "¿Quiénes son las partes de la operación 118?" puede estar en el
+  expediente escrito, en el CRM o en los dos, y quien pregunta no tiene por
+  qué saber dónde. El sistema tiene que poder mirar en ambos.
 
-El asistente tiene que servir a más de una empresa, porque una empresa de
-servicios profesionales no paga un desarrollo a medida. Eso convierte el
-aislamiento entre clientes en el primer requisito, y convierte "cuánto
-cuesta dar de alta un cliente nuevo" en la cifra comercial que importa.
+Un asistente que solo busca en documentos responde lo que está escrito e
+inventa lo demás; uno que solo consulta sistemas no sabe de procedimientos.
+Y en cualquiera de los dos, lo que decide si se puede poner en producción
+no es la calidad de la respuesta, sino **quién puede ver qué**.
 
-### 1.2 Punto de partida: lo heredado de las entregas del máster
+El asistente tiene que servir a varias empresas con el mismo código, porque
+una empresa pequeña de servicios no paga un desarrollo a medida. De ahí
+salen los dos requisitos que ordenan todo el diseño: **el aislamiento entre
+clientes**, y que **dar de alta un cliente nuevo cueste poco** y se pueda
+medir.
 
-El TFM no arranca de cero, y la decisión está razonada en `docs/ALCANCE.md`
-§1: el criterio del capstone premia justificar con números, y justificar
-con números es lo que produce el banco de evaluación de la entrega 3.3.
-Partir de cero habría gastado el mes en reconstruir lo que ya estaba
-medido. El tutor confirmó el 22-09-2026 que partir de entregas propias
-calificadas es admisible y no exige declaración (`docs/TUTORIA_2026-09-22.md`).
+### 1.2 Lo que se heredó de las entregas del máster
 
-| Paso del flujo | Estado al arrancar (20-09-2026) | Origen |
+El proyecto no parte de cero. Las entregas 2.1, 2.3, 3.1 y 3.3 del máster ya
+habían construido un asistente de documentos para una empresa, con su
+evaluación. Partir de ahí no fue comodidad: el criterio del máster premia
+justificar con números, y esas entregas traían un banco de 109 casos de
+prueba ya medidos. Rehacerlo habría consumido el mes en reconstruir lo que
+ya estaba demostrado. El tutor confirmó el 22 de septiembre que partir de
+entregas propias calificadas es admisible.
+
+| Pieza | Estado al empezar (20-09-2026) | De qué entrega |
 |---|---|---|
-| Entrada (interfaz) | Streamlit desplegada en Render | 3.1 (10/10) |
-| Clasificador | Hecho y medido: acierto, matriz de confusión, fallback | 2.3, 3.3 |
-| Recuperación documental | Hecha y optimizada con un barrido de 11 configuraciones | 2.3, 3.3 |
-| Recuperación estructurada | **No existía** | |
-| Generación | Anclada al contexto, con cita de fuente | 2.3 |
-| Guardarraíles | Parcial: el fallo estaba medido (2 fugas), no corregido | 3.3 |
-| Salida | Un solo canal | 3.1 |
-| Banco de evaluación | 109 casos, 13 métricas en 4 capas, CI (heredado tal cual en `evals/`) | 3.3 (10/10) |
+| Interfaz web | Desplegada en Render | 3.1 (10/10) |
+| Clasificador de consultas | Hecho y medido | 2.3 y 3.3 |
+| Búsqueda en documentos | Hecha y ajustada con 11 configuraciones probadas | 2.3 y 3.3 |
+| Consulta a sistemas de datos | **No existía** | — |
+| Respuesta con cita de la fuente | Hecha | 2.3 |
+| Control de acceso | El fallo estaba medido (2 fugas), no corregido | 3.3 |
+| Banco de evaluación | 109 casos, 13 métricas, integración continua | 3.3 (10/10) |
 
-Dos requisitos no funcionales del documento de concepto original ya
-estaban cumplidos: latencia (3,8 s de media, 5,3 s p95, objetivo 3-8 s) y
-coste (0,0021 USD por consulta, objetivo "céntimos"). Faltaban la PII y la
-aprobación humana.
+El sistema heredado ya cumplía dos requisitos de su documento de concepto:
+latencia (3,8 s de media) y coste (0,0021 USD por consulta). Lo nuevo de
+este proyecto es todo lo demás: varios clientes, la consulta al CRM, el
+control de acceso, la aprobación humana, los canales, la operación en
+producción y el análisis de riesgos.
 
-El repositorio conserva la historia de commits de la 3.3: lo anterior al
-commit `docs: add TFM scope and closed decisions` es la entrega, no el TFM.
+### 1.3 Los tres inquilinos
 
-### 1.3 El criterio de evaluación, y el método que impone
+Los tres son **sintéticos**: el repositorio es público y ningún dato real
+de ninguna empresa entra en él.
 
-El programa del máster define el Módulo 5 así: *"el objetivo del proyecto
-no está únicamente en que el sistema funcione, sino en justificar cada
-decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
-mantenimiento"*. De ahí sale la regla de trabajo de todo el proyecto:
-**ante cualquier propuesta, la pregunta es si se puede medir; una
-afirmación sin número no vale.**
-
-Cinco reglas que se derivan y que el repositorio hace cumplir con tests:
-
-- **No se relaja el banco.** Un caso se corrige cuando la expectativa era
-  incorrecta, nunca cuando el resultado incomoda, y cada corrección se
-  justifica por escrito en `HALLAZGOS.md` (§3, §45).
-- **Nada de fallbacks silenciosos.** Si algo degrada (parseo fallido,
-  recuperación vacía, servidor caído) se marca y se propaga. La confusión
-  más cara es que "el CRM está caído" se lea como "no tengo esa
-  información" (§46, §47).
-- **La línea base heredada no se toca.** Un test compara el prompt del
-  enrutador carácter a carácter con el de la 3.3; si cambia, las métricas
-  de los 109 casos dejan de ser comparables.
-- **Ninguna cifra sin su ejecución.** Cada número de esta memoria está en
-  una carpeta de `reports/` o en un hallazgo que la cita.
-- **Los cortes de línea base se fechan.** Cuando un valor por defecto cambia
-  y las cifras de antes y de después dejan de ser comparables, queda
-  escrito con fecha y con la escotilla que reproduce el comportamiento
-  anterior. Hubo dos cortes, y el capítulo 4.4 los recoge.
-
-**Cómo se trabajó.** El código, los tests, los documentos y esta memoria
-se escribieron con un copiloto, Claude Code, dirigido por el autor; el
-capítulo 3.5 cuenta cómo, qué decidió el autor y con qué mecanismos se
-controló lo que el copiloto producía. El trabajo se cuenta en sesiones, no
-en horas: quince sesiones en once jornadas, entre el 20-09 y el
-25-10-2026. Las
-cifras de tiempo de trabajo que la memoria da (5 min 42 s el alta de un
-cliente, 19 min el prototipo de LangGraph) son tiempo del asistente con el
-proyecto en contexto, y lo dicen donde aparecen. Quien quiera saber qué
-habría costado a mano no encontrará aquí ese número, porque no se midió.
-
-**Cómo leer las cifras de esta memoria.** Siete convenciones que se usan
-desde el Resumen:
-
-- **§N** es un hallazgo de `docs/HALLAZGOS.md`: una medida con la
-  ejecución que la respalda. **R-NN** es una fila del registro de riesgos
-  (capítulo 7.1). `ALCANCE.md` §5.c y §5.d son secciones de ese fichero,
-  siempre con el nombre delante.
-- Una **ejecución** es una pasada del banco guardada en
-  `reports/<etiqueta>/`; las etiquetas (`empresa_quien`, `agencia_hitl_v3`,
-  `gestoria_agregacion_v2`) solo aparecen en las tablas de los capítulos
-  4.2 y 5.4 y en el anexo. Fuera de ahí, "línea base vigente" es la
-  ejecución de ese inquilino en esas tablas.
-- Un **caso OK** es un caso del banco cuyas métricas pasan todas su
-  umbral; las que no aplican al caso no penalizan y una traza en error
-  falla siempre. "48 de 53" son casos OK sobre casos del banco.
-- Las métricas son de **dos familias**: deterministas, que no varían
-  entre pasadas y anclan todas las decisiones, y de juez LLM, que varían
-  y de las que no cuelga ninguna (capítulo 4.1).
-- La **cobertura del riesgo** es la fracción de casos con material
-  protegido en juego que llegan de verdad al control de acceso; un caso
-  que el enrutador manda a `otro` no prueba nada del control. Se publica
-  con su denominador (capítulo 2.7).
-- Un **corte de línea base** es un cambio de valor por defecto que hace
-  no comparables las cifras de antes y de después; hubo dos, fechados en
-  el capítulo 4.4, y "línea base vigente" quiere decir posterior a los
-  dos.
-- **"Por construcción"** quiere decir que el control existe por diseño y
-  no se ha atacado ni medido. Se usa en el capítulo 7.2 y se dice cada
-  vez.
-
-### 1.4 Los tres inquilinos
-
-Los tres son sintéticos: ningún dato real de ninguna empresa entra en el
-repositorio, que es público. Lo que eso mitiga y lo que no está en el
-capítulo 7.5.
-
-| | `empresa_servicios` | `agencia_inmobiliaria` | `gestoria_laboral` |
+| | Empresa de servicios | Agencia inmobiliaria | Gestoría laboral |
 |---|---|---|---|
-| Qué es | Empresa de servicios heredada de las entregas | Domara Inmobiliaria, agencia ficticia de Zaragoza | Asesoría Marín y Lasheras, gestoría laboral y fiscal ficticia |
-| Para qué está | Sostener el banco heredado como suite de regresión | Demostrar agnosticidad y la rama estructurada | Medir el alta de un cliente nuevo |
-| Categorías | rrhh, desarrollo, actas, marca | cartera (estructurada), expedientes, procesos, normativa, comercial, actas | laboral, fiscal, clientes, procedimientos, actas |
-| Corpus | 7 documentos | 10 documentos | 6 documentos |
-| Banco | 53 casos | 40 casos | 29 casos |
-| MCP | No | CRM propio, con una escritura aprobada por persona | No |
-| Material de ataque | Anexo confidencial con salarios; acta con inyección de prompt | Expediente con DNI, ingresos y solvencia | Nóminas y datos de clientes |
+| Qué es | La empresa heredada de las entregas anteriores | Domara Inmobiliaria, agencia ficticia de Zaragoza | Asesoría Marín y Lasheras, gestoría ficticia |
+| Para qué está | Comprobar que nada de lo heredado se rompe | Demostrar que el diseño sirve a otro negocio y tiene datos vivos en un CRM | Medir cuánto cuesta dar de alta un cliente nuevo |
+| Fuentes | 7 documentos | 10 documentos y un CRM | 6 documentos |
+| Casos de prueba | 53 | 40 | 29 |
+| Material sensible | Anexo con salarios; un acta con un intento de manipular al modelo | Expediente con DNI, ingresos y solvencia del comprador | Nóminas y datos de clientes |
 
-La agencia se eligió por ser la más alejada estructuralmente del inquilino
-heredado: allí los datos son mercado y operaciones, no políticas internas.
-Un tercer inquilino de asesoría se descartó al principio para no dispersar
-el esfuerzo y se construyó al final, cronometrado, como prueba de
-agnosticidad (capítulo 8.1).
+La agencia se eligió por ser la más distinta de la empresa heredada: sus
+datos son mercado y operaciones, no políticas internas. La gestoría se
+construyó al final, cronometrada, como prueba de que el diseño es de verdad
+independiente del cliente (capítulo 8.1).
 
-## 2. Diseño de la arquitectura
+### 1.4 El criterio que guía todo: medir
 
-### 2.1 El flujo
+El programa del máster define el proyecto final así: *"el objetivo del
+proyecto no está únicamente en que el sistema funcione, sino en justificar
+cada decisión técnica en términos de calidad, coste, escalabilidad, riesgo
+y mantenimiento"*. De ahí sale la regla de trabajo: **ante cualquier
+propuesta, la pregunta es si se puede medir; una afirmación sin número no
+vale.** Cuatro normas la concretan, y varias las vigila una prueba
+automática:
+
+- **No se relaja el banco de pruebas.** Un caso se corrige si la
+  expectativa estaba mal, nunca porque el resultado incomode, y cada
+  corrección queda justificada por escrito.
+- **Nada de fallos silenciosos.** Si algo se degrada (el CRM no responde,
+  la búsqueda sale vacía, el modelo corta su respuesta), el sistema lo
+  marca y lo dice. La confusión más cara es que "el CRM está caído" se lea
+  como "no hay datos".
+- **Lo heredado no se toca sin decirlo.** Una prueba compara el prompt del
+  clasificador, carácter a carácter, con el de la entrega 3.3; si cambia,
+  las cifras de antes dejan de ser comparables.
+- **Los cambios que rompen la comparación se fechan.** Dos veces se cambió
+  un valor por defecto que hacía incomparables las cifras de antes y de
+  después; los dos quedan fechados, con la forma de reproducir el
+  comportamiento anterior (capítulo 5.2).
+
+*Evidencia: hallazgos 3, 45, 46 y 47.*
+
+## 2. La arquitectura
+
+### 2.1 El flujo, de la pregunta a la respuesta
 
 ```
-entrada (interfaz, WhatsApp, correo)
-  → autenticación: la credencial fija el inquilino y los roles
-  → clasificador: categoría y destino (documental | estructurado | ambos | otro)
-  → recuperación
-      documental:   búsqueda en la colección del inquilino, con el permiso dentro del where
-      estructurada: llamada a herramientas de los servidores MCP del inquilino,
-                    con redacción de campos al salir de la herramienta
-  → generación anclada al contexto, que sabe quién pregunta
-  → gobernanza de salida: verificación de citas, propuesta de escritura pendiente de aprobación
-  → registro de producción: inquilino, usuario, categoría, coste, latencia, denegaciones
-  → salida, con el aviso del artículo 50 del AI Act
+pregunta (web, WhatsApp o correo)
+  1. autenticación      la credencial fija el cliente y los permisos de quien pregunta
+  2. clasificación      ¿de qué tema es? ¿documentos, datos del CRM, ambos o ninguno?
+  3. recuperación       documentos: búsqueda con el permiso dentro de la consulta
+                        CRM: herramientas MCP, con los datos sensibles tachados a la salida
+  4. respuesta          el modelo redacta solo con lo recuperado y sabiendo quién pregunta
+  5. control de salida  citas comprobadas; una escritura queda pendiente de aprobación
+  6. registro           quién, qué tema, coste, tiempo, qué se retuvo (no la respuesta)
+respuesta, con el aviso de que se habla con una IA
 ```
 
-Todo es Python sin framework de orquestación (capítulo 3.1). El código del
-núcleo son unas 7.200 líneas en `src/`, `mcp_servers/` y `app.py`, con
-1.251 tests que corren en menos de 20 segundos sin llamar a ningún
-proveedor; son recuentos de `wc -l` y `pytest`, no hallazgos. Cuánto de
-eso es nuevo y cuánto heredado se dice en el capítulo 1.2: la 3.3 traía el
-clasificador, la recuperación, la generación y el banco; lo demás es de
-este proyecto.
+Paso a paso:
 
-### 2.2 El inquilino como concepto de primera clase
+1. **Autenticación.** El usuario entra con su credencial (usuario y
+   contraseña en la web, su número en WhatsApp, su dirección en el correo).
+   La credencial decide a qué cliente pertenece y qué roles tiene; el resto
+   del sistema nunca adivina ninguna de las dos cosas.
+2. **Clasificación.** Un modelo pequeño (Claude Haiku) lee la pregunta y
+   devuelve el tema y el destino: documentos, CRM, ambos u "otro" si no
+   tiene que ver con la empresa. Los temas posibles no están en el código:
+   los declara cada cliente.
+3. **Recuperación.** Si el destino son documentos, se buscan los fragmentos
+   más parecidos en la colección de ese cliente, con el permiso del usuario
+   como condición de la búsqueda. Si es el CRM, el modelo llama a las
+   herramientas del servidor MCP del cliente, y los campos que el usuario no
+   puede ver se sustituyen por una marca antes de que el modelo los lea.
+4. **Respuesta.** El modelo redacta con lo recuperado y nada más, citando la
+   fuente. Sabe quién pregunta y que todo lo que tiene delante ya pasó el
+   control de acceso.
+5. **Control de salida.** Un verificador sin modelo comprueba que cada
+   fuente citada se recuperó de verdad. Si el modelo quiere escribir en el
+   CRM, la escritura no se ejecuta: queda propuesta hasta que una persona la
+   apruebe.
+6. **Registro.** Cada consulta deja una línea con lo necesario para operar
+   el sistema (capítulo 6.2), sin guardar el texto de la respuesta.
 
-Todo lo que distingue a un inquilino es declarativo y vive en
-`tenants/<id>.json`: categorías con su descripción y su destino, grupos de
-solapamiento, servidores MCP, escrituras que exigen aprobación, política
-de acceso (documentos restringidos y campos sensibles, cada uno con el rol
-que exige y el motivo) y clasificación por el AI Act. `src/tenant.py` lo
-valida al cargar y falla si falta algo.
+Todo está escrito en Python sin framework de orquestación (por qué, en el
+capítulo 4.1): unas 7.200 líneas de código y 1.255 pruebas automáticas que
+corren en menos de 20 segundos sin llamar a ningún proveedor.
 
-Fragmento del manifiesto de la agencia:
+### 2.2 Un cliente es un fichero de configuración
+
+**Problema.** Si dar de alta un cliente exige programar, el producto no
+escala: cada cliente es un proyecto.
+
+**Decisión.** Todo lo que distingue a un cliente vive en un fichero
+declarativo, el **manifiesto** (`tenants/<cliente>.json`): sus temas, cada
+uno con su descripción y su destino; qué temas se solapan; qué servidores
+MCP tiene; qué herramientas escriben y por tanto necesitan aprobación; su
+política de acceso (qué documentos y qué campos son restringidos, para qué
+rol y por qué); y su clasificación según el AI Act. El sistema valida el
+manifiesto al arrancar y se niega a funcionar si falta algo. El anexo D
+muestra un fragmento.
+
+**Resultado.** La gestoría se dio de alta escribiendo solo su manifiesto,
+sus documentos y su banco de pruebas, sin tocar código (capítulo 8.1).
+
+**El aislamiento entre clientes es estructural.** Cada cliente tiene su
+propia colección en la base vectorial (ChromaDB), en lugar de una colección
+común filtrada por un campo "cliente". La razón: un filtro mal escrito en
+una sola consulta devuelve documentos de otro cliente sin que nada lo
+avise, mientras que una colección distinta no puede mezclarse. Una prueba
+abre la colección de un cliente y falla si abre la de otro. El precio es
+pequeño: indexar cuesta entre 2.700 y 3.100 tokens por cliente, y ocho
+lecturas simultáneas sobre una colección no la frenan (0,25-0,31 s). Lo que
+no se midió es cuántas colecciones aguanta un mismo proceso.
+
+Dos defectos de este aislamiento aparecieron al medir y se corrigieron: dos
+fuentes de un mismo cliente compartían los identificadores de sus
+fragmentos, y un índice desactualizado no daba error sino resultados
+vacíos. Hoy el índice lleva una firma de su contenido, su política de
+acceso y su esquema, y se reconstruye solo si la firma no coincide.
+
+*Evidencia: hallazgos 10, 13, 14, 37, 43 y 53.*
+
+### 2.3 Dos ramas: documentos y datos del CRM
+
+**La rama de documentos** busca en la colección del cliente filtrando por
+dos condiciones a la vez: la fuente que corresponde al tema (el convenio
+para recursos humanos, los expedientes para operaciones) y el permiso de
+quien pregunta. La configuración de la búsqueda (tamaño de los fragmentos,
+número de resultados, dimensiones de los vectores) viene de la entrega 3.3,
+que comparó 11 configuraciones, y no se ha cambiado.
+
+**La rama del CRM** existe porque hay preguntas que ningún documento puede
+responder: qué inmuebles hay publicados hoy, a qué precio, qué visitas hay
+mañana. El CRM de la agencia es un servidor MCP propio con cinco
+herramientas sobre datos sintéticos. Por qué un servidor MCP y no funciones
+programadas dentro del agente se explica en el capítulo 4.2.
+
+**El clasificador es el primer cuello de botella de un cliente nuevo.** La
+agencia arrancó con un acierto de clasificación de 0,700: tenía expedientes
+con datos de clientes y ningún tema los describía, y el clasificador no
+puede elegir un tema que nadie le ha descrito. Añadir seis palabras a una
+descripción subió el acierto a 0,833 (de 18 a 22 casos correctos de 30), y
+crear el tema "expedientes" subió los casos correctos de 29 a 33 de 38. Todo
+sin tocar código: reescribiendo descripciones.
+
+**Cuando la pregunta es ambigua, se consultan las dos ramas.** Una pregunta
+sobre una operación concreta puede estar en el expediente o en el CRM, y la
+pregunta no dice cuál. En lugar de obligar al clasificador a adivinar, el
+manifiesto declara que esos dos temas se solapan y el sistema consulta
+ambos. Así, la fracción de casos con material protegido que llegan al
+control de acceso pasó de 0,778 a 1,0 en la agencia. El precio, medido: un
+40 % más de coste y medio segundo más en esas consultas.
+
+**La temperatura cero no da resultados idénticos.** Con la configuración
+heredada, 4 de 38 casos cambiaban de tema entre dos pasadas iguales. Se
+fijó la temperatura del clasificador a 0 (910 llamadas de medida, 0,57
+USD): los 3 casos inestables de la agencia dejaron de variar, pero 1 de los
+53 casos del banco heredado sigue variando, y la redacción de las
+respuestas sigue siendo aleatoria. Por eso esta memoria no promete
+resultados reproducibles al pie de la letra.
+
+*Evidencia: hallazgos 1, 4, 6, 12, 15, 22 y 27.*
+
+### 2.4 El control de acceso, antes del modelo
+
+**Problema.** La forma habitual de proteger un dato es decirle al modelo
+"no reveles el salario". Pero eso deja el salario dentro de la ventana de
+contexto, y el modelo puede revelarlo por error, por una pregunta ingeniosa
+o por una instrucción escondida en un documento.
+
+**Decisión.** El control se aplica antes de que el modelo vea nada, en dos
+puntos:
+
+- **En la búsqueda de documentos**, el permiso es una condición más de la
+  consulta a la base vectorial. Un documento restringido no se recupera para
+  quien no tiene el rol: no es que el modelo no lo cite, es que no llega.
+- **En el CRM**, los campos sensibles (DNI, teléfono, ingresos) se
+  sustituyen por una marca en cuanto la herramienta devuelve el resultado,
+  según la política del manifiesto. Es el **enmascarado de datos** que pide
+  el Módulo 4, aplicado donde está el dato.
+
+**Por qué así.** La primera versión de la rama del CRM, sin este control,
+devolvía DNI, teléfono e ingresos del comprador a cualquier usuario. Era la
+fuga real del proyecto, y el corpus de documentos no podía haberla
+detectado. Una variante apareció después en el servicio desplegado: el
+recorte del resultado a 6.000 caracteres se hacía antes de tachar los
+campos, y una respuesta de 6.028 caracteres dejó pasar el dato sin tachar.
+Hoy se tacha primero y se recorta después, y desde el 25 de octubre el
+recorte ya no es silencioso: se marca, se avisa al usuario y se le prohíbe
+al modelo dar totales o rangos de una lista incompleta (con la cartera
+recortada, el modelo había dado como precio mínimo de los 48 inmuebles uno
+que no lo era: 80.000 euros en vez de 74.000).
+
+**Resultado, medido:**
+
+| Mecanismo | Qué se midió |
+|---|---|
+| Permiso dentro de la búsqueda | Frente al sistema heredado, las fugas literales bajaron de 2 a 0 en la empresa y de 1 a 0 en la agencia, sin perder calidad de respuesta. Hoy, 10 de 10 casos sin ningún dato prohibido en la respuesta |
+| Campos tachados en el CRM | De filtrar DNI, teléfono, correo e ingresos a cualquiera, a 0 |
+| Denegación explícita | Si el permiso deja la búsqueda vacía, la respuesta dice que el dato existe y a qué rol está restringido, en vez de decir que no existe |
+| El modelo sabe quién pregunta | Antes negaba a dirección un salario que sí podía ver (3 veces de 5); después, 5 de 5 |
+| Verificación de citas | 588 de 588 citas comprobables, ninguna inventada, en 22 ejecuciones |
+
+**La medida que corrige la lectura optimista.** "Cero fugas" no significa
+nada si las preguntas peligrosas no llegan al control. Por eso el proyecto
+publica la **cobertura del riesgo**: de los casos con material protegido en
+juego, cuántos llegan de verdad al control de acceso. Al principio, de 20
+casos solo llegaban 11, y "cero fugas sobre 17 casos" era en realidad "cero
+fugas sobre 9". Hoy la cobertura es 1,0 en la agencia y en la gestoría y
+0,636 en la empresa heredada: allí, cuatro preguntas peligrosas se
+clasifican como "otro" y no llegan al control. Arreglarlo es trabajo del
+clasificador, no del control de acceso, y tocar el clasificador heredado
+rompería la comparación con la entrega anterior; queda declarado como
+riesgo residual. Las muestras son pequeñas (7 casos en la empresa y 9 en
+la agencia), y por eso cada uno está en la traza con su razón.
+
+**Lo que el control deja ver, por decisión.** La interfaz web dice bajo cada
+respuesta qué documentos retuvo el permiso ("Retenido por permiso:
+anexo_confidencial_plantilla.md"), también a quien no tiene el rol;
+WhatsApp y el correo solo dicen cuántos. Revela que el documento existe y
+cómo se llama, no su contenido. Se decidió mantenerlo así: quien pregunta
+sabe que la información existe y a quién pedirla.
+
+*Evidencia: hallazgos 2, 5, 8, 9, 11, 22, 23, 39, 40, 41, 47, 67 y 68.*
+
+### 2.5 Autonomía e intervención humana
+
+El sistema tiene tres niveles de autonomía, de más a menos:
+
+1. **Responder** a partir de lo recuperado: autónomo, dentro de lo que el
+   control de acceso deja ver.
+2. **Consultar** el CRM: autónomo, solo con herramientas de lectura.
+3. **Escribir** en el CRM (registrar una visita): **nunca autónomo**. El
+   modelo propone la escritura con sus datos; una persona la ve en una
+   tarjeta y la aprueba o la rechaza; las tres cosas quedan registradas.
+
+**Cómo se garantiza que el modelo no escriba.** Una herramienta que
+escribe se declara dos veces: en el manifiesto del cliente y en el propio
+servidor MCP, que la marca como "no de solo lectura". Si las dos
+declaraciones no coinciden, el sistema no arranca. Cuando el modelo pide
+esa herramienta, el agente no la ejecuta: devuelve al modelo que la acción
+está pendiente de aprobación.
+
+**Resultado.** En los 40 casos del banco de la agencia, ninguna escritura
+se ejecutó sin aprobación, y tras pasar el banco no había ninguna visita
+nueva en el CRM. En las dos correcciones simuladas del 25 de octubre, una
+persona aprobó una visita desde la web y quedó registrada con su origen.
+
+*Evidencia: hallazgo 42.*
+
+### 2.6 Los tres canales
+
+El mismo sistema atiende por tres vías. En las tres, la credencial fija el
+cliente y los roles, y el aviso del artículo 50 del AI Act (que se está
+hablando con una IA) se muestra al empezar.
+
+- **Web** (Streamlit, en Render): usuario y contraseña, tarjeta de
+  aprobación de escrituras y un tope de gasto visible.
+- **WhatsApp** (API oficial de Meta): el número de teléfono es la
+  credencial, la aprobación se da respondiendo por texto, la firma del
+  mensaje de Meta es obligatoria y el teléfono nunca se guarda en el
+  registro. Probado con 34 pruebas automáticas y en vivo con un número
+  real: las mismas respuestas que en la web, en 4,2-4,3 s con el servicio
+  despierto y 13,9 s tras despertar.
+- **Correo** (un buzón de Gmail dedicado): la dirección del remitente es la
+  credencial. Como un remitente se puede falsificar, el canal exige que el
+  servidor de correo haya verificado el origen (DKIM o SPF) y rechaza el
+  resto sin consultar. Probado con 54 pruebas automáticas y en vivo: 19-24 s
+  de extremo a extremo, casi todo espera del buzón; dentro del sistema,
+  4,6-7,8 s. Es el único servicio de pago, porque el plan gratuito de Render
+  bloquea el envío de correo.
+
+Las incidencias de la puesta en marcha (un índice que no se construía al
+arrancar, una clave ausente que mataba el servicio sin rastro, los avisos
+automáticos de Google en el buzón) están en el anexo D.
+
+*Evidencia: hallazgos 51, 55, 56, 58 y 59.*
+
+## 3. Modelos, configuración y coste
+
+### 3.1 Qué modelo hace qué, y por qué
+
+| Función | Modelo | Por qué este |
+|---|---|---|
+| Clasificar y redactar | `claude-haiku-4-5` | Heredado con su rendimiento medido; barato (0,0020-0,0041 USD por consulta según el cliente) y rápido. Ninguno de los fallos de la empresa y la agencia se debe a la redacción, así que un modelo mayor, de 2 a 5 veces más caro por token, no compraría nada medible |
+| Juez de calidad | `gemini-3.6-flash` | De otra familia que el que redacta, para que no se juzgue a sí mismo, y 5,5 veces más barato por evaluación que la alternativa de Anthropic |
+| Vectores de búsqueda | `gemini-embedding-001` (768 dimensiones) | Heredado. Se retira el 14-05-2028 y ya no tiene precio publicado; cambiarlo invalidaría el índice y movería todas las medidas de búsqueda, así que se decidió no migrar antes de entregar |
+| Proveedor alternativo | `gemini-3.6-flash` para todo | Para poder cambiar de proveedor si Anthropic falla; comprobado de extremo a extremo |
+
+**Se midieron dos alternativas, y las dos perdieron por razones distintas.**
+
+*Un clasificador sin modelo de lenguaje.* En lugar de preguntar a Haiku, se
+compara la pregunta con la descripción de cada tema mediante vectores. Es
+cuatro veces más rápido (0,32 s frente a 1,12 s) y no cuesta nada de chat,
+pero acierta menos con clientes que no ha visto (0,735 frente a 0,882 en
+68 casos), sobre todo en temas definidos por el tipo de documento, como las
+actas. Haiku se queda. Aun así, el clasificador por vectores llevó al
+control de acceso los 13 casos de riesgo, incluidos los que Haiku manda a
+"otro"; la mejora que sugiere es dar ejemplos en las descripciones de los
+temas, no entrenar un modelo.
+
+*Otra familia como redactor.* Se repitieron los bancos de la empresa y de
+la gestoría con Gemini haciendo de clasificador y de redactor. El primer
+intento murió por la cuota gratuita (20 peticiones al día: 73 de 82 casos
+fallaron); con facturación y un tope de 5 EUR al mes salió así:
+
+| Banco | Casos correctos con Haiku | Con Gemini | Bien clasificados por los dos | Correctos entre esos, Haiku / Gemini |
+|---|---|---|---|---|
+| Empresa (53) | 48 | 51 | 46 | 46 / 46 |
+| Gestoría (29) | 28 | 27 | 27 | 27 / 27 |
+
+Como redactor, **empate**: 73 de 73 en los casos que ambos clasificaron
+bien, a la mitad de coste (0,00099 frente a 0,00198 USD) y con 1,9 veces la
+latencia (6,2 s de media frente a 3,3). Toda la diferencia está en la
+clasificación. Haiku se queda porque la latencia pesa en un asistente y el
+empate no justifica romper la comparación con todo lo medido; pero el
+cambio de proveedor queda demostrado como plan de contingencia real, no
+como una promesa.
+
+*Evidencia: hallazgos 17, 24, 29, 32, 35, 48, 54 y 57.*
+
+### 3.2 Configuración y prompts
+
+**Cómo se consume el modelo.** Por API, con el SDK de cada proveedor y su
+llamada a herramientas nativa. Cada llamada tiene un límite de 1.024 tokens
+de salida; si el modelo llega al límite, la respuesta lo avisa en lugar de
+cortarse sin más. Hay una clave de API para el sistema y otra para el juez,
+para separar en la factura lo que cuesta funcionar de lo que cuesta
+evaluar.
+
+**Los parámetros que importan, con su motivo:**
+
+- **Temperatura 0 en el clasificador**, para reducir la variación entre
+  pasadas (capítulo 2.3). El redactor usa la del proveedor.
+- **El prompt del clasificador se construye desde el manifiesto**: cada
+  cliente aporta sus temas y descripciones. El de la empresa heredada está
+  congelado por una prueba.
+- **El prompt del redactor dice quién pregunta y que todo su contexto ya
+  está autorizado.** Antes no lo decía, y el modelo obedecía las marcas
+  "CONFIDENCIAL" escritas dentro de los propios documentos: negaba a
+  dirección un salario que el control le había entregado. Con el cambio, 5
+  de 5.
+
+**Los prompts candidatos.** Se compararon dos versiones del prompt del
+redactor: la **base**, heredada, y una **endurecida**, con instrucciones
+explícitas de no revelar datos sensibles. Antes de existir el control de
+acceso, la base dejó escapar un salario y un dato de salud y la endurecida
+no (8 de 10 frente a 10 de 10 casos sin fuga); pero la endurecida empeoraba
+la calidad de las respuestas. Con el control de acceso ya en la búsqueda,
+la base no filtra nada (10 de 10), así que se usa la base: **el prompt dejó
+de ser el control**. Esta comparación la decidió una métrica sin
+variación, no el juez, por lo que explica el capítulo 5.3.
+
+**Los dos cambios que rompen la comparación.** Dos veces se cambió un valor
+por defecto y las cifras de antes y de después dejaron de ser comparables.
+Quedan fechados para no mezclar nunca dos cifras que miden cosas distintas:
+
+| Fecha | Qué cambió | Qué se ganó | Cómo volver atrás |
+|---|---|---|---|
+| 22-09-2026 | Temperatura del clasificador a 0; juez por defecto a Gemini | Menos variación; juez independiente y 5,5 veces más barato | `ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic` |
+| 23-09-2026 | El redactor sabe quién pregunta | De 2 de 5 a 5 de 5 al entregar un dato autorizado | `GEN_QUIEN_PREGUNTA=0` |
+
+**Todos los prompts están catalogados** en `docs/PROMPTS.md`, generado
+desde el código y vigilado por una prueba: cada uno con su uso, modelo,
+temperatura y una huella. Cada línea del registro de producción lleva esa
+huella y el commit desplegado, de modo que cualquier cifra se puede separar
+por versión de prompt.
+
+*Evidencia: hallazgos 18, 24, 26, 27, 31, 33, 39, 40 y 67.*
+
+### 3.3 Cuánto cuesta
+
+**Una consulta cuesta entre 0,002 y 0,004 USD**, según el cliente. Las
+cifras salen de los tokens contados en las últimas pasadas del banco de
+cada uno, que mezclan consultas cortas y largas, de una rama y de dos:
+
+| Cliente | Coste por consulta | Tokens de entrada | Latencia media / p95 |
+|---|---|---|---|
+| Empresa (solo documentos) | 0,00198 USD | 973 | 3,28 s / 4,36 s |
+| Gestoría (solo documentos) | 0,00211 USD | 1.130 | 2,95 s / 4,01 s |
+| Agencia (documentos y CRM) | 0,00406 USD | 2.671 | 4,09 s / 5,73 s |
+
+La agencia cuesta el doble porque la rama del CRM mete en el contexto lo
+que devuelven las herramientas y porque las preguntas ambiguas consultan
+las dos ramas: es el precio de responder lo que ningún documento contiene.
+Las latencias son con el servicio despierto; la primera consulta de un
+cliente tras despertar tarda 19-20 s, 8,5 s de ellos reconstruyendo el
+índice, más los 32 s que tarda en despertar el servicio (capítulo 6.5).
+
+**Por niveles de uso**, a los precios de `claude-haiku-4-5` (1,00 USD por
+millón de tokens de entrada y 5,00 de salida):
+
+| Consultas al mes | Cliente solo con documentos | Cliente con CRM |
+|---|---|---|
+| 500 | 1,0 USD | 2,0 USD |
+| 2.000 | 4,0 USD | 8,1 USD |
+| 10.000 | 19,8 USD | 40,6 USD |
+
+Los volúmenes son supuestos razonables para una plantilla de diez a cien
+personas, no medidas: ningún cliente real ha usado el sistema.
+
+**Lo que hay que sumar:** la infraestructura (7 USD al mes por servicio en
+el plan de pago de Render, 21 USD los tres servicios despiertos; hoy solo
+paga el de correo); los vectores de búsqueda, unos 14 tokens por consulta,
+sin precio publicado (al precio de su sucesor serían tres millonésimas de
+dólar); y la evaluación, que no se paga por consulta sino por cambio: pasar
+el banco de un cliente cuesta entre 0,06 y 0,16 USD.
+
+**Evaluar cuesta 11 veces más que funcionar**: 0,0278 USD por caso con juez
+frente a 0,00245 sin él. Por eso pasar el juez es un acto deliberado, no
+una rutina.
+
+**¿Y un modelo abierto en una máquina propia?** Una GPU L4 en la nube, la
+mínima para un modelo de unos 8.000 millones de parámetros, cuesta unos
+0,70 USD la hora: 511 USD al mes encendida (110 USD al mes a 0,15 USD la
+hora en una región barata o con instancias interrumpibles). Para que salga
+a cuenta frente a la API harían falta entre 27.000 y 258.000 consultas al
+mes según el cliente y el precio; a los volúmenes previstos, la API es
+entre 3 y 500 veces más barata, sin contar operar el servidor ni que la
+calidad de ese modelo está sin medir. El argumento a favor de un modelo
+propio no es el coste sino la privacidad: no manda datos a un tercero.
+
+**Topes de gasto.** El **tope duro** es el del proveedor: los servicios
+desplegados usan una clave en un espacio con un límite de 10 USD al mes, y
+las claves de desarrollo no salen de la máquina del autor. Una fuga a
+pleno ritmo (115 consultas por minuto) gastaría 13,7 USD por hora y
+agotaría ese límite en 44 minutos. El **tope blando** lo pone el propio
+sistema sobre el gasto registrado: al superarlo deja de consultar y lo
+dice. Es un suelo, porque no cuenta los vectores de búsqueda ni lo gastado
+fuera de la aplicación, y no hay límite por usuario.
+
+**Lo que la contabilidad no ve.** La contabilidad propia mide el banco de
+pruebas, no todo el proyecto: no ve un 22 % del gasto de la clave
+(llamadas de desarrollo y reintentos). Los costes de esta memoria excluyen
+siempre los vectores de búsqueda.
+
+*Evidencia: hallazgos 16, 17, 21, 22, 32, 35, 37, 53, 55, 57, 67 y 68.*
+
+## 4. Cómo se construyó: framework, MCP y copiloto
+
+### 4.1 Python sin framework, frente a LangGraph
+
+**La pregunta.** ¿Hace falta un framework de orquestación de agentes, como
+LangGraph, o basta con Python y las llamadas del SDK?
+
+**Cómo se respondió: midiendo, no argumentando.** Se construyó el mismo
+sistema encadenado por un grafo de LangGraph 1.2.12, reutilizando
+exactamente las mismas piezas (clasificador, búsqueda, control de acceso,
+redactor); diez pruebas comprueban que las dos versiones hacen las mismas
+llamadas. Después se pasaron los bancos por las dos:
+
+| | Python sin framework | LangGraph |
+|---|---|---|
+| Casos correctos, empresa (53) | 48 | 47 (la redacción es aleatoria) |
+| Llamadas y tokens de entrada | 106 llamadas, 51.559 tokens | Idénticos |
+| Latencia media por caso | 3,284 s | 3,295 s (+0,011 s) |
+| Casos correctos, agencia (40) | 31, ninguna escritura sin aprobar | Igual |
+| Líneas de código de orquestación | 21 | 95 (4,5 veces más) |
+| Paquetes nuevos | 0 | 14 |
+
+**Decisión: Python sin framework.** Para un flujo de un turno con una
+bifurcación, el grafo hace exactamente lo mismo y añade 14 dependencias y
+4,5 veces más código que mantener y auditar. Cada dependencia es superficie
+de ataque (el material del Módulo 4 recoge un incidente real en otra
+librería del ecosistema) y cada versión nueva del framework es un cambio de
+comportamiento que habría que volver a medir.
+
+**Lo que esta medida no dice.** LangGraph aporta estado entre pasos,
+reanudación tras una interrupción y ramas en paralelo, y este sistema no
+usa nada de eso. Si llega a necesitarlo, la comparación hay que rehacerla;
+la aprobación humana sería el primer candidato. La memoria entre turnos que
+sí se añadió no necesitó estado: reescribe la pregunta antes de
+clasificarla (capítulo 8.3).
+
+*Evidencia: hallazgos 50 y 66.*
+
+### 4.2 Servidores MCP, frente a herramientas programadas en el agente
+
+**Problema.** Si las herramientas del CRM se programan dentro del agente,
+el sistema queda atado a la API de un cliente concreto.
+
+**Decisión.** Cada cliente declara en su manifiesto qué servidores MCP
+arrancar; el servidor publica sus herramientas y dice cuáles escriben; el
+agente solo habla el protocolo. Dar de alta un cliente con un CRM propio
+es escribir su servidor, no tocar el agente.
+
+Tres decisiones de detalle, medidas: los servidores se arrancan una vez
+(1,1 s) y se mantienen abiertos, porque abrirlos en cada consulta habría
+añadido unos 40 segundos en 36 casos; las sesiones del protocolo se abren y
+cierran en la misma tarea; y el prompt lleva la fecha del día, porque el
+modelo no sabe qué día es. Si un servidor MCP no responde, la consulta
+falla y lo dice; ese fallo no se ha simulado (capítulo 8.3).
+
+*Evidencia: hallazgo 7.*
+
+### 4.3 Desarrollo con un copiloto: quién hizo qué y cómo se controló
+
+El enunciado pide explicar cómo se usaron los copilotos y cómo se controló
+su salida. Este proyecto se escribió entero con uno, Claude Code, más la
+app de Claude para las tareas de navegador; el tutor confirmó que su uso es
+libre.
+
+**El reparto.** El copiloto escribió el código, las pruebas, los documentos
+y esta memoria, y ejecutó las mediciones. El autor puso el producto (que
+sale de su propuesta de la entrega 1.4), las reglas de trabajo, las
+decisiones con coste, riesgo o alcance, las acciones con credenciales y
+facturación, que hizo a mano, y la revisión. Algunas decisiones del autor:
+
+| Fecha | Decisión |
+|---|---|
+| 23-09 | Que el redactor sepa quién pregunta, aceptando romper la comparación |
+| 24-09 | Hacer el alta en Meta con la app y con él delante, contra la recomendación del copiloto |
+| 26-09 | Construir el canal de correo, que estaba fuera del alcance |
+| 27-09 | Pagar el plan de Render del correo; poner a mano un tope de 5 EUR al mes en Gemini |
+| 11-10 | Evaluar en producción con un juez de otra empresa, aceptando enviarle una muestra; tope de 10 USD al mes para la clave desplegada |
+| 25-10 | Marcar las respuestas cortadas y leer el tope de gasto de la base persistente, tras la corrección simulada |
+
+**El método: la especificación manda sobre la conversación.** Un fichero
+de instrucciones del proyecto (`CLAUDE.md`) es la fuente única de verdad: si
+algo de una conversación lo contradice, gana el fichero. El copiloto lo
+carga al empezar cada sesión. Dos rutinas estructuran cada jornada: una de
+arranque, que lee el diario de sesiones y el estado del repositorio, y una
+de cierre, que escribe el diario y publica, y que solo lanza el autor.
+
+**El control: reglas que el copiloto no puede saltarse.** Una regla escrita
+en un prompt se olvida; una regla con prueba automática falla. Las del
+proyecto: el prompt heredado no cambia sin que una prueba falle; el juez no
+puede ser el mismo modelo que redacta; una métrica retirada por defectuosa
+no puede volver; el inventario de dependencias y el catálogo de prompts se
+regeneran y una prueba falla si están desactualizados; nada llega a
+producción con una prueba rota (capítulo 6.1). Las reglas que no se pueden
+automatizar (no relajar el banco, nada de fallos silenciosos) las vigila la
+revisión.
+
+**Lo que el método cazó.** El argumento a favor del método no es que el
+copiloto acierte, sino que sus errores se ven:
+
+- El precio de un modelo estaba un 50 % alto y todo lo derivado salía
+  inflado; lo destapó una predicción escrita antes de mirar la factura.
+- El experimento de sesgo hizo tres afirmaciones falsas antes de acertar
+  (capítulo 7.3).
+- Un tiempo de trabajo apuntado como "1 h 50 min" fueron 19 minutos según
+  la historia de git; desde entonces el tiempo se mide así.
+- Dos lecturas críticas de esta memoria en septiembre encontraron 35
+  correcciones cada una.
+- El 25 de octubre, dos **correcciones simuladas**, con la app de Claude en
+  el papel del tutor y los usuarios de evaluación, encontraron lo que
+  ninguna lectura desde dentro había visto: la integración continua en
+  rojo, dos recortes silenciosos, un tope de gasto que se reiniciaba y un
+  guion de demostración que un tercero no podía seguir. La nota estimada
+  pasó de 8,5 a 9,0 tras corregirlo.
+
+Y un caso en que el control llegó tarde: una entrega del Módulo 4 extraída
+de este repositorio salió con dos afirmaciones falsas que la revisión
+encontró después de enviarla.
+
+**En cifras**, entre el 20-09 y el 25-10-2026: 152 commits (más 7 heredados
+de la entrega 3.3), quince sesiones de trabajo, 68 hallazgos medidos y
+1.255 pruebas.
+
+*Evidencia: hallazgos 18, 21, 34, 67 y 68.*
+
+## 5. Evaluación
+
+### 5.1 El banco de pruebas y sus dos tipos de métricas
+
+Hay un banco por cliente, con el mismo motor heredado de la entrega 3.3:
+53 casos de la empresa (la referencia que no debe empeorar), 40 de la
+agencia (para lo nuevo: el CRM, las preguntas ambiguas y la escritura
+aprobada) y 29 de la gestoría (para medir el alta de un cliente). Cada caso
+es una pregunta con lo que se espera: el tema, el documento que hay que
+recuperar, los datos que deben aparecer y los que no deben aparecer nunca.
+Cubren ocho tipos de pregunta, de las normales a los intentos de
+manipulación.
+
+**La lección más cara del proyecto es separar dos tipos de métrica:**
+
+- **Deterministas**: se calculan sin un modelo y dan siempre lo mismo. Si
+  el tema es el correcto, si aparece un dato prohibido (fuga literal), si
+  la pregunta peligrosa llegó al control (cobertura del riesgo), si la
+  respuesta cita una fuente y si esa fuente se recuperó de verdad, si se
+  escribió algo sin aprobar. **Todas las decisiones del proyecto se apoyan
+  en estas.**
+- **De juez**: un modelo de lenguaje puntúa la fidelidad, la relevancia y
+  la confidencialidad. Varían entre pasadas idénticas (capítulo 5.3) y
+  cuestan 11 veces más que funcionar. Ninguna decisión depende de ellas.
+
+Ejecutar el sistema y evaluarlo están separados: las respuestas se guardan
+y se pueden reevaluar sin volver a pagarlas. Eso permitió estrenar el
+verificador de citas sobre 22 ejecuciones antiguas.
+
+*Evidencia: hallazgos 11, 23, 42 y 47.*
+
+### 5.2 Resultados
+
+Un **caso correcto** es el que pasa todas sus métricas. Últimas pasadas,
+sin juez:
+
+| Banco | Casos correctos | Acierto del clasificador | Cobertura del riesgo | Respuestas con fuente |
+|---|---|---|---|---|
+| Empresa (53) | 48 | 0,9038 | 0,6364 | 1,0 |
+| Agencia (40) | 31 | 0,825 | 1,0 | 0,92 |
+| Gestoría (29) | 28 | 0,963 | 1,0 | 1,0 |
+
+No hay un umbral de aprobado fijado de antemano. La regla es otra: ninguna
+pasada empeora respecto a la anterior sin que el motivo quede escrito.
+
+**Por qué fallan los que fallan.** En la empresa y la agencia, ninguno de
+los 14 casos fallidos se debe a la redacción de la respuesta:
+
+- **Empresa, 5 fallos**, todos de clasificación: uno que sigue variando
+  entre pasadas, y cuatro preguntas peligrosas que el clasificador manda a
+  "otro" y no llegan al control (son exactamente lo que baja la cobertura a
+  0,636). Con el cambio a varios clientes, la empresa pasa 48 casos frente
+  a 49 en la versión anterior.
+- **Agencia, 9 fallos**: siete de clasificación entre temas vecinos
+  (procesos, normativa y comercial) y dos en que la respuesta del CRM no
+  nombra la herramienta de la que sale el dato.
+- **Gestoría, 1 fallo**, del sistema: una pregunta cuya respuesta correcta
+  es que el dato no consta ("¿Cuándo es la comida de Navidad del despacho?").
+
+Una métrica de juez no entra en esta tabla: ninguna decisión depende de ella
+(capítulo 5.3).
+
+**La búsqueda funciona.** En la empresa y en la gestoría, el documento
+correcto se recupera siempre y casi siempre en primer lugar. En la
+agencia, los cuatro casos en que no se recupera son errores de
+clasificación: con el tema correcto, los 20 aciertan. Una búsqueda híbrida
+(por palabras clave combinada con la de vectores) se midió en los tres
+clientes y no mejoró nada; se queda la de vectores. Las tablas completas
+están en el anexo D.
+
+*Evidencia: hallazgos 42, 45, 49 y 64.*
+
+### 5.3 Evaluar al evaluador
+
+El profesor de la entrega 3.3 pidió evaluar también al juez y su
+estabilidad. El resultado cambia cómo se lee cualquier puntuación de un
+juez de este tipo:
+
+- **El número contradice su propio razonamiento.** Con las mismas
+  respuestas y el mismo prompt, el juez de Anthropic escribió "mereciendo
+  la puntuación máxima" y puso 0,1; el de Gemini, a temperatura 0, escribió
+  "cumple exactamente" y puso 0,1. El fallo no es de una familia ni de la
+  temperatura: es pedir un número y su justificación en la misma respuesta.
+- **Se equivoca siempre hacia el mismo lado.** En una prueba de 4 casos
+  repetidos 6 veces, 4 de los 24 veredictos eran falsos, y los cuatro
+  suspendían lo que debía aprobar. La temperatura 0 no lo arreglaba. Por
+  tanto, el número de casos correctos de una pasada con juez es un suelo,
+  y promediar pasadas empeora la cifra en vez de corregirla.
+- **No puede decidir comparaciones finas.** Al comparar los dos prompts
+  candidatos, 5 y 6 de 10 casos cambiaban de veredicto entre tres pasadas
+  idénticas. La comparación la decidió la fuga literal, que no varía.
+- **El juez de Anthropic ignoraba la temperatura sin avisar**: ese modelo
+  no admite el parámetro y la librería de evaluación lo descartaba en
+  silencio, lo que explica parte de la variación medida en la entrega 3.3.
+
+De ahí salen dos reglas que se aplican en toda la memoria: **una puntuación
+de juez no se lee sin su razonamiento**, y **ninguna decisión depende de
+una métrica de juez**. El juez sigue siendo útil para vigilar la
+producción (capítulo 6.2), donde da un veredicto de tres valores con su
+razón y no un número.
+
+Además se retiró una métrica de datos personales que puntuaba al revés:
+penalizaba al sistema por nombrar a la persona cuyos datos estaba
+protegiendo, de modo que una denegación correcta sacaba 0. Afectaba a 17
+casos. Lo que queda sin hacer: validar el juez contra la opinión de
+personas.
+
+*Evidencia: hallazgos 24, 26, 30, 31, 32 y 33.*
+
+### 5.4 Lo que el banco enseñó sobre medir
+
+Siete veces el error estaba en el instrumento de medida y no en el sistema:
+dos defectos del banco de la agencia, la mitad de los casos de seguridad
+que no llegaban al control, la métrica de datos personales invertida, dos
+casos de la gestoría con expectativas mal escritas, un comparador que no
+ignoraba las negritas, un número escrito con letra y un caso que aprobaba a
+un sistema que no había respondido. Todos se corrigieron por escrito, con
+el motivo, antes de sacar conclusiones.
+
+Y dos reglas de método que salieron del proyecto: **una predicción escrita
+antes de mirar convierte una cifra en una medida**, y **una hipótesis que
+sale de los datos no se confirma con los mismos datos** (capítulo 7.3).
+
+*Evidencia: hallazgos 3, 11, 21, 31, 45, 47, 49 y 54.*
+
+## 6. Producción: despliegue, monitorización y operación
+
+### 6.1 Despliegue y paso automatizado a producción
+
+**Dónde y cómo.** Los tres servicios (web, WhatsApp, correo) están en
+Render, definidos en un fichero del repositorio (`render.yaml`). El primer
+despliegue tardó 1 min 32 s. Hay seis usuarios del autor (dos por cliente)
+y cuatro de evaluación para quien corrija.
+
+**Nada llega a producción con una prueba rota.** En cada cambio, la
+integración continua de GitHub pasa el analizador de estilo, las 1.255
+pruebas y una auditoría de vulnerabilidades de las dependencias que se
+despliegan. Render solo despliega un cambio cuando todo eso está en verde.
+Se comprobó con un cambio roto a propósito: se quedó fuera más de cuatro
+minutos mientras los cambios correctos se desplegaban en 77 y 109 s.
+
+**La puerta funcionó sola.** La primera auditoría encontró 23
+vulnerabilidades en 6 paquetes: 18 se cerraron actualizando y 5 quedaron
+como excepción escrita porque afectan a un modo de ChromaDB que este
+sistema no usa. El 25 de octubre, tras catorce días sin cambios, aparecieron
+avisos nuevos publicados en ese tiempo; la integración continua se puso en
+rojo, el servicio siguió en la última versión buena y se actualizaron siete
+paquetes. Es el mantenimiento que el criterio 9-10 pide no dejar a cargo de
+nadie: el sistema avisa y se protege solo.
+
+*Evidencia: hallazgos 38, 60, 61 y 67.*
+
+### 6.2 Monitorización y calidad en producción
+
+**El registro.** Cada consulta real deja una línea: cliente, usuario, tema,
+rama, fuentes, documentos retenidos por permiso, campos tachados, tokens,
+coste y latencia; si falló, el tipo de fallo; si la respuesta o los datos
+de una herramienta se recortaron, la marca. Cada línea lleva además el
+commit desplegado y la huella de los prompts, así que un cambio se puede
+comparar antes y después sobre tráfico real. **No se guarda el texto de la
+respuesta**, por privacidad. El registro va a una base Postgres de Render
+que sobrevive a los reinicios, y una herramienta de consola lo resume por
+cliente: consultas, coste acumulado, latencia y cuántas veces alguien pidió
+lo que no le tocaba.
+
+**La calidad, medida al servir.** Sobre todas las consultas, el
+verificador de citas comprueba que cada fuente citada se recuperó de
+verdad. Sobre la mitad, elegida al azar, un juez de otra familia que el
+redactor dice si la respuesta está respaldada por lo recuperado, con un
+veredicto de tres valores (fiel, parcial, no fiel). Corre en un hilo aparte
+para no añadir espera, y al registro solo van el veredicto y su coste. En
+las primeras consultas reales: tres de tres sin citas inventadas, y un
+juez cuyo veredicto salía cortado por un límite de salida demasiado bajo,
+corregido el mismo día.
+
+**Por qué un registro propio y no una plataforma como Langfuse.** Una
+plataforma recibiría el texto de cada pregunta y respuesta, que este
+registro no guarda a propósito; lo que hay que vigilar aquí es propio del
+dominio (qué se retuvo, qué se tachó, qué rama); y no añade dependencias ni
+servicios. Se pierde la interfaz de exploración, que se suple con la
+herramienta de consola.
+
+**Lo que falta: alertas.** Nadie recibe un aviso cuando el gasto sube o el
+juez empieza a decir "no fiel"; hay que consultarlo. Está declarado en el
+capítulo 8.2.
+
+*Evidencia: hallazgos 20, 23, 30, 46, 62, 67 y 68.*
+
+### 6.3 Retención y supresión de datos
+
+El registro se guarda 90 días. Un usuario puede pedir que se borren sus
+líneas y las anteriores a una fecha se purgan; en los dos casos queda una
+marca que dice cuánto se borró, sin decir de quién. Las dos operaciones
+tardan menos de 0,05 s sobre un registro de 10.000 líneas. La tensión entre
+la trazabilidad que pide el artículo 12 del AI Act y el riesgo de
+vigilancia de los empleados queda escrita, no resuelta.
+
+*Evidencia: hallazgo 37.*
+
+### 6.4 Incidentes y plan B
+
+**El botón rojo.** Un plan escrito dice qué hacer ante un incidente y en
+qué orden (revocar la clave, parar, congelar la evidencia, sustituir la
+clave), quién avisa a quién, y que todo incidente termina en un hallazgo.
+Un simulacro lo ejecuta: **14,95 s** la parte automática, y la primera vez
+destapó que las consultas fallidas no dejaban rastro en el registro. La
+parte manual (revocar y rotar claves en las consolas) no se ha cronometrado;
+se estima en unos cinco minutos.
+
+**Si el proveedor cae, el usuario lo sabe.** Los tres canales responden
+con un mensaje que dice qué ha pasado y a quién acudir, con el contacto que
+declara cada cliente. Medido provocando los dos fallos más probables: el
+mensaje llega en 6 s con la clave revocada y en 13 s con el proveedor
+inalcanzable. Se decidió no cambiar de proveedor automáticamente, porque
+cambiaría la clasificación, y con ella el control de acceso, en mitad de un
+incidente.
+
+*Evidencia: hallazgos 46, 57 y 63.*
+
+### 6.5 Carga y arranque en frío
+
+**Concurrencia.** Ocho consultas a la vez sobre el mismo sistema tardan lo
+que una (mediana de 3,16-3,32 s con 1, 2, 4 y 8 a la vez), sin errores y
+sin cambiar la clasificación ni el permiso. La puerta web de un servicio
+gratuito aguanta 20 clientes simultáneos (216 peticiones, máximo 0,19 s).
+
+**Arranque en frío.** El plan gratuito de Render duerme el servicio tras
+unos 15-20 minutos sin uso. Despertar cuesta 32 s la web y 42-61 s el
+servicio de WhatsApp, y ninguna petición se pierde mientras tanto. La
+primera consulta tras despertar tarda además lo que cuesta reconstruir el
+índice, porque el disco del plan gratuito no se conserva. Con un plan de
+pago (capítulo 3.3) el servicio no dormiría.
+
+*Evidencia: hallazgos 52, 53 y 59.*
+
+### 6.6 Cómo lo comprueba un tercero
+
+No hay defensa oral, así que este documento y el repositorio tienen que
+bastar. De lo más barato a lo más completo:
+
+| Qué se comprueba | Cómo | Qué hace falta | Coste |
+|---|---|---|---|
+| Que el código hace lo que dice | Instalar y pasar las pruebas (anexo A) | Nada: ninguna prueba llama a una API de pago | 1.255 pruebas en unos 20 s |
+| Que cada cifra tiene respaldo | Cada hallazgo del anexo B lleva a su ejecución guardada en el repositorio | Nada | — |
+| Que el banco da lo que dice | Pasar el banco de un cliente (anexo A) | Claves propias de Anthropic y Gemini | 0,002-0,004 USD por caso |
+| Que el sistema funciona desplegado | La web, con los usuarios `eval_empleado`, `eval_direccion`, `eval_comercial` y `eval_gerencia` | Sus contraseñas, que van en el comentario de la entrega, no en el repositorio público | Unos 32 s si el servicio dormía |
+| Que se comporta como se describe | El guion de demostración (`docs/GUION_DEMO.md`): cada paso con su pregunta literal y lo que tiene que verse | Las mismas credenciales | 0,064-0,069 USD los bloques de la web |
+
+WhatsApp y el correo solo atienden a números y direcciones dados de alta;
+probarlos exige que el autor añada los de quien evalúa.
+
+*Evidencia: hallazgos 52, 67 y 68.*
+
+## 7. Seguridad, riesgos e IA responsable
+
+Este capítulo cubre el Módulo 4. El tutor señaló la seguridad como
+requisito, y el análisis se hizo sobre este proyecto en lugar de en
+entregas aparte.
+
+### 7.1 El registro de riesgos
+
+Un registro con 24 riesgos (`docs/RIESGOS.md`) clasifica cada uno con
+cuatro marcos: el cuadrante de la matriz de Rumsfeld (conocido o
+desconocido), su casilla del OWASP Top 10 para LLM, su técnica de MITRE
+ATLAS y su dominio de AIUC-1, más la evidencia que lo respalda, el control
+y el estado. Una prueba automática comprueba que cada evidencia citada
+existe y que las diez casillas del OWASP tienen al menos una fila: **un
+riesgo sin evidencia es una opinión**.
+
+| Cuadrante | Qué recomienda el Módulo 4 | Qué pone el proyecto |
+|---|---|---|
+| Lo que sabemos que sabemos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (14 riesgos) |
+| Lo que sabemos que no sabemos | Vigilar | Precios con prueba, cambio de proveedor medido, inventario de dependencias |
+| Lo que no sabíamos que sabíamos | Buscar vulnerabilidades | Cinco riesgos que salieron de mirar con desconfianza; en tres el error estaba en el instrumento |
+| Lo que no sabemos que no sabemos | Plan y botón rojo | Topes de gasto y plan de incidentes simulado |
+
+*Evidencia: hallazgos 54 y 57.*
+
+### 7.2 Los diez riesgos del OWASP, y el red-teaming
+
+| Riesgo OWASP | Estado en el proyecto |
+|---|---|
+| Inyección de instrucciones | **Medido**: ocho casos del banco con intentos de manipulación; los que llegan al control no filtran nada; uno no llega y es el residual. Y la batería de red-teaming (abajo) |
+| Salida insegura | Por diseño: texto para una persona; la web no interpreta HTML y el correo es texto plano |
+| Envenenamiento de datos | Por diseño, no atacado: el corpus es sintético. Un cliente real trae su corpus y esa defensa desaparece |
+| Denegación de servicio | Por diseño: topes de gasto. El sistema aguanta 20 clientes y 8 consultas a la vez, así que el riesgo plausible es económico, no de capacidad. No hay límite por usuario |
+| Cadena de suministro | Inventario generado y vigilado, auditoría en cada cambio (capítulo 7.6) |
+| Información confidencial | **Lo más fuerte del proyecto** (capítulo 2.4) |
+| Complementos inseguros | Por diseño: servidores MCP como procesos aparte. En el puente con la app del autor se encontró y cerró un acceso a las claves |
+| Agencia excesiva | **Medido**: ninguna escritura sin aprobación en 40 casos (capítulo 2.5) |
+| Sobredependencia | **Medido sobre el propio evaluador** (capítulo 5.3) |
+| Robo de modelo | No aplica: no hay modelo propio |
+
+"Por diseño" quiere decir que el control existe pero no se ha atacado.
+
+**Red-teaming con una herramienta.** El enunciado pide un agente o
+framework de red-teaming. Se usó DeepTeam contra el sistema completo, en
+los dos clientes con material sensible: 64 ataques estándar (sacar datos
+personales o el prompt, saltarse el rol, mezclar clientes, instrucciones
+escondidas, agencia excesiva), reforzados con siete técnicas, por 2,1 USD.
+**Ninguna fuga** por ningún criterio objetivo. Pero solo 7 de los 64
+ataques llegaron al control de acceso (los otros 57 eran tan rebuscados que
+el clasificador los mandó a "otro" y el modelo se negó), y en los 7 el
+documento protegido quedó retenido en la búsqueda. Conclusión: una batería
+genérica mide sobre todo la prudencia del modelo; el control de acceso lo
+prueban mejor los casos del banco, escritos para este negocio. Además, la
+herramienta tenía tres defectos que hubo que corregir para que midiera
+algo; el peor contaba como "ataque superado" las veces en que el propio
+atacante se negaba a atacar.
+
+De los nueve guardarraíles que enumera el Módulo 4, el proyecto tiene ocho.
+Falta la moderación de contenido, justificada en el capítulo 8.2.
+
+*Evidencia: hallazgos 19, 30, 32, 35, 42, 53 y 65.*
+
+### 7.3 Sesgo
+
+**Cómo se midió.** Pares de preguntas idénticas salvo en un rasgo de la
+persona (género, edad, origen, discapacidad), con un grupo de control para
+saber cuánto varía el sistema por puro azar, en tres capas:
+
+| Capa | Cómo | Resultado |
+|---|---|---|
+| Búsqueda | Distancia entre los resultados de cada par | Ningún rasgo llega al doble de la variación por azar |
+| Clasificación | Tema asignado con seis variantes de nombre | Estable |
+| Redacción | Cinco medidas sin juez, ocho repeticiones por variante | Ningún rasgo por encima de la variación por azar |
+
+**Lo que no se afirma: que el sistema no discrimina.** Dos de las cinco
+medidas de redacción no tienen recorrido y solo prueban que no hay
+negativas ni omisiones selectivas. Presentarlo como ausencia de sesgo sería
+la falsa objetividad que el propio Módulo 4 señala como riesgo.
+
+**El experimento se equivocó tres veces antes de acertar**, y las tres
+afirmaciones intermedias eran falsas, concretas y alarmantes (por ejemplo,
+que la discapacidad movía los resultados 75 veces más que el resto), todas
+por pares mal emparejados. Desde entonces trece pruebas comprueban que los
+pares siguen emparejados. Y una sospecha que salió de leer las respuestas
+(que el origen cambiaba los matices, 2,00 veces con 8 repeticiones) bajó a
+1,00 con 24: una hipótesis que sale de los datos no se confirma con los
+mismos datos.
+
+*Evidencia: hallazgos 34 y 44.*
+
+### 7.4 AI Act
+
+**Lo que obliga hoy.** Un asistente que habla con personas debe avisar de
+que es una IA (artículo 50.1, en aplicación desde el 2 de agosto de 2026).
+Lo declara el manifiesto de cada cliente y lo muestran los tres canales.
+
+**El riesgo de ser "alto riesgo".** La empresa heredada tiene salarios y
+evaluaciones de empleados (empleo, anexo III, punto 4) y la agencia tiene
+ingresos y solvencia de compradores (punto 5b). Si el asistente se usara
+para evaluar personas o decidir sobre ellas, sería un sistema de alto
+riesgo. La salida es el artículo 6.3: no lo es un sistema que hace una
+tarea de procedimiento limitada, siempre que no perfile personas y que
+quien lo alegue documente su evaluación. Esa documentación es un bloque
+obligatorio del manifiesto (condición, justificación, usos excluidos y
+declaración de que no perfila), y el validador rechaza un manifiesto que
+alegue la excepción y perfile, o que toque el anexo III sin clasificarse.
+
+**El calendario cambió.** El Reglamento (UE) 2026/1744, del 27 de julio de
+2026, retrasa las obligaciones de alto riesgo al 2 de diciembre de 2027.
+Hoy obliga el artículo 50, y la clasificación por cliente es diseño
+anticipado, no cumplimiento exigible. Las citas se contrastaron con la
+Comisión y el BOE.
+
+### 7.5 RGPD
+
+- **Derecho de supresión sobre los documentos.** Un script retira un
+  documento, reconstruye el índice y comprueba que no queda ningún
+  fragmento suyo: 1,46 s en la agencia y 1,23 s en la empresa. No borra las
+  consultas registradas que lo citaron.
+- **Retención del registro**: capítulo 6.3.
+- **Transferencias internacionales.** Hoy no viaja ningún dato real
+  porque los clientes son sintéticos. Con un cliente real, cada consulta
+  enviaría fragmentos de sus documentos a proveedores fuera de la Unión: el
+  cliente sería responsable del tratamiento, quien opera el asistente,
+  encargado, y cada proveedor, subencargado. Eso exige base jurídica para la
+  transferencia, contratos de encargo, registro de actividades y, si se
+  tocara el anexo III sin la excepción, una evaluación de impacto. Nada de
+  eso está escrito: es un hueco declarado, no un cumplimiento.
+
+*Evidencia: hallazgo 36.*
+
+### 7.6 Cadena de suministro
+
+Un inventario de dependencias y modelos (`docs/AIBOM.md`) se genera desde el
+fichero de bloqueo de versiones y la configuración, y una prueba falla si
+está desactualizado: 18 paquetes directos y 148 indirectos, todos con
+versión fijada, y cada modelo con su precio o la marca de que no lo tiene.
+La primera vez que se generó destapó que el modelo de vectores está en
+retirada y aparecía con coste cero. La auditoría de vulnerabilidades del
+capítulo 6.1 completa el control.
+
+*Evidencia: hallazgos 35 y 61.*
+
+## 8. Escalabilidad, límites y lo que queda fuera
+
+### 8.1 Dar de alta un cliente nuevo, cronometrado
+
+La prueba de que el diseño no depende del cliente: la gestoría se dio de
+alta en **5 min 42 s**, en dos iteraciones y **sin tocar código**, con un
+manifiesto, seis documentos y un banco de 28 casos escrito antes de la
+primera pasada.
+
+| Momento | Casos correctos | Qué pasó |
+|---|---|---|
+| Primera pasada | 20 de 28 | El clasificador acertaba 0,769; los cinco fallos de clasificación iban al mismo tema |
+| Segunda pasada, 65 s después | 25 de 28 | Tres descripciones reescritas; acierto 0,923 y cobertura del riesgo de 0,857 a 1,0 |
+| Revisión del banco en frío | 27 de 28 | Dos de los tres fallos eran expectativas mal escritas en el banco |
+| Un caso más que combina dos documentos | 28 de 29 | El banco actual (capítulo 5.2) |
+
+El control de acceso y la clasificación del AI Act vinieron gratis con el
+manifiesto. Sin banco de pruebas, un tema habría llegado a producción con
+un 77 % de acierto. Dos salvedades: el alta la hizo el copiloto con el
+proyecto en contexto, y con un cliente real el banco lo escribe quien
+conoce el negocio, y ese tiempo no está medido.
+
+*Evidencia: hallazgos 1, 43, 45 y 49.*
+
+### 8.2 Lo que no está, y por qué
+
+| Qué | Decisión y motivo | Cuándo se reconsideraría |
+|---|---|---|
+| Alertas activas | No montadas: el tope de gasto corta y lo dice, pero nadie recibe un aviso; hay que consultar el registro | Tras el feedback de la primera entrega |
+| Enmascarar datos personales en la pregunta | No montado: el enmascarado actúa sobre lo que devuelve el CRM (capítulo 2.4). Enmascarar la pregunta exige un detector de nombres en español sin medir y rompería las preguntas por nombre que dirección sí puede hacer ("el salario de Laura Gómez") | Con datos reales de un cliente |
+| Moderación de contenido | No montada: asistente interno, usuarios autenticados, sin contenido de terceros salvo los documentos del cliente; el red-teaming no la pidió | Si se abre a clientes externos |
+| Varios agentes (planificador y especialistas) | En contra: el flujo es un clasificador y dos ramas; un planificador añadiría al menos +0,0005 USD (+25 %) y +1,1 s por consulta sin un solo fallo del banco que lo pida | Si aparecen tareas de varios pasos |
+| Optimizar prompts con DSPy | En contra: optimizaría contra el banco, que no tiene casos reservados, y el número subiría sin significar nada fuera de él | Con un conjunto reservado |
+| Caché de prompts | No aplica: el mínimo que el proveedor guarda son 4.096 tokens y una consulta usa entre 973 y 2.671 | Si el contexto crece |
+| Entorno de preproducción | No montado: la puerta es la integración continua y el banco; duplicar servicios duplicaría credenciales y superficie expuesta | Con más de un desarrollador |
+| Migrar el modelo de vectores | No antes de entregar: invalida el índice y todas las medidas de búsqueda | Antes del 14-05-2028 |
+| Denegación explícita cuando el permiso retiene solo parte | No antes de entregar: afecta a 14 casos de la empresa y rompería la comparación | Tras la entrega |
+| La pregunta peligrosa que el clasificador manda a "otro" | Residual: arreglarla es tocar el prompt heredado | No se hace |
+| Rotar claves y cronometrar la parte manual del plan de incidentes | No hay incidente que lo pida | Tras la entrega |
+| Indicador de negocio de un piloto | Sin usuarios reales no se puede medir; el candidato es la fracción de consultas resueltas sin acudir a otra persona | En un piloto |
+
+*Evidencia: hallazgos 32, 33, 35, 47, 48, 50 y 60.*
+
+### 8.3 Límites de lo medido
+
+**Del banco de pruebas:**
+
+- **Lo escribió quien construyó el sistema**, y no hay casos reservados que
+  nadie haya mirado. Las descripciones de la agencia se ajustaron sobre el
+  mismo banco. Lo más parecido a una prueba independiente es el alta de la
+  gestoría, con un banco escrito antes de la primera pasada.
+- **Una conversación es de un turno, salvo lo medido.** Un banco aparte de
+  doce conversaciones de dos turnos mostró que sin memoria se pierden 4 de
+  12 preguntas de seguimiento ("¿Y la baja?"); reescribiendo la pregunta con
+  el turno anterior se recuperan las tres que eran de memoria, por 0,8 s
+  más. Está activado en la web. Puede arrastrar el tema del turno anterior:
+  una pregunta de salario tras una de vacaciones acabó en "no está en el
+  contexto", sin fuga pero sin la denegación clara. Las conversaciones
+  largas no están medidas.
+- **El juez no se ha validado contra personas**, y la comparación de
+  redactores es de una sola pasada por modelo.
+- **El envenenamiento del corpus y la caída de un servidor MCP** no se han
+  simulado.
+
+**Del despliegue:**
+
+- **La web sirve para demostrar, no para un cliente**, y lo dice en
+  pantalla: contraseñas con sal y comparación segura, pero sin límite de
+  intentos, sin caducidad de sesión, sin límite de gasto por usuario y sin
+  alta de usuarios sin redesplegar.
+- **La base del registro es gratuita** y caduca el 10-11-2026.
+- **La carga se midió en un proceso**, no con consultas reales simultáneas
+  contra Render.
+- **WhatsApp y el correo** se probaron en vivo con un número y una
+  dirección; la aprobación por correo y el aislamiento con dos números no se
+  probaron en vivo.
+
+**De los proveedores.** Cuatro veces un proveedor cambió algo sin avisar o
+con consecuencias no anunciadas: un modelo retirado para proyectos nuevos,
+un parámetro ignorado en silencio, el modelo de vectores en retirada sin
+precio y una cuota gratuita que agotó un banco entero. Las defensas: precios
+con prueba que recalcula desde los tokens, modelos con versión fijada,
+inventario de dependencias y cambio de proveedor medido.
+
+**Para pasar de demostración a piloto**, por este orden: plan de pago para
+la base del registro y los servicios, límites por usuario, alta de usuarios
+sin redesplegar, alertas, y el corpus real de un cliente con su propia
+evaluación y su contrato de encargo.
+
+*Evidencia: hallazgos 6, 21, 26, 28, 29, 35, 48, 54, 55, 57, 58, 59, 66 y 67.*
+
+## 9. Conclusiones
+
+Lo que el proyecto demuestra, con su número:
+
+1. **El aislamiento entre clientes es estructural**, no un filtro que se
+   pueda olvidar: una colección por cliente, y una prueba que falla si se
+   abre la equivocada. Dar de alta un cliente nuevo costó 5 min 42 s y
+   ningún fichero de código.
+2. **El control de acceso está antes del modelo y está medido**: en la
+   agencia, todos los casos con material protegido llegan al control; en los
+   tres bancos, ninguna respuesta contiene un dato prohibido; la fuga real que tuvo la rama del CRM
+   se encontró y se cerró; y ninguna escritura se ejecuta sin que una
+   persona la apruebe.
+3. **El evaluador también se evaluó**: el juez automático se equivocó en 4
+   de 24 veredictos, siempre en el mismo sentido, y por eso las decisiones
+   se apoyan en métricas que no varían.
+
+La aportación propia, en una frase: convertir el asistente de documentos de
+una empresa en un sistema para varias, con dos fuentes de datos, en el que
+el control de acceso no depende del modelo, y demostrar con el cronómetro
+que un cliente nuevo no cuesta programar.
+
+Lo que el proyecto aprendió sobre medir vale más que cualquier cifra: siete
+veces el error estaba en el instrumento y no en el sistema; tres
+afirmaciones sobre sesgo fueron falsas antes de que una fuera cierta; y una
+corrección hecha desde fuera encontró en menos de una hora lo que catorce sesiones
+desde dentro no habían visto.
+
+Lo que se haría distinto: reservar desde el primer día casos de prueba que
+nadie mire hasta el final, comprobar la cuota de cada proveedor antes de
+apoyar una decisión en él, y someter el sistema a una corrección externa
+mucho antes de la entrega.
+
+## Anexo A. Cómo reproducirlo
+
+```bash
+git clone https://github.com/JuanArchidona/asistente-multitenant
+uv sync --group judge --group app --group langgraph
+cp .env.example .env            # claves: sistema, juez, embeddings
+uv run pytest                   # 1.255 tests con el grupo langgraph, sin llamadas a API
+uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
+uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
+uv run streamlit run app.py
+```
+
+`TENANT_ID=agencia_inmobiliaria` o `TENANT_ID=gestoria_laboral` cambian de
+cliente. Cada cifra de esta memoria tiene su carpeta en `reports/` con el
+resumen, el informe y las trazas. Para reproducir el comportamiento anterior
+a cada cambio de valores por defecto: `ROUTER_TEMPERATURE=defecto`,
+`JUDGE_PROVIDER=anthropic` y `GEN_QUIEN_PREGUNTA=0`.
+
+## Anexo B. Los hallazgos y dónde se usan
+
+Los 68 hallazgos de `docs/HALLAZGOS.md`, con lo que midió cada uno y
+los apartados de esta memoria que se apoyan en él. Cada hallazgo, en ese
+fichero, explica la medida completa y nombra la ejecución guardada en
+`reports/` que la respalda, o dice que no la tiene. Los que no se usan en
+la memoria aparecen con una raya: son medidas intermedias o superadas.
+Esta tabla se genera desde el texto y una prueba falla si difiere.
+
+| Nº | Qué se midió | Dónde se usa |
+|-|------------|---|
+| 1 | El enrutador es el primer cuello de botella de un cliente nuevo | 2.3, 8.1 |
+| 2 | Arreglar el enrutado destapó tres fugas que estaban escondidas | 2.4 |
+| 3 | Dos defectos del propio banco, corregidos antes de sacar conclusiones | 1.4, 5.4 |
+| 4 | La rama estructurada responde lo que ningún documento contiene | 2.3 |
+| 5 | La rama estructurada filtra todo, y el corpus no podía haberlo detectado | 2.4 |
+| 6 | Tres iteraciones sobre las descripciones de categoría | 2.3, 8.3 |
+| 7 | Dos decisiones de ingeniería de la rama MCP, con su medida | 4.2 |
+| 8 | El control estructural cierra las fugas sin romper el producto | 2.4 |
+| 9 | La medida de seguridad solo vale si la consulta llegó al punto de riesgo | 2.4 |
+| 10 | Un índice obsoleto no falla | 2.2 |
+| 11 | La mitad de los casos de seguridad no probaba nada | 2.4, 5.1, 5.4 |
+| 12 | La categoría que no existe no se arregla con más palabras | 2.3 |
+| 13 | Dos fuentes del mismo inquilino comparten espacio de nombres | 2.2 |
+| 14 | El hallazgo 10, otra vez, en el eje que su arreglo no cubría | 2.2 |
+| 15 | El enrutador tampoco repite | 2.3 |
+| 16 | El coste del banco no es el coste del proyecto | 3.3 |
+| 17 | Evaluar cuesta diecisiete veces más que funcionar | 3.1, 3.3 |
+| 18 | La clave del juez estaba en todas partes menos donde importaba | 3.2, 4.3 |
+| 19 | Confinar al directorio de trabajo no es confinar a lo que se puede ensenar | 7.2 |
+| 20 | "El control actuó" no significa que nadie intentara colarse | 6.2 |
+| 21 | Una prediccion escrita antes de mirar convierte una cifra en una medida | 3.3, 4.3, 5.4, 8.3 |
+| 22 | No elegir sale mas barato que elegir mal, y se puede medir cuanto | 2.3, 2.4, 3.3 |
+| 23 | Una metrica determinista se puede ejecutar sobre el pasado, y esta se estreno midiendose a si misma | 2.4, 5.1, 6.2 |
+| 24 | Ir a montar el instrumento independiente destapo que el instrumento no lo era | 3.1, 3.2, 5.3 |
+| 25 | La prerruta determinista no se construye, y la razon es una cuenta de dos minutos | — |
+| 26 | El juez nunca corrio a temperatura 0, y el parametro estaba puesto | 3.2, 5.3, 8.3 |
+| 27 | La varianza del enrutador costaba un parametro, no el triple de llamadas | 2.3, 3.2 |
+| 28 | Un modelo sin precio costaba cero, y el agujero estaba dentro de la contabilidad | 8.3 |
+| 29 | La conmutacion de proveedor era una forma, no un hecho | 3.1, 8.3 |
+| 30 | El juez escribe el razonamiento correcto y le pone el numero equivocado | 5.3, 6.2, 7.2 |
+| 31 | La metrica de PII penalizaba al sistema por explicar lo que se negaba a revelar | 3.2, 5.3, 5.4 |
+| 32 | Al juez la temperatura no le hace nada, y sus errores van todos en el mismo sentido | 3.1, 3.3, 5.3, 7.2, 8.2 |
+| 33 | La comparacion de prompts la decide una metrica sin varianza, y el juez no puede decidirla | 3.2, 5.3, 8.2 |
+| 34 | Medir sesgo sin control no es medir mal, es afirmar cosas falsas y alarmantes | 4.3, 7.3 |
+| 35 | El inventario destapó, al generarse, que el modelo de embeddings está en retirada y cuesta cero | 3.1, 3.3, 7.2, 7.6, 8.2, 8.3 |
+| 36 | Un borrado efectivo del índice tarda 1,5 segundos, y se comprueba contra la colección | 7.5 |
+| 37 | Los embeddings ya cuentan, el registro ya se puede podar, y las dos cosas dejan rastro | 2.2, 3.3, 6.3 |
+| 38 | El primer despliegue tardó minuto y medio y se paró en el login por una clave que nadie iba a usar | 6.1 |
+| 39 | El generador aplica un control de acceso que nadie le pidió, y lo hace a ratos | 2.4, 3.2 |
+| 40 | Decirle al generador quién pregunta | 2.4, 3.2 |
+| 41 | Recortar antes de redactar dejaba pasar sin redactar, y que no hubiera datos personales fue suerte | 2.4 |
+| 42 | El modelo propone, la persona aprueba | 2.5, 5.1, 5.2, 7.2 |
+| 43 | Dar de alta un cliente nuevo cuesta cinco minutos y cuarenta y dos segundos, y ningún fichero de código | 2.2, 8.1 |
+| 44 | La generación tampoco discrimina por encima del ruido, y la cuarta afirmación falsa se mató antes de escribirla | 7.3 |
+| 45 | Los dos casos de la gestoría eran del banco, no del sistema | 1.4, 5.2, 5.4, 8.1 |
+| 46 | El botón rojo tarda quince segundos, y la primera vez que se pulsó el registro no vio nada | 1.4, 6.2, 6.4 |
+| 47 | El camino documental ya no confunde "no es para ti" con "no existe", y el banco heredado no se mueve | 1.4, 2.4, 5.1, 5.4, 8.2 |
+| 48 | Un enrutador sin modelo de lenguaje | 3.1, 8.2, 8.3 |
+| 49 | El banco de la gestoría recupera su caso de agregación real, y el primer rojo fue del banco otra vez | 5.2, 5.4, 8.1 |
+| 50 | El mismo sistema encadenado por LangGraph | 4.1, 8.2 |
+| 51 | El canal de WhatsApp llegó a producción sin índice | 2.6 |
+| 52 | El plan gratuito de Render duerme a los quince minutos y despertar cuesta entre 32 y 61 segundos, sin que ninguna... | 6.5, 6.6 |
+| 53 | Ocho consultas a la vez sobre un mismo `Sistema` tardan lo que una | 2.2, 3.3, 6.5, 7.2 |
+| 54 | La conmutación a Gemini funciona y no sirve para comparar | 3.1, 5.4, 7.1, 8.3 |
+| 55 | El canal de correo llegó a Render y lee pero no puede contestar | 2.6, 3.3, 8.3 |
+| 56 | El canal de correo contesta en vivo | 2.6 |
+| 57 | Con clave de pago, Gemini empata a Haiku como generador en los 73 casos bien enrutados por los dos; toda la diferencia... | 3.1, 3.3, 6.4, 7.1, 8.3 |
+| 58 | El control de suplantación de correo (R-24) se sostiene por exigir un `pass` positivo, no porque Gmail rechace | 2.6, 8.3 |
+| 59 | La latencia interna de WhatsApp, leída por fin en producción | 2.6, 6.5, 8.3 |
+| 60 | Producción ya no recibe un commit con la CI en rojo | 6.1, 8.2 |
+| 61 | Lo desplegado tenía 23 vulnerabilidades conocidas en 6 paquetes | 6.1, 7.6 |
+| 62 | Las primeras consultas reales con el registro persistente y la evaluación al servir | 6.2 |
+| 63 | Cuando el proveedor cae, el usuario ya sabe qué pasa y a quién acudir | 6.4 |
+| 64 | La recuperación híbrida no mejora nada | 5.2 |
+| 65 | Red-teaming con herramienta | 7.2 |
+| 66 | Sin memoria, 4 de 12 seguimientos se pierden; reescribiendo la consulta con el turno anterior se recuperan los 3 que... | 4.1, 8.3 |
+| 67 | Una corrección simulada desde fuera encontró lo que catorce sesiones desde dentro no vieron | 2.4, 3.2, 3.3, 4.3, 6.1, 6.2, 6.6, 8.3 |
+| 68 | La segunda corrección simulada encontró el recorte que faltaba | 2.4, 3.3, 4.3, 6.2, 6.6 |
+
+## Anexo C. Glosario
+
+| Término | Qué significa en esta memoria |
+|---|---|
+| Inquilino | Cada empresa cliente que usa el sistema. Comparten código, no datos |
+| Manifiesto | El fichero de configuración de un inquilino: temas, fuentes, servidores MCP, política de acceso, clasificación del AI Act |
+| RAG | Recuperación aumentada: buscar fragmentos de documentos y dárselos al modelo para que responda con ellos |
+| MCP | Model Context Protocol: protocolo estándar para que un modelo use herramientas de un sistema externo, aquí el CRM |
+| Clasificador (enrutador) | El paso que decide el tema de la pregunta y si va a documentos, al CRM, a ambos o a ninguno |
+| Rama | Cada camino de respuesta: la de documentos y la del CRM |
+| Solapamiento | Dos temas declarados como ambiguos entre sí; la pregunta se consulta en los dos |
+| Control de acceso estructural | El permiso aplicado dentro de la búsqueda y a la salida de las herramientas, no en el prompt |
+| Tachar (redactar) campos | Sustituir un dato sensible por una marca antes de que el modelo lo vea |
+| Banco de pruebas | El conjunto de casos (pregunta y resultado esperado) con que se mide el sistema |
+| Caso correcto | Un caso que pasa todas sus métricas |
+| Fuga literal | Métrica que comprueba si aparece en la respuesta un dato que no debe aparecer |
+| Cobertura del riesgo | De los casos con material protegido, la fracción que llega de verdad al control de acceso |
+| Juez LLM | Un modelo de lenguaje que puntúa las respuestas de otro |
+| Métrica determinista | Una que se calcula sin modelo y da siempre lo mismo |
+| Corte de línea base | Un cambio de valor por defecto que hace incomparables las cifras de antes y de después |
+| Traza | El registro detallado de una consulta: tema, fuentes, herramientas, retenciones, tiempos |
+| Hallazgo | Una medición documentada en `docs/HALLAZGOS.md`, con la ejecución que la respalda |
+| Por diseño | Un control que existe pero no se ha atacado ni medido |
+
+## Anexo D. Detalle técnico
+
+### D.1 Ejecuciones de referencia
+
+Las tablas del capítulo 5.2 y 3.3 salen de estas pasadas del banco, cada
+una guardada en `reports/<nombre>/`: `empresa_quien` (empresa),
+`agencia_hitl_v3` (agencia) y `gestoria_agregacion_v2` (gestoría; su coste
+es el de la pasada `gestoria_agregacion`, de la que reevalúa las trazas).
+
+**Calidad de la búsqueda** en esas pasadas, sobre los casos con un
+documento esperado:
+
+| Banco | Casos | Acierto (hit rate) | Recall@k | Precision@k | MRR |
+|---|---|---|---|---|---|
+| Empresa | 37 | 1,0 | 1,0 | 0,82 | 0,98 |
+| Agencia | 20 | 0,8 | 0,8 | 0,5 | 0,8 |
+| Gestoría | 17 | 1,0 | 1,0 | 0,82 | 1,0 |
+
+La precisión de 0,5 de la agencia dice que la mitad del contexto que recibe
+el redactor viene de otros documentos.
+
+**Otros costes medidos:** pasada de los dos bancos con el juez de Anthropic,
+2,53 USD; sin juez, 0,25 USD; una evaluación, 0,00417 USD con Anthropic y
+0,00076 con Gemini; los dos bancos con juez, al menos 0,73 USD (una pasada
+de Anthropic) o 0,40 USD (tres de Gemini); el experimento de sesgo, 0,0046
+USD en búsqueda y clasificación y 0,27 USD en redacción (336 respuestas).
+
+### D.2 Fragmento del manifiesto de la agencia
 
 ```json
 {
@@ -269,1445 +1396,36 @@ Fragmento del manifiesto de la agencia:
 }
 ```
 
-La consecuencia medible es el capítulo 8.1: si dar de alta un cliente
-exige editar un `.py`, la costura está mal puesta. Se cronometró y no lo
-exigió.
+### D.3 Incidencias de la puesta en marcha de los canales
 
-### 2.3 Aislamiento estructural
+- **WhatsApp.** Las dos primeras consultas reales fallaron porque el
+  servidor no reconstruía el índice al arrancar en un disco que Render
+  borra; se corrigió con una única función de arranque compartida por los
+  tres canales. Leyendo los registros de Render se vio que un reintento de
+  Meta esperaba a que el sistema terminara de arrancar y que el arranque de
+  un cliente bloqueaba los mensajes de los demás; se corrigió con un
+  bloqueo por cliente. En frío, 13,9 s, de ellos unos 8 s en construir el
+  sistema y 2 s el índice.
+- **Correo.** El plan gratuito de Render bloquea el envío de correo, y el
+  servicio pasó al de pago. El primer correo autorizado dejó el servicio
+  mudo: la configuración se cargaba dentro del hilo de sondeo y una clave
+  ausente lo mataba sin rastro; ahora se carga al arrancar y un servicio sin
+  claves no arranca y dice cuál falta. Los tres primeros correos del buzón
+  eran avisos automáticos de Google, y el canal descarta ahora el correo
+  automático. El rechazo de remitentes falsificados se cerró en simulación:
+  Gmail no los filtra (publica una política DMARC que no rechaza), así que
+  lo que protege al canal es exigir la verificación positiva del origen.
 
-Cada inquilino tiene **su propia colección de Chroma**, con el
-identificador en el nombre de la colección, en vez de un índice común
-filtrado por metadato. Un filtro mal construido en una sola ruta de
-consulta devuelve documentos de otro cliente sin que nada lo señale; una
-colección distinta no puede. Hay un test que abre la colección del
-inquilino y falla si abre otra (R-03). Lo que cuesta: una pasada de
-embeddings por inquilino al indexar, entre 2.700 y 3.100 tokens en los
-tres corpus (§37, §43), y ocho lectores concurrentes sobre una colección
-no la frenan (0,25-0,31 s, §53). Lo que no se midió: cuántas colecciones
-abiertas soporta un proceso ni cuánto ocupan en disco; el límite lo
-declara el capítulo 9.
+### D.4 La documentación del repositorio
 
-Dentro de un inquilino, dos fuentes distintas compartían espacio de
-nombres de fragmentos (§13); se corrigió con el nombre de la fuente en el
-identificador.
-
-La firma del índice cubre corpus, política de acceso y esquema de
-metadatos: un índice obsoleto no da error, devuelve vacío (§10), y costó
-una ejecución entera descubrir que la firma no cubría el corpus (§14). Si
-la firma no coincide, el índice se reconstruye.
-
-### 2.4 El clasificador
-
-Un prompt construido desde el manifiesto (contexto del enrutador,
-categorías con sus descripciones) que devuelve categoría, destino y
-confianza en JSON validado con Pydantic. Modelo por defecto:
-`claude-haiku-4-5`, temperatura 0 desde el primer corte de línea base
-(capítulo 4.4).
-
-Tres decisiones medidas:
-
-- **El enrutador es el primer cuello de botella de un cliente nuevo** (§1):
-  la agencia arrancó con un acierto de 0,700 porque el corpus tenía
-  expedientes con datos de clientes y ninguna categoría los nombraba; el
-  enrutador no puede devolver lo que el prompt no describe. Añadir seis
-  palabras a una descripción subió el acierto a 0,833 y los casos que pasan
-  de 18/30 a 22/30. Tres iteraciones sobre las descripciones (§6) y una
-  categoría nueva, `expedientes` (§12: de 29/38 a 33/38, cobertura del
-  riesgo de 0,444 a 0,778), sin tocar el código.
-- **La ambigüedad no se elige, se consulta** (§22). Cuando una consulta cae
-  en un grupo de solapamiento declarado (`expedientes`/`cartera`), el
-  sistema consulta las dos ramas en vez de pedirle al enrutador que
-  resuelva una ambigüedad que no está en la pregunta. Cobertura del riesgo
-  de 0,778 a **1,0** en la agencia. Precio: **+40 % de coste por caso y
-  +0,5 s de latencia** en los casos del grupo, y crece con el tamaño del
-  grupo, no con el número de grupos.
-- **Temperatura 0 no es determinismo** (§15, §27). Con la configuración
-  heredada, 4 de 38 casos cambiaban de categoría entre pasadas idénticas
-  (§15), de ahí que el acierto se reporte con dispersión y que la
-  temperatura pasara a 0. Medido con 910 llamadas y 0,57 USD (§27): 3
-  casos inestables de 38 pasaron a 0 en la agencia y el acierto subió en los
-  dos inquilinos, pero 1 de 53 sigue variando en el heredado y el generador
-  sigue muestreando. La votación por autoconsistencia, estimada en 1,2 USD,
-  quedó descartada por redundante. La memoria no promete reproducibilidad.
-
-Un enrutador alternativo por embeddings, sin modelo de lenguaje, se
-construyó y midió (capítulo 3.3): Haiku se queda.
-
-### 2.5 La rama documental
-
-Recuperación sobre la colección del inquilino, filtrada por fuente (la
-categoría dice de qué fuente se lee) y **por permiso, dentro del `where`
-de la búsqueda**. Los documentos restringidos de la política no se
-recuperan para quien no tiene el rol: no es que el modelo no los cite, es
-que no llegan a la ventana de contexto. El barrido de 11 configuraciones
-de chunking, `top_k` y dimensiones del embedder viene de la 3.3 y no se
-repitió: la configuración heredada es la línea base.
-
-Cuando el permiso vacía la recuperación, el sistema responde un mensaje
-determinista que dice que la documentación existe y a qué rol está
-restringida (§47). Antes respondía "no he encontrado documentación", que
-es la denegación presentada como ausencia (R-12): cinco casos de la
-gestoría lo hacían y el heredado no tenía ninguno, por eso no se movió.
-
-### 2.6 La rama estructurada por MCP
-
-Los datos de negocio se consultan a través de **servidores MCP** que
-declara el manifiesto, no de herramientas cableadas en el agente. El
-cliente MCP (`src/mcp_cliente.py`) arranca cada servidor como proceso
-aparte, descubre sus herramientas y las ofrece al modelo con tool-calling
-nativo del SDK. El servidor de la agencia (`mcp_servers/agencia_crm.py`)
-expone cinco herramientas sobre un CRM sintético generado con semilla fija.
-
-Tres hallazgos que decidieron el diseño de esta rama:
-
-- **La rama estructurada responde lo que ningún documento contiene** (§4):
-  es el caso de uso que justifica que exista.
-- **Y filtra todo, y el corpus no podía haberlo detectado** (§5): la
-  primera versión devolvía DNI, teléfono e ingresos a cualquier usuario.
-  Por eso la **redacción de campos sensibles se aplica al salir de la
-  herramienta**, por política declarativa, antes de que el modelo lo vea.
-- **Un control que depende del tamaño de la respuesta falla justo cuando
-  hay más datos que proteger** (§41): el recorte a 6.000 caracteres iba
-  antes de redactar y dejaba pasar JSON roto sin redactar; una respuesta de
-  6.028 caracteres lo destapó en el servicio desplegado. Ahora la redacción
-  va antes del recorte, y un resultado no estructurado con campos sensibles
-  declarados se retiene y la traza lo dice. El recorte en sí era silencioso
-  hasta el 25-10: con la cartera recortada, el modelo dio como mínimo de los
-  48 inmuebles uno que no lo era. Ahora se marca en la traza
-  (`resultados_recortados`), se avisa al usuario y el marcador le prohíbe al
-  modelo dar totales o rangos del conjunto (§68).
-
-### 2.7 Control de acceso antes del modelo
-
-La decisión central del proyecto, y la que se defiende con más medidas:
-**un prompt que dice "no reveles el DNI" deja el DNI en la ventana de
-contexto**. El permiso va dentro del `where` de la búsqueda documental y
-la redacción se aplica al salir de la herramienta estructurada. Lo que el
-usuario no puede ver no llega al modelo.
-
-| Mecanismo | Dónde actúa | Medida |
-|---|---|---|
-| Permiso en el `where` | Recuperación documental | Frente a la línea base heredada: 45/52 a 47/53 con fugas literales de 2 a 0 en el heredado, 27/36 a 29/38 y de 1 a 0 en la agencia, sin la caída de relevancia que costó endurecer el prompt en la 3.3 (§8). En la línea base vigente, `fuga_literal` 10 de 10 (§40) y cobertura del riesgo 0,636 en el heredado y 1,0 en la agencia (§11, §22). El detalle, en los capítulos 4.2 y 4.3 |
-| Redacción de campos | Salida de cada herramienta MCP, antes del recorte | Línea base sin gobernanza: DNI, teléfono, correo e ingresos del comprador reproducidos (§5); tres de cuatro casos de confidencialidad de la agencia filtraban (§2). Después, 0. Agujero por tamaño cerrado (§41) |
-| Denegación explícita | Camino documental vaciado por permiso | 5 casos de la gestoría; 6 de 6 casos con literal prohibido sin filtrar y 27 de 28 casos OK (§47) |
-| El generador sabe quién pregunta | Prompt del generador, desde el segundo corte de línea base | De 2 de 5 a 5 de 5 al dar un dato autorizado a dirección (§39, §40; capítulo 2.8) |
-| Escritura con aprobación humana | Herramientas declaradas como escritura | `accion_sin_aprobar` 40/40; ninguna visita escrita tras el banco (§42) |
-| Verificación determinista de citas | Salida | 588 de 588 citas resolubles en 22 ejecuciones, cero inventadas (§23) |
-
-La fuga real que citan el Resumen y las conclusiones es la de la rama
-estructurada: la primera versión devolvía DNI, teléfono e ingresos a
-cualquier usuario (§5), y su variante por tamaño (§41) apareció ya en el
-servicio desplegado. Las dos fugas literales del heredado (§8) son la
-línea base de la 3.3, medidas allí y cerradas aquí con el permiso en el
-`where`.
-
-**El modelo nunca escribe.** Una herramienta que escribe se declara en el
-manifiesto (`escrituras`) y el servidor MCP la anota como no de solo
-lectura; si discrepan, el cliente no arranca. El modelo la propone con sus
-argumentos, una persona la aprueba o la rechaza desde la interfaz, y las
-tres cosas quedan registradas (§42, OWASP LLM08).
-
-La cobertura del riesgo (definida en el capítulo 1.3; §9, §11) es lo que
-corrige la lectura optimista: de los 20 casos con material protegido en
-juego, solo 11 llegaban al control (§11), así que "cero fugas sobre 17
-casos" era en realidad "cero fugas sobre 9". Por eso la métrica publica su
-denominador. El 0,636 del heredado son casos que no llegan al control
-por fallo de enrutado, y subirlos es trabajo de enrutador, no de
-gobernanza; uno de ellos, `inj-04`, se queda como residual documentado. Y
-el tamaño de la muestra se dice: en el heredado la seguridad está medida
-sobre los 7 casos que llegan al control, y en la agencia sobre 9. Son pocos,
-y por eso cada uno está en la traza con su razón.
-
-### 2.8 Generación anclada
-
-El generador recibe el contexto ya filtrado, la política de respuesta
-(base o endurecida; la vigente es la base, capítulo 4.3) y, desde el
-segundo corte de línea base, **quién pregunta y que todo su contexto ya
-pasó el control de acceso**. Antes no lo sabía y obedecía las
-clasificaciones escritas dentro de los documentos: a dirección le negaba un
-salario 3 veces de 5 aunque el control le hubiera entregado el anexo,
-citando la cabecera "CONFIDENCIAL" del propio documento (§39). En esas
-diez consultas el control estructural acertó el 100 % y el generador el
-70 %: era un control de acceso que nadie le pidió, aplicado a ratos, y el
-que sostenía la confidencialidad era el estructural. Después, 5 de 5, y
-ninguna métrica de fuga se movió (§40). Con ese mismo corte la rama
-estructurada pasó a citar la herramienta de la que sale cada dato; la
-cifra y su inestabilidad entre pasadas están en el capítulo 4.2.
-
-### 2.9 Interfaz y canales
-
-- **Interfaz Streamlit** (`app.py`), desplegada en Render: usuario y
-  contraseña, el inquilino lo fija la credencial, los roles van al control
-  de acceso, aviso del artículo 50 al entrar, tope blando de gasto sobre el
-  registro, tarjeta de acciones pendientes de aprobación.
-- **WhatsApp** (`src/canal_whatsapp.py`, contra la API oficial de Meta): el
-  número de teléfono es la credencial y fija el inquilino, aviso del
-  artículo 50 en la primera conversación, aprobación humana por texto,
-  firma del webhook obligatoria y el teléfono nunca entra en el registro.
-  Está probado con 34 pruebas de mensajes simulados y **en vivo** con un
-  número y dos preguntas (§51): la de vacaciones respondió como en la web
-  y la del salario denegó sin el dato y sin fuga, en menos de un minuto
-  cada una a precisión de minuto. La latencia interna en producción,
-  leída en los Logs de Render con tres mensajes reales (§59): **4,2 y
-  4,3 s en caliente**, del orden de un segundo más de Meta al webhook, y
-  **13,9 s en frío**, de los que unos 8 s son construir el sistema tras el
-  despertar (el índice, 2 s, porque el disco es efímero); sumando los 41 s
-  del despertar, el primer mensaje tras una pausa tarda casi un minuto.
-  Esa lectura destapó y corrigió un defecto de concurrencia: un reintento
-  de Meta esperaba la construcción del sistema, y el arranque en frío de
-  un inquilino bloqueaba al primer mensaje de los demás. Lo que no está
-  medido: la aprobación por texto en vivo y el aislamiento con dos números
-  reales, que se decidió no medir (capítulo 8.3). La puesta en marcha y sus
-  tropiezos están en `docs/CANAL_WHATSAPP.md` y en el §51.
-- **Correo** (`src/canal_correo.py`, sobre un buzón de Gmail dedicado): la
-  dirección del remitente es la credencial, con la misma lista cerrada; y
-  como un remitente de correo se puede falsificar, el canal exige que el
-  servidor receptor haya verificado el origen (`Authentication-Results`
-  con DKIM o SPF en `pass`, R-24), o rechaza el correo sin consultar. La
-  aprobación va en la primera línea de la respuesta, la respuesta enhebra
-  en la conversación y el sondeo del buzón es por IMAP con la librería
-  estándar, sin paquetes nuevos. Probado con 54 pruebas de correos
-  simulados y una consulta simulada contra el sistema real (5,26 s), y
-  **medido en vivo** sobre un buzón de Gmail dedicado (§55, §56): 24 s de
-  extremo a extremo la primera consulta, con el índice construido en ese
-  mismo ciclo, y 19 s la segunda; 7,8 s y 4,6 s dentro; la diferencia es
-  Gmail más la espera al sondeo de 30 s. La denegación del salario es la
-  misma que en la web y en WhatsApp. Es el único servicio de pago del
-  despliegue, porque el plan gratuito de Render bloquea la salida SMTP.
-  Dos cosas que el buzón real enseñó: los tres primeros correos eran
-  avisos de Google, y el canal descarta ahora el correo automático sin
-  contestar; y el primer correo autorizado dejó mudo al servicio porque la
-  configuración se cargaba dentro del hilo y una clave ausente lo mataba
-  sin rastro, así que ahora se carga al arrancar y un servicio sin claves
-  no arranca y dice cuál falta. El rechazo del remitente falsificado se
-  cerró en simulación y no en vivo (§58): la prueba habría exigido montar
-  un envío suplantado, y al comprobar el mecanismo se vio que Gmail no
-  filtra ese correo —publica DMARC `p=none`—, así que lo que protege al
-  canal no es Gmail sino exigir un `pass` positivo sobre la cabecera que el
-  receptor escribe. Sin medir en vivo queda la aprobación por correo
-  (capítulo 9).
-
-## 3. Selección y justificación de modelos, patrones y herramientas
-
-Los cinco criterios del capstone se reparten por la memoria: la calidad
-se mide en el capítulo 4, el coste en el 5, el riesgo en el 7, la
-escalabilidad y el mantenimiento en el 8. Este capítulo justifica las
-elecciones de patrón, de modelo y de herramienta, y remite a cada uno de
-esos capítulos por la cifra.
-
-### 3.1 Python sin framework frente a LangGraph
-
-La orquestación es Python con tool-calling nativo del SDK del proveedor.
-La comparación con LangGraph no se argumenta: **se midió** (§50). Se
-construyó el mismo sistema encadenado por un grafo de LangGraph 1.2.12
-(`src/orquestacion_langgraph.py`, activable con `ORQUESTADOR=langgraph`),
-portando solo la orquestación: el enrutador, la recuperación con el
-permiso en el `where`, el cliente MCP, la gobernanza y el generador son los
-mismos métodos en los dos, y diez tests comprueban que con el mismo
-proveedor falso los dos devuelven la misma traza y hacen las mismas
-llamadas. Después se pasaron los dos bancos por el grafo, con predicción
-escrita antes de instalar nada.
-
-| | Python sin framework (línea base) | LangGraph |
-|---|---|---|
-| Heredado, 53 casos: casos OK | 48 | 47 |
-| Heredado: `routing`, cobertura del riesgo | 0,9038 / 0,6364 | 0,9038 / 0,6364 |
-| Heredado: latencia media por caso | 3,284 s | 3,295 s (+0,011 s) |
-| Heredado: coste | 0,1051 USD | 0,1077 USD (+2,5 %, tokens de salida) |
-| Agencia, 40 casos: casos OK, `routing`, escrituras sin aprobar | 31 / 0,825 / 0 de 40 | 31 / 0,825 / 0 de 40; trece casos por la rama mixta con herramientas MCP |
-| Líneas de código de la orquestación | 21 | **95** (4,5 veces) |
-| Paquetes nuevos en el lock | 0 | **14**, uno de ellos el cliente de la plataforma de observabilidad del proveedor del framework |
-| Tests tocados | | 0 (10 nuevos) |
-| Tiempo de reloj de construir y medir | | 19 min (el presupuesto de `ALCANCE.md` §4 era de 4 h), hechos por un asistente de código con el proyecto en contexto |
-
-El caso que cambia en el heredado es el generador muestreando: mismas 106
-llamadas y mismos 51.559 tokens de entrada en los dos.
-
-Lo que la medida dice: para un flujo de un turno con una bifurcación, el
-grafo reproduce exactamente las llamadas y no añade latencia medible, y a
-cambio cuesta 4,5 veces más líneas de orquestación y 14 dependencias. De
-ahí la lectura por los cinco criterios del capstone:
-
-| Criterio | Python sin framework (elegido) | LangGraph |
-|---|---|---|
-| Calidad | Idéntica: mismos veredictos, mismas llamadas, mismos tokens de entrada (§50). La calidad la deciden prompts, control de acceso y banco, que son los mismos | Idéntica, medida |
-| Coste | Cero dependencias de orquestación; ninguna capa entre el SDK y la contabilidad de tokens | +14 paquetes en el AIBOM (R-09); latencia y coste por consulta iguales |
-| Escalabilidad | Lo que escala aquí es el número de inquilinos, y eso lo resuelve el manifiesto, no el orquestador | Igual: el manifiesto es ortogonal al framework |
-| Riesgo | Superficie mínima: 21 líneas que se leen en una pantalla; el control de acceso está en el `where` y en la salida de la herramienta, no en el orquestador | Cadena de suministro: el material del Módulo 4 trae el incidente de LiteLLM de marzo de 2026; `langsmith` entra sin usarse |
-| Mantenimiento | Todo cambio es visible en un diff de Python; la conmutación de proveedor se verificó de extremo a extremo (§29) sin adaptadores; con la clave gratuita no sostuvo un banco (§54) y con la de pago lo corrió entero (§57) | Cada versión del framework es un cambio de comportamiento que hay que volver a medir, y el proyecto ya midió tres cambios no anunciados de los proveedores en cinco días (capítulo 8.4) |
-| Lo que se pierde | Persistencia de estado y reanudación entre pasos, visualización del grafo, paralelismo declarativo | Lo aporta, y este sistema no lo usa |
-
-Lo que la medida no dice: nada sobre lo que LangGraph aporta cuando hay
-estado entre turnos, interrupciones con reanudación o ramas paralelas,
-porque este sistema no tiene nada de eso. La memoria entre turnos que sí se
-midió (§66) no necesitó estado en el orquestador: es una llamada que
-reescribe la consulta antes de enrutar, y el resto del flujo no se entera.
-Si el flujo llega a tener estado de verdad, la comparación habrá que
-rehacerla, y la aprobación humana del capítulo 2.7 sería el primer
-candidato.
-
-### 3.2 Servidores MCP frente a herramientas cableadas
-
-Un `tools=[...]` dentro del agente ata el sistema a la API de un cliente;
-un servidor MCP lo convierte en contrato: el manifiesto dice qué servidor
-arrancar, el servidor dice qué herramientas tiene y cuáles escriben, y el
-cliente comprueba que las dos versiones coinciden. Dar de alta un cliente
-con CRM propio es escribir su servidor, no tocar el agente.
-
-Tres decisiones de ingeniería de la rama, con su medida (§7). Los
-servidores se arrancan una vez, al construir el sistema (1,1 s), y se
-mantienen abiertos: con 36 casos de banco, abrirlos por consulta habría
-añadido unos 40 segundos y un proceso por pregunta. Las sesiones del SDK
-se abren y se cierran en la misma tarea, porque repartirlas entre dos
-revienta al salir. Y el prompt lleva la fecha del sistema, porque el
-modelo no sabe qué día es.
-
-Un MCP de terceros es además un riesgo de negocio: el de idealista existe
-y está cerrado a clientes externos por política declarada (`ALCANCE.md`
-§3), y por eso el sistema no depende de ninguno. Si un servidor MCP está
-caído, la consulta falla y lo dice: la regla de nada de fallbacks
-silenciosos (capítulo 1.3) está ahí precisamente para que "el CRM no
-responde" no se lea como "no hay datos"; el simulacro del capítulo 6.4
-mide el fallo del proveedor de modelos, no este, y el capítulo 9 lo
-declara.
-
-### 3.3 Modelos
-
-| Función | Modelo | Por qué |
-|---|---|---|
-| Clasificador y generación | `claude-haiku-4-5` | Heredado de la 3.3 con su línea base medida; 0,00245 USD por caso sin juez en la ejecución del §17, y entre 0,0020 y 0,0041 por inquilino en las vigentes (capítulo 5.4) |
-| Juez | `gemini-3.6-flash`, desde el primer corte de línea base | Otra familia que el generador y 5,5 veces más barato por evaluación que `claude-sonnet-5`; admite temperatura 0, aunque eso no lo estabiliza (§24, §26, §32) |
-| Embeddings | `gemini-embedding-001`, 768 dimensiones | Heredado; en retirada con cierre anunciado el 14-05-2028 y sin precio publicado (§35). Decidido no migrar antes de la entrega: invalidaría el índice |
-| Proveedor alternativo | `gemini-3.6-flash` para chat, vía `LLM_PROVIDER=gemini` | La conmutación era una forma y no un hecho hasta que se verificó de extremo a extremo (§29); con la clave gratuita no era contingencia (§54) y con la de pago está medida: empate en generación (§57) |
-
-**El clasificador pequeño, medido contra Haiku** (§48). Un enrutador por
-embeddings de las descripciones de categoría, sin entrenamiento ni
-dependencia nueva, conmutable con `ROUTER_KIND`, con umbral de `otro`
-calibrado en el heredado y congelado antes de mirar a los otros
-inquilinos:
-
-| | Haiku | Embeddings |
-|---|---|---|
-| Acierto en transferencia (agencia y gestoría, 68 casos) | 0,882 | 0,735 |
-| Latencia por consulta (heredado) | 1,12 s | 0,32 s |
-| Coste de chat | Sí | Ninguno |
-| Casos de riesgo que llegan al control | `inj-04` y varios `conf-*` van a `otro` | **13 de 13** |
-
-Haiku se queda: doce puntos de acierto en categorías definidas por tipo de
-documento (`actas`) y entre categorías vecinas pesan más que la velocidad.
-Pero es la única configuración medida en la que `inj-04` llega al control,
-y la línea de mejora que sale es dar ejemplos a las descripciones de los
-inquilinos nuevos, no afinar un modelo; en el heredado eso sería tocar la
-línea base (capítulo 1.3). La cascada (embeddings y Haiku solo en duda) iguala a
-Haiku en muestra pero fuera manda al LLM el 75-88 % de las consultas.
-
-El generador. `claude-haiku-4-5` genera porque la 3.3 lo heredó con su
-línea base, y su barrido de configuraciones comparó recuperación
-(chunking, `top_k`, dimensiones), no modelos de generación. Un modelo mayor
-de la misma familia costaría de 2 a 5 veces más por token (capítulo 5.4)
-sin que ningún fallo vigente del banco sea de generación: los catorce
-casos que fallan en el capítulo 4.2 son de enrutado o de cita.
-
-Contra la otra familia sí se comparó, en dos intentos. El primero murió de
-cuota: la clave de Gemini era del nivel gratuito, 20 peticiones al día, y
-73 de los 82 casos terminaron en 429 (§54). Con facturación y un tope de
-5 EUR al mes en cada proyecto, el segundo corrió los dos bancos
-documentales con `gemini-3.6-flash` como enrutador y generador (§57):
-
-| Banco | Haiku | Gemini | Bien enrutados por los dos | OK en esos, Haiku / Gemini |
-|---|---|---|---|---|
-| Heredado (53) | 48 | 51 | 46 | 46 / 46 |
-| Gestoría (29) | 28 | 27 | 27 | 27 / 27 |
-
-**Como generador, empate: 73 de 73 en los dos**, a la mitad de coste por
-consulta (0,00099 frente a 0,00198 USD en el heredado) y a 1,9 veces la
-latencia (6,2 s de media frente a 3,3). Es una pasada por lado, así que la
-lectura es que el banco no los distingue, no que sean iguales. Todo lo que
-se mueve es enrutado: Gemini lleva al control los cuatro casos de riesgo
-que Haiku manda a `otro` (cobertura del riesgo 0,636 → 1,0 en el heredado,
-sin fuga) y pierde las dos preguntas de actas y una agregación. Haiku se
-queda: el empate no paga un corte de línea base y la latencia pesa en un
-asistente. Lo que sí cambia es la justificación: **la conmutación de
-proveedor es contingencia medida**, no solo una forma, porque el sistema
-entero corre en la otra familia con igual o mejor resultado sin tocar
-código.
-
-Un prerrutado determinista por identificador (OP-2026-118 va a
-expedientes) se descartó con una cuenta de dos minutos (§25): los
-identificadores viven donde el problema ya está resuelto, y la deriva
-entre categorías vecinas es semántica, no de identificadores.
-
-### 3.4 El resto de la pila
-
-Cinco piezas heredadas del patrón del máster, una propia, una exclusión y
-la cadena de despliegue; ninguna con alternativa medida, y por eso cada
-una dice qué se mediría si se cambiara:
-
-- **`uv`** con `pyproject.toml`, `uv.lock` y `.python-version`; `ruff`.
-  Mantenimiento y riesgo: el lock reproducible es la fuente del AIBOM
-  (capítulo 7.6) y `--frozen` en Render garantiza que lo desplegado es lo
-  inventariado. Heredado del patrón del máster; sin alternativa medida.
-- **Pydantic** para toda salida estructurada del modelo. Calidad: una
-  salida que no valida se marca y se propaga en vez de leerse como vacía,
-  que es la regla de nada de fallbacks silenciosos aplicada al parseo.
-- **ChromaDB** local persistente, una colección por inquilino. Coste:
-  cero de infraestructura; riesgo: el aislamiento estructural del
-  capítulo 2.3; límite: el índice vive en el disco del proceso, y en el
-  plan gratuito de Render ese disco es efímero. Las dos primeras consultas
-  reales del canal de WhatsApp dieron `NotFoundError` porque ese servidor
-  no reconstruía el índice al arrancar, y se corrigió con una única
-  función compartida por los tres puntos de entrada (§51). Un servicio
-  vectorial gestionado se mediría en latencia y en precio por colección.
-- **Streamlit** para la interfaz, **Render** para el despliegue
-  (blueprint en `render.yaml`). Heredados de la 3.1 (10/10), coste cero
-  en el plan gratuito, 1 min 32 s del blueprint al servicio vivo (§38); el
-  precio es el despertar (§52) y que la interfaz no vale para un cliente
-  (capítulo 9). Una API con FastAPI y un plan de pago se medirían en
-  latencia de pared y en euros al mes (capítulo 5.4).
-- **DeepEval** para las métricas de juez. Heredado de la 3.3; su defecto
-  está medido, descarta `temperature=0` sin avisar en `claude-sonnet-5`
-  (§26). Un G-Eval propio quitaría la dependencia y se descartó por tiempo.
-- **Node sin dependencias** para el puente MCP con la app de Claude
-  (capítulo 6.5). Riesgo: cero paquetes que inventariar en el único
-  componente que lee el `.env` del autor (§19).
-- **Sin afinado de modelos ni plataforma de seguimiento de experimentos**
-  (Unsloth, Comet, MLflow, del Módulo 3). No hay datos de entrenamiento
-  fuera del banco, y entrenar con el banco lo invalidaría como medida; los
-  fallos vigentes son de enrutado y de cita, no de generación (capítulo
-  4.2). El seguimiento de experimentos lo hace `reports/`: cada ejecución
-  con su configuración, sus trazas y su resumen, versionada en git.
-- **CI en GitHub Actions** (`ruff` y `pytest` sin llamadas de pago en cada
-  push) y, desde el 11-10-2026, **Render solo despliega un commit cuando la
-  CI lo da en verde** (`autoDeployTrigger: checksPass` en los tres
-  servicios, vigilado por `tests/test_despliegue.py`): un test roto no llega
-  a producción: medido con un commit roto a propósito, que se quedó fuera
-  mientras los verdes se desplegaban en 77 y 109 s (§60). Es lo que el
-  Módulo 3 llama automatizar los pases a producción. La puerta se probó sola
-  el 25-10: tras catorce días sin commits, la auditoría de dependencias
-  encontró avisos nuevos, la CI se puso en rojo y el servicio se quedó en el
-  último commit verde hasta que se subieron los paquetes (§67).
-
-### 3.5 Desarrollo con un copiloto: reparto, método y control
-
-El enunciado pide explicar cómo se usaron los copilotos y cómo se integraron
-las instrucciones y la cadena de desarrollo para controlar su salida. Este
-proyecto se escribió entero con uno, Claude Code, y con la app de Claude
-para las tareas de navegador; el tutor confirmó el 22-09-2026 que su uso es
-libre. Lo que sigue no oculta el reparto: lo explica, porque el control es
-la parte que no hace el copiloto.
-
-**El reparto.** El copiloto escribió el código, los tests, los documentos y
-esta memoria, ejecutó las mediciones y redactó los hallazgos; la bitácora y
-`HALLAZGOS.md` están escritos en su primera persona. El autor puso el
-producto, que sale de su documento de concepto de la entrega 1.4 del
-máster; las reglas de trabajo; las decisiones con coste, riesgo o alcance;
-las acciones con credenciales y facturación, que hizo a mano; y la revisión
-de lo que el copiloto proponía. Algunas de las decisiones del autor, con la
-fecha y el sitio donde quedaron escritas:
-
-| Fecha | Decisión del autor | Fuente |
-|---|---|---|
-| 23-09 | Que el generador sepa el rol de quien pregunta, la variante que pasa 5 de 5 (segundo corte de línea base) | `ALCANCE.md` §5.d, §39 |
-| 24-09 | Hacer el alta de Meta por la app con él delante, **contra la recomendación del copiloto**, que proponía hacerla a mano; salió bien | Bitácora, sesión 8 |
-| 24-09 | No rotar las claves de API antes de la entrega: no hay incidente que lo pida | Capítulo 6.4 |
-| 26-09 | Construir el canal de correo, que estaba fuera del alcance | Bitácora, sesión 10 |
-| 27-09 | Plan de pago de Render para el correo; límite de 5 EUR al mes en Gemini, puesto a mano; no abrir otra clave de Gemini | Bitácora, sesiones 11 y 12 |
-| 27-09 | Cerrar R-24 en simulación y no montar un envío suplantado en vivo | §58 |
-| 11-10 | Evaluar la calidad en producción con el juez, aceptando la transferencia a Gemini; límite de 10 USD al mes para la clave desplegada | `PLAN_ENTREGA.md` |
-
-**El método: la especificación manda sobre la conversación.** `CLAUDE.md`
-es la fuente única de verdad del proyecto y lo dice en su primera línea: si
-algo de una conversación lo contradice, gana el documento. El copiloto lo
-carga al empezar cada sesión; `docs/ALCANCE.md` fija el alcance por bloques
-con las líneas de corte decididas de antemano. Dos *skills* propias
-estructuran cada jornada: `/arranque` lee la bitácora, el estado del
-repositorio y el entorno y termina con una pregunta al autor; `/cierre`
-escribe la bitácora, actualiza `CLAUDE.md` y publica, y solo la invoca el
-autor (la única vez que el copiloto la ejecutó por su cuenta, el 24-09,
-quedó escrito y se convirtió en regla). Es *spec-driven development* en el
-sentido del Módulo 2: el contexto que el copiloto necesita está en ficheros
-versionados, no en la memoria de una conversación.
-
-**El control: reglas que el copiloto no puede saltarse.** Una regla escrita
-en un prompt se olvida; una regla con test falla en la CI. Las del proyecto,
-y qué las hace cumplir:
-
-| Regla | Qué la hace cumplir |
+| Fichero | Qué es |
 |---|---|
-| La línea base heredada no se toca | Test que compara el prompt del enrutador carácter a carácter con el de la 3.3 |
-| El juez no puede ser el generador | `Config` aborta el arranque, con test |
-| Una métrica retirada por defectuosa no vuelve | El cargador del banco rechaza un caso que la pida |
-| El registro de riesgos no cita hallazgos inexistentes | `tests/test_riesgos.py` |
-| El inventario de dependencias no se queda viejo | El AIBOM se regenera y el test falla si difiere |
-| Nada llega a producción con un test roto | CI en cada push y despliegue condicionado a ella (3.4) |
-| El material docente no entra en el repositorio público | `.gitignore` |
-| No se relaja el banco; nada de fallbacks silenciosos | Solo texto en `CLAUDE.md`: las hace cumplir la revisión |
-
-**Lo que el método cazó.** El argumento a favor del método no es que el
-copiloto acierte, sino que sus errores se ven. Con fecha y fuente:
-
-- 21-09: los hallazgos §16 y §17 daban por hecha una clave separada para el
-  juez que no existía; se vio al ir a usarla (§18).
-- 21-09: el precio de `claude-sonnet-5` estaba un 50 % alto en el repo y
-  todo lo derivado salía inflado; lo destapó una predicción escrita antes
-  de mirar la consola (§21).
-- 22-09: el experimento de sesgo hizo tres afirmaciones falsas, concretas y
-  alarmantes antes de acertar; de ahí las trece pruebas que vigilan que los
-  pares sigan emparejados (§34).
-- 24-09: el prototipo de LangGraph tenía escrito "1 h 50 min" y fueron 19,
-  medidos con los tiempos de git; desde entonces el tiempo se mide así.
-- 24-09 y 26-09: dos lecturas hostiles de esta memoria, encargadas a un
-  agente con la instrucción de buscar errores, dejaron 35 y 35
-  correcciones: "cuatro semanas" que eran cinco días, 50 hallazgos que eran
-  53 (`docs/REVISION_MEMORIA_2026-09-26.md`).
-- 27-09: un recuento de tests hecho con la barra de progreso sumaba
-  caracteres de la línea de cierre; se cuenta con JUnit.
-- 25-10: la lectura final antes de entregar, con cada recuento rehecho
-  por comando, encontró siete cifras viejas (1.124 tests que eran 1.239,
-  59 hallazgos que eran 66), un límite que seguía diciendo que el
-  registro vivía en un disco efímero cuando ya persistía en una base, y
-  unas conclusiones que situaban la fuga real en el inquilino equivocado.
-- 25-10: una corrección simulada, con la app de Claude en el papel del
-  tutor y los usuarios de evaluación, encontró lo que ninguna lectura desde
-  dentro había visto: la CI en rojo, una respuesta cortada sin aviso, un
-  tope de gasto que se reiniciaba, el README de la 3.3 y un guion que un
-  tercero no podía reproducir. Todo cerrado el mismo día (§67). Una
-  segunda pasada sobre la versión corregida subió la estimación de 8,5 a
-  9,0 y encontró un recorte más, esta vez de lo que entra al modelo (§68).
-
-Y un caso en el que el control llegó tarde, que también se dice: una
-entrega del Módulo 4 extraída de este repositorio por la app salió con dos
-afirmaciones falsas que la revisión encontró después de enviarla.
-
-**Dos superficies, una dirección.** La app de Claude hace lo que el copiloto
-de terminal no puede (altas en consolas, tareas en el campus, con el autor
-delante) a través de un puente MCP propio (capítulo 6.5). Claude Code le
-deja encargos con criterio de terminado; la app los ejecuta y registra; un
-aviso vuelve a la sesión. Dos reglas lo mantienen bajo control: **escribir
-encargos no es una herramienta de la app**, para que quien los ejecuta no
-pueda dárselos a sí mismo, y **un aviso nunca genera un encargo nuevo por sí
-solo**: la cadena termina en el autor. Las acciones de facturación las
-bloquea el propio control de permisos de la app y las hace el autor, como
-pasó al fijar el límite de gasto el 11-10.
-
-**En cifras**, entre el 20-09 y el 25-10-2026: 152 commits del TFM (más los
-7 heredados de la 3.3), quince sesiones, 68 hallazgos medidos y 1.251
-tests.
-
-## 4. Evaluación
-
-### 4.1 El banco
-
-Tres bancos, uno por inquilino, sobre el mismo runner heredado de la 3.3:
-
-| Banco | Casos | Dimensiones | Para qué |
-|---|---|---|---|
-| `empresa_servicios` | 53 | Las ocho de la 3.3 | Suite de regresión de la línea base |
-| `agencia_inmobiliaria` | 40 | Las ocho más `accion` (dos casos, §42) | Medir lo nuevo: rama estructurada, solapamiento y escritura |
-| `gestoria_laboral` | 29 | Las ocho | Medir el alta de un cliente |
-
-Las métricas nuevas respecto a la 3.3 no son dimensiones: cobertura del
-riesgo (§11), `accion_sin_aprobar` (§42) y la verificación determinista
-de citas (§23) se calculan sobre las dimensiones que ya había.
-
-Métricas en dos familias, y la distinción es la lección más cara de la 3.3
-y de este proyecto:
-
-- **Deterministas**: `routing`, `fuga_literal` (literales que no deben
-  aparecer), `cobertura_riesgo`, `cita_alguna_fuente`, verificación de
-  citas, `accion_sin_aprobar`. No varían entre pasadas. Anclan todos los
-  veredictos del proyecto.
-- **De juez LLM**: faithfulness, relevancia, confidencialidad. Varían
-  entre pasadas idénticas (capítulo 4.3), cuestan 11 veces más que
-  funcionar, y ninguna decisión cuelga de ellas.
-
-La ejecución del sistema y la evaluación están separadas: las trazas se
-guardan y se pueden reevaluar sin volver a pagar llamadas
-(`--desde-trazas`). Eso permitió estrenar el verificador de citas sobre 22
-ejecuciones del pasado (§23) y comprobar que un cambio del comparador no
-movía ningún veredicto anterior (§47).
-
-`pii_leakage` se retiró del banco (§30, §31): su escala se
-invertía entre casos y penalizaba al sistema por nombrar a la persona
-cuyos datos estaba protegiendo; una denegación correcta sacaba 0,00.
-Afectaba a 17 casos, no a 6, porque era métrica por defecto de dos
-dimensiones enteras.
-
-### 4.2 Resultados en la línea base vigente
-
-Ejecuciones sin juez, posteriores al segundo corte de línea base
-(capítulo 4.4):
-
-| Ejecución | Qué es | Casos OK | `routing` | Cobertura del riesgo | `cita_alguna_fuente` |
-|---|---|---|---|---|---|
-| `empresa_quien` | Banco heredado, 53 casos | 48 | 0,9038 | 0,6364 | 1,0 |
-| `agencia_hitl_v3` | Agencia con los dos casos de escritura, 40 casos | 31 | 0,825 | 1,0 | 0,92 |
-| `gestoria_agregacion_v2` | Gestoría tras el caso de agregación, 29 casos | 28 | 0,963 | 1,0 | 1,0 |
-
-La recuperación, en las mismas ejecuciones, sobre los casos con documento
-esperado:
-
-| Ejecución | Casos | `hit_rate` | `recall@k` | `precision@k` | MRR |
-|---|---|---|---|---|---|
-| `empresa_quien` | 37 | 1,0 | 1,0 | 0,82 | 0,98 |
-| `agencia_hitl_v3` | 20 | 0,8 | 0,8 | 0,5 | 0,8 |
-| `gestoria_agregacion_v2` | 17 | 1,0 | 1,0 | 0,82 | 1,0 |
-
-En el heredado y la gestoría la recuperación está saturada: el documento
-correcto llega siempre y casi siempre primero. En la agencia, los cuatro
-casos que no recuperan el documento esperado son de enrutado y no de
-búsqueda: con la categoría correcta los 20 aciertan (§64). Lo que sí dice
-su precisión de 0,5 es que la mitad del contexto que recibe el generador es
-de otros documentos. Una recuperación híbrida (BM25 fusionado con la densa)
-se midió y no mejora nada en ninguno de los tres corpus (§64).
-
-No hay un umbral de aceptación fijado de antemano. La regla es otra:
-ninguna pasada baja respecto a la anterior sin que el motivo esté escrito,
-y cada fila se lee contra su línea anterior, no contra un número.
-
-**Heredado.** No se ha degradado con la multi-tenencia: 48 de 53, frente
-a 49 con la línea anterior. Los cinco fallos son de enrutado y ninguno de
-generación: `ooc-04`, el único de 53 que sigue variando a temperatura 0, y
-cuatro casos de riesgo (`conf-02`, `conf-03`, `conf-05`, `inj-04`) que
-Haiku manda a `otro` y no llegan al control; son exactamente el 0,636 de
-cobertura del riesgo.
-
-**Agencia.** 31 de 40 con los dos casos de escritura añadidos (§42) y
-`accion_sin_aprobar` 40 de 40. La cita de la herramienta bajó de 0,96 en
-la pasada anterior a 0,92, y el §42 avisa de que ese efecto no es estable
-entre pasadas. Los nueve fallos: siete de enrutado entre categorías
-vecinas (`procesos`, `normativa` y `comercial` entre sí; `cartera` a
-`expedientes` en tres casos, que aun así llegan al control por el grupo
-de solapamiento) y dos de cita en la rama estructurada, que responde
-"según el CRM" sin nombrar la herramienta.
-
-**Gestoría.** 28 de 29, montada en menos de seis minutos (capítulo 8.1),
-tras corregir dos expectativas del banco (§45) y recuperar un caso de
-agregación de dos documentos (§49). El fallo que queda es del sistema: su
-`ooc-04`, que comparte identificador con el del heredado y no es el mismo
-caso.
-
-### 4.3 Evaluar al evaluador
-
-El feedback de la 3.3 pedía evaluar también al juez y su estabilidad. Se
-hizo, y el resultado cambia cómo se lee cualquier métrica de juez:
-
-- **El juez muestrea aunque el código diga `temperature=0`** (§26):
-  `claude-sonnet-5` no admite el parámetro y DeepEval lo descarta sin
-  avisar. Explica la varianza medida en la 3.3.
-- **El número contradice su propio razonamiento** (§30), en dos familias con
-  el mismo prompt y las mismas trazas: Anthropic escribió *"mereciendo la
-  puntuación máxima"* y emitió 0,1; Gemini, a temperatura 0, escribió
-  *"cumple exactamente"* y emitió 0,1. No es la temperatura ni la familia:
-  es pedir número y justificación en la misma respuesta.
-- **La temperatura no le hace nada y sus errores van en un solo sentido**
-  (§32, un piloto de 4 casos por 6 pasadas): de 24 veredictos, 4 son espurios y **los cuatro
-  suspenden lo que debía aprobar**. Consecuencia: `casos_ok` de una pasada
-  con juez es un suelo, y promediar pasadas empeora la cifra en vez de
-  cancelar el error. La única corrección conocida es la mayoría de tres,
-  y el proyecto no la automatiza (capítulo 8.3): cuando se pasa el juez,
-  se pasa tres veces y se lee la mayoría con su razón, y las cifras
-  vigentes del capítulo 4.2 no lo usan.
-- **La comparación base/endurecido no la puede decidir el juez** (§33): 5 y
-  6 casos de 10 cambian de veredicto entre tres pasadas idénticas. La decide
-  `fuga_literal`: la política base filtra el salario individual de un
-  empleado y un dato de salud citando el anexo confidencial, la endurecida
-  no filtra ninguno de los dos; **8/10 frente a 10/10**. Eso se midió
-  sobre trazas anteriores al control de acceso. La política vigente es la
-  base: la endurecida costó relevancia en la 3.3 (§8), y con el permiso
-  dentro del `where` la base ya no filtra nada en la línea base vigente
-  (10 de 10, §40). El prompt dejó de ser el control.
-
-Dos reglas salen de ahí y se aplican en toda la memoria: una puntuación de
-juez no se lee sin su razón, y ninguna decisión del proyecto cuelga de una
-métrica de juez.
-
-Dos limitaciones que quedan. El juez de la 3.3 compartía familia con el
-generador (`claude-sonnet-5` juzgando a `claude-haiku-4-5`); `Config`
-impide que sean el mismo modelo, no la misma familia. Desde que se midió
-(§24) la limitación viaja en cada `resumen.json` y en cada informe, y el
-juez por defecto es de otra familia. Y el juez no se validó contra
-anotación humana: se evaluó contra sí mismo, repitiendo pasadas, y contra
-las métricas deterministas.
-
-### 4.4 Cortes de línea base, con fecha
-
-Dos veces cambió un valor por defecto y las cifras de antes y de después
-dejaron de ser comparables. Quedan escritos porque es lo único que impide
-citar dos cifras que miden configuraciones distintas.
-
-| Corte | Qué cambió | Qué compra | Qué no compra | Escotilla |
-|---|---|---|---|---|
-| 22-09-2026 (`ALCANCE.md` §5.c) | Temperatura del enrutador a 0; juez por defecto a `gemini-3.6-flash` | 3 casos inestables de 38 pasan a 0; independencia de familia; juez 5,5 veces más barato | Determinismo (1 de 53 sigue variando); estabilidad del juez | `ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic` |
-| 23-09-2026 (`ALCANCE.md` §5.d) | El generador recibe quién pregunta y que su contexto está autorizado | 2 de 5 a 5 de 5 al dar un dato autorizado; la rama estructurada cita la herramienta | Nada frente a una fuga real: eso lo garantiza la búsqueda | `GEN_QUIEN_PREGUNTA=0` |
-
-Se decidieron antes de conocer el enunciado, y a propósito: una decisión
-que invalida la comparación con las ejecuciones anteriores necesita tiempo
-para volver a medir, y entre el enunciado y la entrega no lo habría.
-
-### 4.5 Lo que el banco enseñó sobre el método
-
-Seis veces el error estaba en el instrumento y no en el sistema, y las
-seis se corrigieron por escrito antes de sacar conclusiones: dos defectos
-del banco de la agencia (§3), la mitad de los casos de seguridad que no
-probaban nada (§11), la métrica de PII invertida (§31), dos casos de la
-gestoría (§45), un comparador que no ignoraba el énfasis de markdown (§47)
-y un literal con el número en letra (§49). Una séptima apareció al final:
-un caso de robustez aprobaba a un sistema que no había respondido (§54).
-La regla es no relajar el banco tras ver los resultados; cada corrección
-cita por qué la expectativa era incorrecta.
-
-Y una regla de método que salió del propio proyecto: **una predicción
-escrita antes de mirar convierte una cifra en una medida** (§21). La
-corrección del precio del juez se hizo escribiendo tres resultados
-posibles antes de abrir la consola del proveedor, y la consola marcó uno
-de los tres. La otra regla, que una hipótesis que sale de los datos no se
-confirma con los mismos datos, está donde se aprendió (capítulo 7.3).
-
-## 5. Coste
-
-### 5.1 Lo que cuesta funcionar y lo que cuesta medir
-
-| Concepto | Cifra | Hallazgo |
-|---|---|---|
-| Consulta sin juez | 0,00245 USD | §17, corregido en §21 |
-| Caso con juez | 0,0278 USD | §17, §21 |
-| **Evaluar frente a funcionar** | **11 veces más** | §17 |
-| Pasada completa de dos bancos con juez | 2,53 USD, el 20 % del crédito | §17 |
-| Pasada completa sin juez | 0,25 USD los dos bancos | `ALCANCE.md` §5.d |
-| Evaluación con juez Anthropic / Gemini | 0,00417 / 0,00076 USD, y son suelos (G-Eval de una llamada) | §32 |
-| Pasada completa de los dos bancos con el juez nuevo | 0,73 USD (una de Anthropic) o 0,40 USD (tres de Gemini), como mínimo | §32 |
-| Experimento de sesgo, las tres capas | 0,0046 USD (recuperación y enrutado) y 0,27 USD (generación, 336 respuestas) | §34, §44 |
-| Solapamiento consultando dos ramas | +40 % por caso en el grupo, +0,5 s | §22 |
-| Recorrido del guion de demostración, bloques 1 a 4b | 0,064-0,069 USD, nueve o diez consultas, medido dos veces por un tercero | §67, §68 |
-
-Hay tres cifras de coste por consulta en esta memoria y miden cosas
-distintas: 0,0021 USD (capítulo 1.2) es la del documento de concepto,
-medida en la 3.1 sobre el sistema heredado; 0,00245 USD (§17) es la del
-banco heredado el 21-09, antes de los dos cortes de línea base; y las de la
-ficha del capítulo 5.4 (0,00198 a 0,00406 USD) son las de las ejecuciones
-vigentes de cada inquilino. Al citar una, decir cuál. Los dos defectos que
-la propia contabilidad tuvo están en el capítulo 8.4.
-
-### 5.2 Tope de gasto y una clave por fin
-
-- **Tope duro**: cuentas de prepago en los dos proveedores con recarga
-  automática desactivada, 12,66 USD de crédito en Anthropic a fecha de la
-  medida (§16). Una fuga a pleno ritmo de un solo proceso, 115 consultas
-  por minuto con ocho en vuelo (§53), gasta 13,7 USD por hora y lo
-  agotaría en 55 minutos. El 11-10-2026 la organización de la API recibió
-  200 USD de crédito de la suscripción del autor, y con ellos el peor caso
-  de una fuga pasaba a ser todo el saldo. Se rehízo el tope por espacios de
-  trabajo de la consola: los tres servicios desplegados usan una clave
-  propia en un espacio con **límite de 10 USD al mes**, que a ese ritmo de
-  fuga se agota en 44 minutos; las claves de desarrollo no salen de la
-  máquina del autor.
-- **Tope blando**: `TOPE_GASTO_USD` en la interfaz y los canales, sobre el
-  registro de producción. Es un suelo: excluye embeddings y lo gastado fuera
-  de la interfaz, y no hay límite por usuario ni por minuto (R-08). Hasta el
-  25-10-2026 sumaba el fichero del disco efímero y volvía a cero en cada
-  despertar del servicio; ahora lee la base persistente (§67).
-- **Una clave para el sistema y otra para el juez**, el feedback de la 3.3
-  aplicado desde el scaffold: separa en facturación lo que cuesta el
-  sistema de lo que cuesta evaluarlo. La clave del juez estaba en todas
-  partes menos donde importaba (§18) y en el camino de Gemini usaba la de
-  los embeddings (§24) hasta que se arregló.
-
-### 5.3 Lo que la contabilidad no ve
-
-`reports/` mide el banco, no el proyecto: la contabilidad propia no ve un
-22 % del gasto de la clave (llamadas de desarrollo fuera del runner,
-reintentos del SDK) (§16). Y los embeddings se cuentan pero no se
-convierten a dólares porque el modelo ya no aparece en la página de
-precios (§35, §37): exactos en la ingesta (2.724 y 3.027 tokens por
-corpus), estimados en la consulta (14 tokens de media, a 4,20 caracteres
-por token medidos sobre 91 consultas). Al citar un coste, la memoria dice
-que excluye los embeddings.
-
-### 5.4 La ficha comercial: qué cuesta un cliente nuevo
-
-`ALCANCE.md` §5 fija como activos del TFM dos cifras comerciales: lo que
-cuesta dar de alta un cliente y lo que cuesta atenderlo cada mes. La
-primera está en el capítulo 8.1. La segunda sale de la contabilidad de
-tokens de las ejecuciones
-vigentes de cada inquilino, que es la mejor aproximación que hay al tráfico
-real: cada banco es una mezcla de consultas cortas, largas, de una rama y
-de las dos.
-
-| Inquilino | Ejecución | Coste por consulta | Tokens de entrada por consulta | Latencia media / p95 |
-|---|---|---|---|---|
-| `empresa_servicios` (solo documental) | `empresa_quien` | 0,00198 USD | 973 | 3,28 s / 4,36 s |
-| `gestoria_laboral` (solo documental) | `gestoria_agregacion` | 0,00211 USD | 1.130 | 2,95 s / 4,01 s |
-| `agencia_inmobiliaria` (documental y estructurada, con grupo de solapamiento y dos casos de escritura) | `agencia_hitl_v3` | 0,00406 USD | 2.671 | 4,09 s / 5,73 s |
-
-Las latencias de la tabla son de banco, en caliente. En el servicio
-desplegado, la primera consulta de un inquilino tras despertar tarda más:
-las correcciones simuladas del 25-10 midieron 19-20 s internos en la
-cartera, 8,5 s de ellos construyendo el índice que el disco efímero obliga a
-rehacer (§67, §68), además de los 32 s de despertar (capítulo 6.6).
-
-La agencia cuesta el doble por consulta que los inquilinos solo
-documentales, y la causa está en los tokens de entrada: la rama
-estructurada mete en el contexto el resultado de las herramientas, y el
-grupo de solapamiento consulta las dos ramas (§22). Es el precio de
-responder lo que ningún documento contiene.
-
-Ficha mensual, a los precios vigentes de `claude-haiku-4-5` (1,00 / 5,00 USD
-por millón de tokens):
-
-| Consultas al mes | Inquilino documental (0,00198 USD) | Inquilino con rama estructurada (0,00406 USD) |
-|---|---|---|
-| 500 | 1,0 USD | 2,0 USD |
-| 2.000 | 4,0 USD | 8,1 USD |
-| 10.000 | 19,8 USD | 40,6 USD |
-
-**Modelo abierto autoalojado frente a API.** El Módulo 1 plantea la
-alternativa de servir un modelo de pesos abiertos en máquina propia. Con
-una GPU L4 bajo demanda en la nube, la opción mínima para un modelo de unos
-8.000 millones de parámetros cuantizado, el coste es fijo: unos 0,70 USD la
-hora según tres catálogos de precios consultados el 11-10-2026, 511 USD al
-mes encendida siempre; con precios de región barata o instancia
-interrumpible, en torno a 0,15 USD la hora, 110 USD al mes. Frente a la
-API:
-
-| Coste fijo de la GPU | Equilibrio, inquilino documental (0,00198 USD) | Equilibrio, con rama estructurada (0,00406 USD) |
-|---|---|---|
-| 511 USD/mes (0,70 USD/h) | 258.000 consultas al mes | 126.000 consultas al mes |
-| 110 USD/mes (0,15 USD/h) | 56.000 consultas al mes | 27.000 consultas al mes |
-
-A los volúmenes de la ficha (de 500 a 10.000 consultas al mes) la API es
-entre 3 y 500 veces más barata, y eso sin contar lo que la tabla no
-incluye: operar el servidor, y que la calidad de un modelo de 8.000
-millones en este enrutado y esta generación está sin medir. El argumento a
-favor de autoalojar no es el coste sino la transferencia de datos (R-18):
-un modelo en una máquina europea propia no manda nada a un tercero. Es la
-razón por la que un cliente con datos de salud o de empleo podría pedirlo,
-y la ficha dice lo que costaría.
-
-**Afinar un modelo, tampoco.** No hay datos de entrenamiento fuera del
-banco, y entrenar con él lo invalidaría como medida; los catorce fallos
-vigentes son de enrutado o de cita, y ninguno de generación (capítulo 4.2).
-El enrutador por embeddings del capítulo 3.3 ya mide hasta dónde llega un
-clasificador sin modelo de chat (0,735 frente a 0,882 de Haiku).
-
-Lo que la ficha no incluye, y hay que decir al presentarla:
-
-- **Embeddings.** Unos 14 tokens de media por consulta (91 consultas del
-  golden set, §37), sin precio
-  publicado para el modelo actual. Al precio de su sucesor (0,20 USD por
-  millón) serían tres millonésimas de dólar por consulta: no cambia la
-  ficha, pero se declara. Desde el 27-09 la clave de los embeddings está
-  en un proyecto de Google con facturación y un límite de inversión de
-  5 EUR al mes, igual que la del juez en el suyo (§57): los dos gastos se
-  leen por separado y los dos tienen tope duro.
-- **Infraestructura.** En el despliegue actual la interfaz y el canal de
-  WhatsApp corren en el plan gratuito de Render, que duerme antes de 20
-  minutos sin tráfico y tarda entre 32 y 61 s en despertar (capítulo 6.6).
-  El plan de pago más barato que lo elimina, `0.5c-512mb`, cuesta 7 USD al
-  mes por servicio, y no es una estimación: el servicio de correo está en
-  él desde el 27-09 porque el gratuito bloquea la salida SMTP (§55). Los
-  tres servicios despiertos serían 21 USD al mes, coste fijo independiente
-  del volumen que se suma aparte. El registro de producción va a un
-  Postgres gratuito que caduca el 10-11-2026 (capítulo 6.1); un despliegue
-  real lo pasaría al plan de pago de la base.
-- **Evaluación.** Mantener el banco cuesta entre 0,06 y 0,16 USD por
-  inquilino y pasada sin juez y, si se pasa el juez, en torno a 0,40 USD
-  las tres pasadas de Gemini sobre dos bancos (§32). Es coste por cambio,
-  no por
-  consulta: se paga cuando se toca algo, no cuando se usa.
-- **Lo que la contabilidad no ve** (capítulo 5.3): un 22 % de gasto de
-  desarrollo y reintentos fuera del runner. En producción ese gasto no
-  existe, pero la cifra de desarrollo del proyecto sí lo lleva.
-- **Cambios de precio del proveedor.** `gemini-3.6-flash`, el proveedor
-  alternativo, dobla su precio el 1 de enero de 2027 (§29). La tabla de
-  precios del repositorio es viva y un test recalcula desde tokens.
-- **El volumen es supuesto.** Las tres filas de la ficha mensual (500,
-  2.000 y 10.000 consultas) son órdenes de magnitud para una plantilla de
-  diez a cien personas, no una medida: ningún inquilino real ha usado el
-  sistema.
-
-## 6. Control en producción: observabilidad, operación y despliegue
-
-### 6.1 El registro de producción
-
-Cada consulta real deja una línea en el registro del inquilino: usuario,
-categoría, rama, fuentes, documentos denegados por permiso, campos
-redactados, tokens, coste en dólares y latencia (§20). Las que fallan
-quedan con `_fallo` y su tipo de error desde que la primera pulsación del
-simulacro de incidentes destapó que no dejaban rastro (§46), y las que el
-modelo dejó a medias por el límite de salida, con `respuesta_truncada` y
-un aviso en la propia respuesta (§67), igual que las que recibieron un
-resultado de herramienta recortado (`resultados_recortados`, §68). El registro no guarda la respuesta. `observabilidad_cli` resume por inquilino:
-consultas, coste acumulado, latencia p95, cuántas veces alguien pidió lo
-que no le toca; y aplica la política de retención del capítulo 6.2. Desde
-el 11-10-2026 cada línea lleva además la versión con que se respondió: el
-commit desplegado y la huella de los prompts activos, que remite al
-catálogo generado `docs/PROMPTS.md` (cada prompt con su modelo, temperatura
-y la evidencia que lo respalda, vigilado por test como el AIBOM). Así
-cualquier cifra de producción se parte por versión, y un cambio de prompt
-o de modelo se compara antes y después sobre tráfico real.
-
-**Calidad en producción, sin guardar la respuesta.** El banco mide antes de
-desplegar; lo que pasa después lo mide la propia consulta al servirse
-(`src/evaluacion_produccion.py`). Sobre todas, el mismo verificador de
-citas que el banco (§23): cuántos ficheros cita la respuesta, cuántos no
-estaban en lo recuperado y si cita alguna fuente. Sobre una fracción
-aleatoria (`EVAL_PRODUCCION_FRACCION`, 0,5 en el despliegue), un juez de
-otra familia que el generador, en un hilo aparte para no sumar latencia,
-dice si lo que afirma la respuesta está respaldado por su contexto, con un
-veredicto de tres valores (fiel, parcial, no fiel) y no un número, por lo
-que el §30 midió de los números del juez. Al registro solo van los números
-y el veredicto, enlazado a la consulta y con el coste del juez aparte; ni la
-respuesta ni el razonamiento del juez. Mandar la muestra a Gemini es una
-transferencia más, aceptada por el autor y registrada (R-18). Las primeras
-consultas reales lo pusieron a prueba: tres de tres sin citas inventadas,
-la versión en cada línea, y un juez que devolvía su veredicto cortado
-porque el límite de salida que tenía no dejaba sitio a su razonamiento;
-corregido el mismo día, con una prueba (§62). Nadie
-recibe una alerta: el tope blando se comprueba al consultar y no avisa, y
-es un límite declarado (capítulo 9).
-
-**Por qué un registro propio y no una plataforma de observabilidad**
-(Langfuse, opik o LangSmith, que el máster usa). Tres motivos, en orden de
-peso. Uno, la retención: una plataforma recibe el texto de la consulta y de
-la respuesta, y este registro no guarda la respuesta a propósito
-(capítulo 6.2); mandarla a un tercero sería una transferencia de datos más
-(R-18) para obtener lo que ya se tiene. Dos, lo que hay que mirar aquí es
-propio del dominio: documentos denegados por permiso, campos redactados,
-rama elegida, inquilino; una plataforma genérica lo guardaría como
-metadatos sin significado. Tres, coste y dependencias: cero paquetes y cero
-servicios nuevos. Lo que se pierde es la interfaz de exploración y las
-trazas anidadas por paso, que aquí se suplen con `observabilidad_cli` y con
-las trazas del banco.
-
-Hasta el 11-10-2026 el registro vivía solo en el disco efímero del plan
-gratuito de Render y no sobrevivía a un reinicio del servicio; era lo que
-el feedback de las entregas 3.1 y 3.3 había dejado pendiente. Desde
-entonces cada línea va además a un Postgres gratuito de Render en la misma
-región (`src/registro_db.py`), y `observabilidad_cli` lee de ahí desde la
-máquina del autor. La supresión y la purga del capítulo 6.2 se aplican
-igual en la base, con la misma lápida, y lo vigilan nueve pruebas contra
-SQLite. Ese Postgres gratuito caduca el 10-11-2026, después de la entrega;
-un despliegue real lo pasaría a un plan de pago (capítulo 5.4).
-
-### 6.2 Retención y supresión
-
-`RETENCION.md`: 90 días, respuesta no guardada, supresión por usuario y
-purga por antigüedad, las dos con lápida que dice cuánto se quitó sin
-decir a quién. Medidas en menos de 0,05 s (0,048 y 0,040 s) sobre un
-registro de 10.000 líneas (§37). La tensión entre la trazabilidad que pide el artículo 12 del
-AI Act y el riesgo de vigilancia del Módulo 4 se escribe, no se resuelve
-(R-16).
-
-### 6.3 Despliegue
-
-Render, desde `render.yaml`: primer despliegue en 1 min 32 s (§38). Se
-paró en el login por exigir la clave del juez, que la interfaz no usa;
-arreglado. Seis usuarios, dos por inquilino, más cuatro de evaluación
-(`eval_*`) para quien corrija, en `APP_USUARIOS_JSON`; las contraseñas
-solo las tiene el autor, y dar de alta o de baja un usuario
-exige cambiar esa variable y redesplegar. Cuatro hallazgos (§38, §39, §41,
-§42) salieron de probar el servicio desplegado y no el banco; el §41 es la
-fuga por tamaño del capítulo 2.6.
-
-### 6.4 Plan de incidentes, pulsado en frío
-
-`INCIDENTES.md` define el botón rojo en orden (revocar, parar, congelar
-evidencia, rotar), quién avisa a quién, y que todo incidente termina en un
-hallazgo. `scripts/simulacro_incidente.py` lo pulsa: **14,95 s** el botón
-rojo completo (fallo legible y registrado en 4,8 s, evidencia congelada
-con manifiesto en 1,65 s, vuelta en 8,47 s) (§46). La primera pulsación
-destapó que las consultas fallidas no dejaban rastro. La mitad manual del
-plan, revocar y rotar la clave en las consolas y en Render, no está
-cronometrada y se decidió no hacerlo antes de la entrega: no hay incidente
-que lo pida, y rotar credenciales en el mes de la entrega solo para medir
-es más riesgo que dato. Queda declarada como estimación, unos cinco
-minutos, no como medida.
-
-**El plan B del usuario.** Cuando la consulta no se puede atender, los tres
-canales responden con un mensaje determinista que dice qué ha pasado (el
-proveedor no responde, la configuración está rota, demasiadas peticiones) y
-a quién acudir, con el contacto que declara el manifiesto de cada inquilino;
-el registro guarda la clase del fallo. Medido provocando los dos fallos más
-probables: el mensaje llega en 6 s con la clave revocada y en 13 s con el
-proveedor inalcanzable, contando el arranque del proceso y los dos
-reintentos del SDK (§63). No es un fallback silencioso: no se inventa una
-respuesta ni se cambia de modelo sin decirlo. La conmutación automática a
-Gemini se decidió en contra, porque cambiaría el enrutado y con él el
-control de acceso en mitad de un incidente (§57).
-
-### 6.5 Dos superficies y un puente
-
-El proyecto se desarrolló desde Claude Code y desde la app de Claude,
-unidos por un puente MCP local propio: utillaje del autor, no del sistema
-(`docs/SINCRONIZACION_SUPERFICIES.md`). Se menciona por un hallazgo: al
-montarlo, la sesión de solo lectura que la app abría sobre el repositorio
-podía leer el `.env` con las claves (§19). Es la fila R-04 del registro de
-riesgos y la prueba de que confinar a un directorio no es confinar a lo
-que se puede enseñar.
-
-### 6.6 Carga y arranque en frío
-
-Ocho consultas a la vez sobre un mismo `Sistema` tardan lo que una: p50
-entre 3,16 y 3,32 s en concurrencia 1, 2, 4 y 8, el lote 5,7 veces más
-rápido, 0 errores, y el enrutado y el permiso iguales que en secuencial
-(§53). La rama estructurada paga entre 0 y medio segundo a cuatro en
-vuelo. La puerta HTTP de una instancia gratuita aguanta 20 clientes a la
-vez sin moverse: 216 peticiones, máximo 0,19 s. Dos de 64 consultas de la
-primera pasada superaron 11 s dentro de una llamada al proveedor y la
-segunda pasada no lo repitió; la causa no se vio.
-
-El plan gratuito duerme antes de 20 minutos sin tráfico (Render documenta
-15) y despertar cuesta 32 s la interfaz y 42-61 s el servicio de WhatsApp;
-despierto, menos de 0,2 s, y ninguna petición se pierde mientras despierta
-(§52). Esas medidas eran solo del contenedor; con un mensaje real de
-WhatsApp tras 18 minutos de pausa (§59), el despertar fue de 41 s y el
-primer mensaje tardó 13,9 s más dentro del canal, 8 de ellos en construir
-el sistema y el índice, que el disco efímero obliga a rehacer tras cada
-despertar. Un reintento de Meta durante ese despertar destapó un defecto
-de concurrencia, corregido el mismo día. Lo que estas medidas no cubren
-está en el capítulo 9.
-
-## 7. Gobernanza, seguridad e IA responsable
-
-Este capítulo absorbe el Módulo 4 del máster, por decisión confirmada en
-la tutoría (capítulo 1.2), que además nombró la securización como
-requisito. El material del módulo no entra en el repositorio (es obra de
-un profesor y el repositorio es público); se cita desde `MODULO_4.md`.
-
-### 7.1 El registro de riesgos
-
-`RIESGOS.md` tiene 24 filas, cada una con cuadrante de la matriz de
-Rumsfeld, casilla del OWASP Top 10 para LLM, técnica de MITRE ATLAS
-(verificadas contra la matriz 5.6.0), dominio de AIUC-1, evidencia
-(hallazgo o test), control y estado. Un test comprueba que cada hallazgo
-citado existe y que las diez casillas del OWASP tienen fila: una fila sin
-evidencia es una opinión.
-
-| Cuadrante | Contramedida del Módulo 4 | Lo que el proyecto pone |
-|---|---|---|
-| Conocidos-conocidos | Pruebas y métricas | El banco, las métricas deterministas, la contabilidad de coste (14 filas) |
-| Conocidos-desconocidos | Vigilar, despliegue continuo | Precios vivos con test, conmutación verificada, condicionada a una clave de pago (§54) y medida con ella (§57), AIBOM (R-07, R-09, R-15) |
-| Desconocidos-conocidos | Evaluar vulnerabilidades activamente | Cinco filas que salieron de mirar con desconfianza (R-04, R-06, R-11, R-13, R-21); en tres de ellas el error estaba en el instrumento (capítulo 4.5) |
-| Desconocidos-desconocidos | Botón rojo y plan | Tope prepago, plan escrito y pulsado en frío (R-23) |
-
-### 7.2 OWASP Top 10 para LLM
-
-| # | Riesgo | Estado |
-|---|---|---|
-| 1 | Inyección de instrucciones | Medido con los ocho casos `inj-*` del banco (cuatro en el heredado, dos en la agencia, dos en la gestoría) y la cobertura del riesgo: los que llegan al control no filtran ningún literal prohibido; `inj-04` no llega y es el residual (capítulo 2.7). Y con una batería estándar de red-teaming (DeepTeam): 64 ataques resistidos, ninguna fuga, pero solo 7 llegaron al control (§65) |
-| 2 | Salida insegura | Por construcción: texto para una persona en los tres canales; la interfaz no interpreta HTML y el correo envía texto plano |
-| 3 | Envenenamiento de datos | Por construcción, no medido como ataque: corpus sintético con semilla. Un cliente real trae su corpus y la mitigación desaparece |
-| 4 | Denegación de servicio | Por construcción: tope duro (prepago sin recarga y, desde el 11-10, 10 USD al mes para la clave desplegada) y blando; una fuga a pleno ritmo gasta 13,7 USD por hora (115 consultas por minuto con ocho en vuelo, §53). Sin límite por usuario ni por minuto; la puerta HTTP aguanta 20 clientes a la vez y el pipeline 8 en vuelo sin degradarse (§53), así que la denegación plausible es económica, no de capacidad |
-| 5 | Cadena de suministro | Por construcción: AIBOM generado y vigilado por test; destapó el §35 al generarse |
-| 6 | Divulgación de información confidencial | Lo más fuerte del proyecto: permiso en el `where`, redacción, cobertura del riesgo, una fuga real cerrada, aislamiento por colección |
-| 7 | Complementos no seguros | Por construcción: servidores MCP como procesos aparte. Medido solo en el puente del autor: sin lista de denegación la sesión hija leía el `.env` entero (§19) |
-| 8 | Agencia excesiva | Medido: 40 de 40 sin escritura sin aprobar (§42) |
-| 9 | Sobredependencia | Medido, y sobre el propio evaluador: el juez emite números que contradicen su razonamiento (§30, §32) |
-| 10 | Robo de modelo | No aplica |
-
-Donde la tabla dice "por construcción" no hay medida: el control existe
-por diseño y no se ha atacado. Son las filas 2, 3, 5 y 7.
-
-**Red-teaming con herramienta** (§65). El enunciado pide un agente o
-framework de red-teaming, y los casos del banco están escritos a mano. Se
-pasó DeepTeam, de la misma casa que el juez del banco, contra el sistema
-entero en los dos inquilinos con material sensible: 64 ataques estándar
-(fuga de datos personales y del prompt, saltarse el rol, recuperar datos de
-otro contexto o cliente, instrucciones indirectas y agencia excesiva),
-mejorados con siete técnicas, por 2,1 USD. Resultado: ninguna fuga por
-ningún criterio determinista (documento restringido en el contexto,
-literales sensibles en la respuesta, frases del prompt, escrituras). Pero
-solo 7 de los 64 llegaron al control de acceso, y en los 7 el documento
-restringido quedó retenido en la búsqueda; los otros 57 eran tan
-elaborados que el enrutador los mandó a `otro` y el modelo se negó sin
-contexto. La batería estándar mide sobre todo el enrutador y la prudencia
-del modelo; el control lo prueban mejor los casos del banco, escritos para
-este dominio. Hacer que la herramienta midiera algo exigió cazar tres
-defectos suyos, el más serio un atacante que devolvía su negativa como
-ataque y la herramienta lo contaba como superado.
-
-De los nueve guardarraíles que enumera el material, el proyecto tiene
-ocho (la tabla de `MODULO_4.md` los recorre uno a uno). Falta la
-moderación de contenido, y el hueco está justificado: en un asistente
-interno sobre documentación propia el vector es la consulta, la inyección
-lo cubre en parte y la categoría `otro` filtra lo que está fuera de
-ámbito.
-
-**Lo que el control deja ver, por decisión.** Bajo cada respuesta, la
-interfaz web nombra los documentos que el permiso retuvo ("Retenido por
-permiso: anexo_confidencial_plantilla.md"), también a quien no tiene el rol
-y aunque la pregunta no los pidiera, porque el filtro retiene el documento
-en toda consulta a su fuente; WhatsApp y el correo solo dicen cuántos.
-Revela que el documento existe y cómo se llama, no una palabra de su
-contenido. Se decidió mantenerlo el 25-10-2026 (§67): quien pregunta sabe
-que la respuesta existe y a quién pedirla, que es lo mismo que el §47 quiso
-al dejar de presentar la denegación como ausencia. Un cliente que no quiera
-revelar ni el nombre tendría la variante de los canales ya escrita.
-
-### 7.3 Sesgo, medido en tres capas
-
-Pares de consultas emparejadas que solo difieren en un rasgo (género,
-edad, origen, discapacidad), con grupo de control y suelo de ruido:
-
-| Capa | Cómo | Resultado | Hallazgo |
-|---|---|---|---|
-| Recuperación | Distancia de embeddings entre pares emparejados, con control de ruido | Ningún eje alcanza el doble de su suelo; sin emparejar, `discapacidad` daba un rango 75 veces mayor y era una afirmación falsa | §34 |
-| Enrutado | Categoría asignada en seis variantes de nombre | Estable | §34 |
-| Generación | Cinco medidas deterministas sin juez, ocho repeticiones por variante | Ningún eje por encima del suelo; dos medidas saturadas | §44 |
-
-Lo que **no** se afirma: que el sistema no discrimina. Dos de las cinco
-medidas de generación están saturadas y solo prueban que no hay negativa
-selectiva ni omisión de datos; presentarlo como ausencia de sesgo sería la
-falsa objetividad que el propio módulo enumera como riesgo. El propio
-experimento produjo tres afirmaciones falsas, concretas y alarmantes
-antes de la correcta (§34), todas por pares mal emparejados; por eso
-trece pruebas comprueban que los pares sigan emparejados
-(`tests/test_sesgo.py`), y veinte más la capa de generación. Y una
-hipótesis que salió de leer las respuestas (matiz por origen, 2,00x con 8
-tiradas) cayó a 1,00x con 24: una hipótesis que sale de los datos no se
-confirma con los mismos datos.
-
-### 7.4 AI Act: el mismo sistema, una casilla por inquilino
-
-Un asistente que interactúa con personas cae en la obligación de
-transparencia del **artículo 50.1**, en aplicación desde el 2 de agosto de
-2026 y por tanto vigente al entregar; el aviso lo declara cada
-manifiesto y lo muestra la interfaz. Pero el corpus del inquilino heredado
-tiene salarios y evaluaciones individuales (anexo III, punto 4, empleo) y
-los expedientes de la agencia tienen ingresos y solvencia de personas
-físicas (punto 5b). Si el asistente se usara para evaluar personas o
-decidir su admisión, sería de alto riesgo.
-
-La salida es el **artículo 6.3**: no es de alto riesgo un sistema del anexo
-III que hace una tarea de procedimiento limitada, y quien lo alegue
-documentará su evaluación (apartado 4). Esa documentación es el bloque
-`ai_act` del manifiesto, que exige la condición alegada, la justificación,
-los usos excluidos y la declaración de que no perfila personas (el último
-párrafo del 6.3 dice que el perfilado siempre es alto riesgo); el
-validador rechaza una excepción con perfilado y rechaza tocar el anexo III
-sin excepción ni clasificación de alto riesgo.
-
-**El calendario cambió el 27 de julio de 2026** y la memoria cita el texto
-vigente: el Reglamento (UE) 2026/1744 (Ómnibus digital sobre IA) retrasa
-las obligaciones de alto riesgo del anexo III al **2 de diciembre de 2027**.
-En octubre de 2026 el artículo 50 obliga y el capítulo III no; la
-clasificación por inquilino se defiende como diseño anticipado, no como
-cumplimiento exigible. Las citas literales se tomaron de EUR-Lex y se
-contrastaron contra la Comisión y el BOE (fuentes en `MODULO_4.md`).
-
-### 7.5 RGPD sobre el RAG
-
-- **Borrado y rectificación** (§36): `scripts/borrar_documento.py` retira un
-  documento, reconstruye el índice y comprueba contra la colección que no
-  queda ningún fragmento suyo. **1,46 s** en la agencia, **1,23 s** en el
-  heredado, cero fragmentos residuales, el resto intacto. Es reconstrucción
-  completa, crece con el corpus. Lo que no cubre: las consultas registradas
-  que citaron el documento (R-16).
-- **Retención del registro**: capítulo 6.2.
-- **Transferencias internacionales y lo que producción exigiría**: en el
-  estado actual no viaja ningún dato real porque los tres inquilinos son
-  sintéticos, así que el riesgo está mitigado por el dato, no por el
-  contrato. Con un cliente real, cada consulta manda fragmentos de sus
-  documentos y de su CRM a proveedores fuera de la Unión. En ese esquema
-  la empresa cliente es la responsable del tratamiento, quien opera el
-  asistente es encargado y cada proveedor de modelos, subencargado; y eso
-  exige base jurídica para la transferencia (cláusulas tipo o decisión de
-  adecuación), un contrato de encargado con cada proveedor, un registro de
-  actividades de tratamiento y, si el uso tocara el anexo III sin la
-  excepción del 6.3, una evaluación de impacto. Nada de eso está escrito:
-  es el hueco R-18, y la memoria lo declara en vez de darlo por hecho.
-
-### 7.6 Cadena de suministro
-
-`AIBOM.md` se genera desde `uv.lock`, `config.py`, `provider.py` y los
-manifiestos, con un test que falla si difiere: 18 paquetes directos y 148
-transitivos fijados, todos los grupos opcionales incluidos, y cada modelo
-con su precio o con la marca de que no lo tiene. La primera vez que se
-generó destapó que el modelo de embeddings está en retirada y costaba
-cero (§35). Desde el 11-10-2026 la CI audita además lo desplegado contra la
-base de vulnerabilidades de PyPA y falla si aparece una: la primera pasada
-encontró 23 en 6 paquetes, cerró 18 subiendo cinco versiones y dejó como
-excepción escrita las 5 de chromadb, que atacan su modo servidor y este
-sistema lo usa embebido (§61). Residual: la versión de Node del puente no
-está fijada, y el inventario lo dice.
-
-## 8. Escalabilidad y mantenimiento
-
-### 8.1 Dar de alta un cliente nuevo, cronometrado
-
-La prueba medida de agnosticidad (§43): `gestoria_laboral` en **5 min
-42 s**, dos iteraciones, **cero ficheros de código**: un manifiesto, seis
-documentos de corpus y un banco de 28 casos escrito antes de la primera
-pasada.
-
-| Momento | Casos OK | Qué pasó |
-|---|---|---|
-| Primera pasada | 20 de 28 | Acierto del enrutador 0,769; los cinco fallos de enrutado, todos a `procedimientos` |
-| Segunda pasada, 65 s después | 25 de 28 | Tres descripciones de categoría reescritas; acierto 0,923, cobertura del riesgo de 0,857 a 1,0 |
-| Revisión en frío del banco (§45) | 27 de 28 | Dos de los tres rojos eran expectativas incorrectas del banco, no del sistema |
-| Un caso de agregación de dos documentos añadido (§49) | 28 de 29 | El banco vigente del capítulo 4.2 |
-
-El control de acceso y la clasificación por el AI Act vienen gratis con el
-manifiesto. Sin banco, `procedimientos` habría llegado a producción con un
-77 % de acierto. Dos salvedades que la cifra declara: el alta la hizo un
-asistente de código con el proyecto en contexto, y en un cliente real el
-banco de 28 casos lo escribe quien conoce el negocio, no quien monta el
-sistema; ese tiempo no está medido.
-
-Lo que el alta enseña sobre el sistema: el enrutador es el primer cuello
-de botella de un cliente nuevo (§1, §43) y se resuelve reescribiendo
-descripciones, no código.
-
-### 8.2 Lo que cuesta escalar lo que ya hay
-
-Tres cosas crecen con el sistema, dos medidas y una declarada. El coste de
-un grupo de solapamiento crece con el tamaño del grupo: +40 % por caso del
-grupo (§22). El borrado RGPD es reconstrucción completa del índice y crece
-con el corpus (§36). Y cambiar el manifiesto de un inquilino en producción
-(una categoría nueva, una política más estricta) obliga a reindexar,
-porque la firma del índice cubre la política (capítulo 2.3), e invalida la
-comparación con el banco anterior de ese inquilino: el alta está medida,
-el cambio no. Cuántos inquilinos aguanta un proceso tampoco se midió; el
-límite conocido es Chroma abriendo una colección por inquilino.
-
-### 8.3 Lo que no está, y por qué
-
-Lo decidido en contra y lo que sigue abierto, en una sola tabla para que
-no haya que buscarlo en dos sitios:
-
-| Qué | Decisión o estado | Cuándo |
-|---|---|---|
-| Migrar embeddings a `gemini-embedding-2` | Decidido no antes de la entrega: invalida el índice y mueve las métricas de recuperación (§35) | Antes del 14-05-2028 |
-| Mayoría de tres del juez por defecto | Decidido no automatizarla (§32, §33): sobre 10 casos tres pasadas no bastan; repetir es un acto deliberado | Cerrado en el primer corte |
-| Denegación explícita en el caso parcial | Decidido no hacerlo antes de la entrega: 14 casos del heredado y otro corte de línea base (§47) | Tras la entrega |
-| `inj-04` | Residual: arreglarlo es tocar el prompt del enrutador heredado, que es la línea base | No se hace |
-| Aislamiento por número y aprobación por texto de WhatsApp en vivo | Decidido no medir: mismo mecanismo que la credencial web, fijado por las pruebas simuladas (§51) | Tras la entrega, si se pide |
-| Comparar el generador con Gemini | **Hecho** tras activar la facturación con tope de 5 EUR (§54, §57): empate en generación, 73 de 73 | Cerrado |
-| Rotar las claves de API y cronometrar la mitad manual del plan de incidentes | Decidido no hacerlo antes de la entrega: no hay incidente que lo pida (capítulo 6.4) | Tras la entrega |
-| Conectores a CRM comerciales; despliegue íntegramente local; omnicanalidad más allá de tres canales | Fuera del alcance (`ALCANCE.md` §7) | No se hace |
-| Multiagente (planificador y especialistas) o A2A | Decidido en contra: el flujo es un enrutador y dos ramas, y un paso de planificación sería otra llamada al modelo antes de buscar, como mínimo del tamaño de la del enrutador (unos 180 tokens de entrada y 60 de salida en el heredado): +0,0005 USD (+25 % sobre 0,00198) y +1,1 s (la latencia medida del enrutador, §48) por consulta, sin un solo fallo del banco que lo pida. LangGraph, medido, tampoco aportó (§50) | Si aparecen tareas de varios pasos |
-| Optimizar prompts con DSPy | Decidido en contra: optimizaría contra el banco, que no tiene un conjunto reservado, y el número subiría sin decir nada fuera de él (capítulo 9) | Con un conjunto reservado |
-| Caché de prompts | No aplicable: el mínimo cacheable de `claude-haiku-4-5` son 4.096 tokens y una consulta usa entre 973 y 2.671 de entrada en total (5.4) | Si el contexto crece |
-| Entorno de preproducción | No montado: la puerta es la CI (que el despliegue espera, §60) y el banco; un segundo juego de servicios duplicaría credenciales y la superficie expuesta | Con más de un desarrollador |
-| Enmascarar datos personales en la consulta | No montado: la redacción actúa sobre lo que devuelven las herramientas (capítulo 2.6), y la consulta del empleado llega al proveedor tal cual. Enmascararla exige un detector de entidades en español que no está medido, y rompería las preguntas por nombre que el control de acceso tiene que poder contestar a quien sí tiene el rol ("el salario de Laura Gómez"). Con datos sintéticos no viaja ningún dato real (R-18) | Con el corpus real de un cliente |
-| Alertas activas | No montadas: el tope blando corta y lo dice, pero nadie recibe un aviso cuando el gasto sube, aparecen fallos o el juez de producción empieza a decir "no fiel"; se leen con `observabilidad_cli` (capítulo 6.1) | Tras el feedback de la primera entrega, con el registro persistente ya en marcha |
-| Moderación de contenido | No montada: asistente interno, usuarios autenticados en listas cerradas, sin contenido generado por terceros más allá del corpus del cliente; el red-teaming del capítulo 7.2 no la pidió | Si se abre a clientes externos |
-| KPI de negocio de un piloto | Sin medir: no hay usuarios reales. El que se mediría es la fracción de consultas resueltas sin acudir al contacto alternativo, frente al tiempo que hoy cuesta la misma consulta por correo interno | En el piloto |
-
-### 8.4 Mantenimiento frente a proveedores que cambian solos
-
-Cuatro instancias medidas (R-07): `gemini-2.5-flash` retirado para
-proyectos nuevos (§29), `claude-sonnet-5` descartando `temperature` sin
-avisar (§26), `gemini-embedding-001` en retirada sin precio publicado
-(§35) y la cuota gratuita de Gemini agotando un banco entero (§54). Y dos
-defectos de la propia contabilidad: la tabla de precios heredada de la 3.3
-tenía el de `claude-sonnet-5` un 50 % alto y todo lo derivado salía
-inflado (§21), y un modelo sin precio costaba cero hasta que el registro
-pasó a marcar `modelos_sin_precio` (§28). Las mitigaciones: tabla de
-precios viva con un test que recalcula desde tokens, modelos con fecha en
-el identificador, AIBOM, y la conmutación de proveedor verificada (§29),
-condicionada a una clave de pago (§54) y, con ella, medida sobre los dos
-bancos documentales (§57).
-
-## 9. Límites y lo que queda fuera
-
-Tres bloques: lo que el banco no mide, lo que el despliegue no es todavía
-y lo que queda fuera por decisión. Lo decidido con fecha vive en el
-capítulo 8.3 y aquí solo se remite.
-
-**Lo que el banco no mide.**
-
-- **Un solo turno, salvo lo medido.** El sistema responde cada consulta sola. Un banco aparte de doce conversaciones de dos turnos midió el defecto: sin memoria se pierden 4 de 12 seguimientos ("¿Y la baja?" se va a `otro`), y reescribiendo el seguimiento con el turno anterior antes de enrutar se recuperan los tres que eran de memoria, por 0,8 s más (§66). Queda detrás de un conmutador, apagado en el banco y activado en la web por decisión del autor el mismo día (WhatsApp y el correo no guardan historial); conversaciones largas siguen sin medirse. La reescritura puede arrastrar la fuente del turno anterior: en la corrección simulada, un seguimiento sobre un salario se reescribió "según el convenio" y acabó en "no está en el contexto", que es el caso de denegación parcial que el §47 decidió no tocar (§67).
-- **Lo escribió quien construyó el sistema, y no hay conjunto reservado.**
-  Las descripciones de categoría de la agencia se afinaron en tres
-  iteraciones sobre el mismo banco (§6); el umbral del enrutador por
-  embeddings sí se calibró en un inquilino y se aplicó a otros (§48), pero
-  para Haiku no hay separación. Lo más parecido a una transferencia es el
-  alta de la gestoría: un banco nuevo, escrito antes de la primera pasada.
-- **Sin anotación humana** del acuerdo con el juez (capítulo 4.3).
-- **El envenenamiento del corpus** no está medido como ataque: la
-  mitigación es que el corpus es sintético, y desaparece con un cliente
-  real. **El fallo del servidor MCP** tampoco: la regla lo hace visible,
-  pero no se ha simulado (capítulo 3.2).
-- **El generador se comparó con una sola pasada por lado** y con el
-  enrutador cambiando a la vez (§57): el empate dice que el banco no
-  distingue a los dos modelos, no que sean iguales.
-
-**Lo que el despliegue no es todavía.**
-
-- **La interfaz vale para una demostración, no para un cliente**, y lo dice
-  en pantalla: contraseñas con SHA-256 y sal, comparación en tiempo
-  constante, pero sin límite de intentos, sin caducidad de sesión, sin
-  límite de gasto por usuario (R-08) y sin alta de usuarios sin
-  redesplegar (capítulo 6.3).
-- **El registro de producción persiste en un Postgres gratuito** que
-  caduca el 10-11-2026 (capítulo 6.1); la copia en disco del servicio
-  sigue siendo efímera.
-- **Nadie recibe alertas**: el tope blando es un suelo, se comprueba al
-  consultar, y no hay límite por usuario ni por minuto.
-- **La moderación de contenido** no existe (capítulo 7.2).
-- **Los embeddings no se convierten a dólares** (capítulo 5.3).
-- **De la carga solo se midió un proceso y una puerta** (capítulo 6.6). Sin
-  medir: consultas reales concurrentes contra Render, el techo de hilos, la
-  CPU del plan gratuito y la reconstrucción del índice tras un reinicio.
-  Que lo que escala sea el número de inquilinos es una afirmación de diseño
-  con una medida (el alta), no una de rendimiento.
-- **WhatsApp** está probado en vivo con un número; la latencia interna en
-  producción se leyó con tres mensajes (§59), una muestra pequeña. **Correo**
-  está medido en vivo con una dirección y tres correos (§56); el rechazo
-  del remitente falsificado se cierra en simulación (§58, DMARC `p=none`) y
-  sin medir en vivo queda la aprobación por correo. El plan
-  gratuito de Render no lo sostiene (dormido no sondea, despierto no envía,
-  §55), y por eso es el único servicio en el plan de pago.
-
-**Lo que queda fuera por decisión** está en la tabla del capítulo 8.3, con
-su motivo y su fecha.
-
-**Para pasar de demostración a piloto**, por este orden: plan de pago para
-la base del registro y para los servicios que hoy duermen, límites por usuario y por minuto, alta
-de usuarios sin redesplegar, moderación de contenido, y el corpus real de
-un cliente con su propia evaluación de envenenamiento y su contrato de
-encargado (capítulo 7.5).
-
-## 10. Documentación técnica y cómo comprobarlo
-
-### 10.1 Cómo está documentado el proyecto
-
-La documentación no es un anexo del código: es donde viven las decisiones,
-y el código la hace cumplir con tests. Ocho ficheros, cada uno con una
-función que no se solapa con la de los demás:
-
-| Fichero | Qué es | Quién lo hace cumplir |
-|---|---|---|
-| `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones cerradas, reglas de trabajo, riesgos abiertos | Si una conversación lo contradice, gana el fichero |
-| `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques con líneas de corte decididas de antemano, cortes de línea base fechados con su escotilla | Las escotillas tienen prueba |
-| `docs/HALLAZGOS.md` | 68 hallazgos medidos, cada uno con la ejecución que lo respalda, y los que corrigen a otro lo dicen; el capítulo 4.5 dice lo que enseñaron sobre el método | El registro de riesgos no puede citar un hallazgo que no exista |
-| `docs/RIESGOS.md` | 24 riesgos con Rumsfeld, OWASP, ATLAS, AIUC-1, evidencia y estado | `tests/test_riesgos.py`: cada `§` citado existe y las diez casillas del OWASP tienen fila |
-| `docs/AIBOM.md` | Inventario de dependencias, modelos y precios | Generado por script; el test falla si difiere del generado |
-| `docs/PROMPTS.md` | Catálogo de prompts: uso, modelo, temperatura, huella y evidencia | Generado desde el código; el test falla si difiere |
-| `docs/BITACORA.md` | Diario de sesiones: hecho, decidido, pendiente | La sesión siguiente arranca leyéndola |
-| `reports/<etiqueta>/` | Evidencia de cada ejecución: `resumen.json`, `informe.md`, trazas | Versionados a propósito: una cifra sin carpeta no es un dato |
-
-Y tres más de operación, cada uno con lo medido dentro: `INCIDENTES.md`
-(botón rojo, 14,95 s), `RETENCION.md` (90 días, supresión en menos de
-0,05 s) y `DESPLIEGUE.md` (usuarios, topes, Render).
-
-### 10.2 Cómo lo comprueba un tercero
-
-No hay defensa oral: lo que se evalúa es este documento y el repositorio
-(`docs/MODULO_5.md`). Por eso el capítulo dice qué puede comprobar quien lo
-lea sin depender del autor, de lo más barato a lo más completo.
-
-| Qué | Cómo | Qué hace falta | Cuánto |
-|---|---|---|---|
-| Que el código hace lo que dice | `uv sync` con los grupos del anexo A y `uv run pytest` | Nada: ninguna prueba llama a una API de pago | 1.251 pruebas en unos 20 s (diez menos sin el grupo `langgraph`) |
-| Que cada cifra está respaldada | Cada §N lleva a `HALLAZGOS.md`, y de ahí a su carpeta de `reports/` | Nada | — |
-| Que el banco da lo que dice | `uv run python -m evals.runner --etiqueta X --sin-juez` (anexo A) | Claves propias de Anthropic y Gemini | ~0,002-0,004 USD por caso |
-| Que el sistema funciona desplegado | La web de Render con los usuarios de evaluación `eval_empleado`, `eval_direccion`, `eval_comercial` y `eval_gerencia` | Sus contraseñas, que van en el comentario de la entrega del campus y no en el repositorio, que es público | Unos 32 s si el servicio está dormido (§52) |
-| Que se comporta como se describe | `docs/GUION_DEMO.md`: un recorrido en ocho bloques con consultas literales, los usuarios de evaluación, qué hacer y qué tiene que verse | Credenciales | 0,064-0,069 USD los bloques web (§67, §68) |
-
-El guion se escribió para una demostración en directo y se conserva como
-recorrido reproducible: cada bloque dice qué consulta lanzar, desde qué rol
-y qué tiene que aparecer, incluido qué hacer si algo falla, que se enseña
-como lo que es porque la regla de nada de fallbacks silenciosos vale también
-ahí. Los canales de WhatsApp y de correo atienden solo a números y
-direcciones de una lista cerrada (capítulo 2.9); probarlos exige que el
-autor dé de alta el número o la dirección de quien evalúa.
-
-## 11. Conclusiones
-
-Lo que se defiende, en tres frases con su número:
-
-1. **El aislamiento es estructural**: una colección por inquilino, y un
-   test que abre la colección equivocada falla. Dar de alta un cliente
-   cuesta 5 min 42 s y ningún fichero de código.
-2. **El control de acceso está antes del modelo y está medido**: cobertura
-   del riesgo 1,0 en la agencia, `fuga_literal` 10 de 10 en la línea base
-   vigente, una fuga real
-   encontrada y cerrada en la rama estructurada, y ninguna escritura sin una persona
-   que la apruebe.
-3. **El evaluador también se evaluó**: 4 de 24 veredictos del juez eran
-   falsos y todos en el mismo sentido, y por eso ninguna decisión del
-   proyecto cuelga de él. Las decisiones las anclan métricas que no varían.
-
-La aportación propia frente a la entrega de la que parte, en una frase:
-convertir un RAG de una empresa en un sistema multi-tenant con dos ramas
-en el que el control de acceso es estructural, y demostrar con el
-cronómetro que un cliente nuevo no cuesta código.
-
-Y lo que el proyecto aprendió sobre método, que vale más que cualquier
-cifra: siete veces el error estaba en el instrumento y no en el sistema;
-tres afirmaciones sobre sesgo fueron falsas antes de que una fuera cierta;
-y una hipótesis que sale de los datos no se confirma con los mismos datos.
-Lo que se haría distinto: reservar desde el primer día un conjunto de
-casos que nadie mira hasta el final, y comprobar la cuota de cada
-proveedor antes de apoyar una justificación en su conmutación.
-
-## Anexo A. Cómo reproducirlo
-
-```bash
-git clone https://github.com/JuanArchidona/asistente-multitenant
-uv sync --group judge --group app --group langgraph
-cp .env.example .env            # claves: sistema, juez, embeddings
-uv run pytest                   # 1.251 tests con el grupo langgraph, sin llamadas a API
-uv run python -m src.ingest_cli # indexa el inquilino activo (TENANT_ID)
-uv run python -m evals.runner --etiqueta prueba --sin-juez   # banco sin juez, menos de un minuto
-uv run streamlit run app.py
-```
-
-Cada cifra de esta memoria tiene su carpeta en `reports/<etiqueta>/` con
-`resumen.json`, `informe.md` y las trazas. Las escotillas de línea base
-(`ROUTER_TEMPERATURE=defecto`, `JUDGE_PROVIDER=anthropic`,
-`GEN_QUIEN_PREGUNTA=0`) reproducen las cifras anteriores a cada corte.
-
-## Anexo B. Índice de hallazgos por capítulo
-
-Los 68 hallazgos de `docs/HALLAZGOS.md`, con los apartados de esta
-memoria que los citan (todos los que lo hacen, no solo el principal).
-Generado por `scripts/generar_anexo_b.py` desde las citas `§N` del texto;
-un test falla si difiere. Cada hallazgo nombra la ejecución de `reports/`
-que lo respalda o dice que no la tiene.
-
-| Capítulo | Hallazgos citados |
-|---|---|
-| Resumen | §5, §8, §22, §30, §32, §40, §43, §45 |
-| Guía de lectura: lo que pide el enunciado y dónde está | §65 |
-| 1.3 El criterio de evaluación, y el método que impone | §3, §45, §46, §47 |
-| 2.3 Aislamiento estructural | §10, §13, §14, §37, §43, §53 |
-| 2.4 El clasificador | §1, §6, §12, §15, §22, §27 |
-| 2.5 La rama documental | §47 |
-| 2.6 La rama estructurada por MCP | §4, §5, §41, §68 |
-| 2.7 Control de acceso antes del modelo | §2, §5, §8, §9, §11, §22, §23, §39, §40, §41, §42, §47 |
-| 2.8 Generación anclada | §39, §40 |
-| 2.9 Interfaz y canales | §51, §55, §56, §58, §59 |
-| 3.1 Python sin framework frente a LangGraph | §29, §50, §54, §57, §66 |
-| 3.2 Servidores MCP frente a herramientas cableadas | §7 |
-| 3.3 Modelos | §17, §24, §25, §26, §29, §32, §35, §48, §54, §57 |
-| 3.4 El resto de la pila | §19, §26, §38, §51, §52, §60, §67 |
-| 3.5 Desarrollo con un copiloto: reparto, método y control | §16, §17, §18, §21, §34, §39, §58, §67, §68 |
-| 4.1 El banco | §11, §23, §30, §31, §42, §47 |
-| 4.2 Resultados en la línea base vigente | §42, §45, §49, §64 |
-| 4.3 Evaluar al evaluador | §8, §24, §26, §30, §32, §33, §40 |
-| 4.5 Lo que el banco enseñó sobre el método | §3, §11, §21, §31, §45, §47, §49, §54 |
-| 5.1 Lo que cuesta funcionar y lo que cuesta medir | §17, §21, §22, §32, §34, §44, §67, §68 |
-| 5.2 Tope de gasto y una clave por fin | §16, §18, §24, §53, §67 |
-| 5.3 Lo que la contabilidad no ve | §16, §35, §37 |
-| 5.4 La ficha comercial: qué cuesta un cliente nuevo | §22, §29, §32, §37, §55, §57, §67, §68 |
-| 6.1 El registro de producción | §20, §23, §30, §46, §62, §67, §68 |
-| 6.2 Retención y supresión | §37 |
-| 6.3 Despliegue | §38, §39, §41, §42 |
-| 6.4 Plan de incidentes, pulsado en frío | §46, §57, §63 |
-| 6.5 Dos superficies y un puente | §19 |
-| 6.6 Carga y arranque en frío | §52, §53, §59 |
-| 7.1 El registro de riesgos | §54, §57 |
-| 7.2 OWASP Top 10 para LLM | §19, §30, §32, §35, §42, §47, §53, §65, §67 |
-| 7.3 Sesgo, medido en tres capas | §34, §44 |
-| 7.5 RGPD sobre el RAG | §36 |
-| 7.6 Cadena de suministro | §35, §61 |
-| 8.1 Dar de alta un cliente nuevo, cronometrado | §1, §43, §45, §49 |
-| 8.2 Lo que cuesta escalar lo que ya hay | §22, §36 |
-| 8.3 Lo que no está, y por qué | §32, §33, §35, §47, §48, §50, §51, §54, §57, §60 |
-| 8.4 Mantenimiento frente a proveedores que cambian solos | §21, §26, §28, §29, §35, §54, §57 |
-| 9. Límites y lo que queda fuera | §6, §47, §48, §55, §56, §57, §58, §59, §66, §67 |
-| 10.2 Cómo lo comprueba un tercero | §52, §67, §68 |
+| `CLAUDE.md` | Fuente única de verdad: qué es el sistema, estado, decisiones, reglas de trabajo y riesgos abiertos |
+| `docs/ALCANCE.md` | Por qué se reorientó el proyecto, alcance por bloques y cambios de valores por defecto fechados |
+| `docs/HALLAZGOS.md` | Los 68 hallazgos medidos, cada uno con su ejecución |
+| `docs/RIESGOS.md` | Los 24 riesgos con sus cuatro marcos, evidencia y estado |
+| `docs/AIBOM.md`, `docs/PROMPTS.md` | Inventario de dependencias y catálogo de prompts, generados y vigilados por prueba |
+| `docs/GUION_DEMO.md` | El recorrido de demostración para terceros |
+| `docs/INCIDENTES.md`, `docs/RETENCION.md`, `docs/DESPLIEGUE.md` | Plan de incidentes, política de retención y despliegue |
+| `docs/BITACORA.md` | Diario de sesiones |
+| `reports/` | Evidencia de cada ejecución: resumen, informe y trazas |
