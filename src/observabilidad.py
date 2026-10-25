@@ -290,6 +290,8 @@ class Registro:
             # consulta y la redacción los sustituyó. Depende de la pregunta.
             "redaccion_aplicada": bool(redactados),
             "contexto_vacio": bool(traza.get("contexto_vacio")),
+            # La respuesta paró en el límite de salida y se avisó al usuario.
+            "respuesta_truncada": bool(traza.get("respuesta_truncada")),
             "respuesta_chars": len(respuesta),
             "respuesta_hash": _hash(respuesta) if respuesta else None,
             "latencia_total_s": round(
@@ -360,6 +362,17 @@ def almacen_desde_url(url: str):
     from .registro_db import AlmacenRegistro
 
     return AlmacenRegistro(url)
+
+
+def almacen_del_entorno():
+    """El almacén persistente si `REGISTRO_DB_URL` está definida; si no, None.
+
+    Lo que escribe `desde_config` es lo que tienen que leer quienes suman el
+    gasto: el tope blando leía el fichero del disco efímero y volvía a cero en
+    cada despertar del servicio (corrección simulada del 25-10, E-0022).
+    """
+    url = os.getenv("REGISTRO_DB_URL", "").strip()
+    return almacen_desde_url(url) if url else None
 
 
 # --- Lectura ---------------------------------------------------------------

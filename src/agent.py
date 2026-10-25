@@ -255,6 +255,29 @@ def mensaje_sin_contexto(cfg: Config, fuentes: list[str], denegados: list[str]) 
     )
 
 
+AVISO_RESPUESTA_TRUNCADA = (
+    "\n\n(Respuesta incompleta: se ha cortado al alcanzar el límite de longitud. "
+    "Acota la consulta, por ejemplo pidiendo menos resultados o filtrando, para "
+    "obtenerla entera.)"
+)
+
+
+def _cortada_en(traza_herramientas: list[dict]) -> bool:
+    """Si el bucle de herramientas terminó por el límite de salida (provider)."""
+    return any(paso.get("respuesta_truncada") for paso in traza_herramientas)
+
+
+def _avisar_si_cortada(traza: dict) -> dict:
+    """Quien lee la respuesta se entera de que está incompleta.
+
+    El límite de salida (`MAX_TOKENS_SUT`) es la línea base y no se toca; lo
+    que se cambia es que el corte deje de ser silencioso.
+    """
+    if traza.get("respuesta_truncada"):
+        traza["respuesta"] = (traza.get("respuesta") or "").rstrip() + AVISO_RESPUESTA_TRUNCADA
+    return traza
+
+
 def _construir_prompt(consulta: str, fragmentos: list[Recuperado]) -> str:
     contexto = "\n\n".join(
         f"[Fuente: {f.fuente} | Archivo: {f.archivo}]\n{f.texto}" for f in fragmentos
@@ -458,9 +481,12 @@ class Sistema:
     ) -> dict:
         """Con `MEMORIA_TURNOS=reescritura` y un historial, reescribe la consulta
         para que se entienda sola antes de enrutar (src/memoria.py). Si no, el
-        camino de siempre. La traza guarda la original y la reescrita."""
+        camino de siempre. La traza guarda la original y la reescrita.
+
+        Es además el punto común de los dos orquestadores, y por eso el aviso
+        de respuesta cortada se añade aquí y no en cada rama."""
         if self.cfg.memoria_turnos != "reescritura" or not historial:
-            return self._responder(consulta, usuario)
+            return _avisar_si_cortada(self._responder(consulta, usuario))
         t0 = time.perf_counter()
         efectiva = reescribir(self.chat, self.cfg.model_router, historial, consulta)
         latencia = time.perf_counter() - t0
@@ -468,7 +494,7 @@ class Sistema:
         traza["consulta_original"] = consulta
         traza["consulta_reescrita"] = efectiva
         traza["latencia_reescritura_s"] = round(latencia, 3)
-        return traza
+        return _avisar_si_cortada(traza)
 
     def _responder(self, consulta: str, usuario: Usuario) -> dict:
         t0 = time.perf_counter()
@@ -554,6 +580,7 @@ class Sistema:
             "contexto_recuperado": [],
             "contexto_vacio": True,
             "respuesta": respuesta,
+            "respuesta_truncada": self.chat.ultima_cortada(),
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": 0.0,
             "latencia_generacion_s": round(time.perf_counter() - t1, 3),
@@ -571,6 +598,9 @@ class Sistema:
         # 4. Generar respuesta anclada al contexto. Si el umbral de distancia
         #    descartó todo, no se llama al generador: el rechazo es explícito.
         t2 = time.perf_counter()
+        # Explícito en los dos caminos: la marca del proveedor es la de la
+        # última llamada del hilo, y sin generador esa sería la del enrutador.
+        cortada = False
         if not fragmentos:
             respuesta = mensaje_sin_contexto(self.cfg, [fuente], recuperacion.denegados)
         else:
@@ -578,6 +608,7 @@ class Sistema:
             respuesta = self.chat.completar(
                 system_generador(self.cfg, usuario), prompt, self.cfg.model_generator
             )
+            cortada = self.chat.ultima_cortada()
         t_gen = time.perf_counter() - t2
 
         return {
@@ -593,6 +624,7 @@ class Sistema:
             # primero.
             "denegados_por_permiso": recuperacion.denegados,
             "respuesta": respuesta,
+            "respuesta_truncada": cortada,
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_retrieve, 3),
             "latencia_generacion_s": round(t_gen, 3),
@@ -772,6 +804,7 @@ class Sistema:
         redactados_totales: list[str] = []
         traza_mcp: list[dict] = []
         propuestas: list[AccionPendiente] = []
+        cortada = False
         if not herramientas:
             # Grupo puramente documental: el camino de siempre con más de una
             # fuente. Hoy no hay ningún grupo así declarado, pero el manifiesto
@@ -782,6 +815,7 @@ class Sistema:
                     _construir_prompt(consulta, fragmentos),
                     self.cfg.model_generator,
                 )
+                cortada = self.chat.ultima_cortada()
             else:
                 respuesta = mensaje_sin_contexto(self.cfg, sorted(fuentes), denegados)
         else:
@@ -793,6 +827,7 @@ class Sistema:
                 self._ejecutor(usuario, redactados_totales, propuestas),
             )
             self._marcar_propuestas(traza_mcp)
+            cortada = _cortada_en(traza_mcp)
         t_gen = time.perf_counter() - t2
 
         return {
@@ -819,6 +854,7 @@ class Sistema:
             "herramientas_invocadas": traza_mcp,
             "campos_redactados": sorted(set(redactados_totales)),
             "respuesta": respuesta,
+            "respuesta_truncada": cortada,
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_recuperacion, 3),
             "latencia_generacion_s": round(t_gen, 3),
@@ -874,6 +910,7 @@ class Sistema:
             "herramientas_invocadas": traza,
             "campos_redactados": sorted(set(redactados_totales)),
             "respuesta": respuesta,
+            "respuesta_truncada": _cortada_en(traza),
             "latencia_router_s": round(t_router, 3),
             "latencia_retrieve_s": round(t_recuperacion, 3),
             "latencia_generacion_s": round(t_gen, 3),

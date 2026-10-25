@@ -212,6 +212,19 @@ MAX_VUELTAS_HERRAMIENTAS = 4
 class ChatProvider:
     def __init__(self) -> None:
         self.uso = Uso()
+        # Si la última llamada a `completar` de ESTE hilo paró por el límite de
+        # salida. Por hilo y no por instancia: el sistema se comparte entre
+        # consultas concurrentes (§53), y la de al lado no puede pisar la marca.
+        self._hilo = threading.local()
+
+    def ultima_cortada(self) -> bool:
+        """True si la última `completar` de este hilo se cortó por `max_tokens`.
+
+        Una respuesta cortada que llega como si estuviera entera es el fallback
+        silencioso de siempre: la corrección simulada del 25-10 (E-0022) vio
+        una lista de cartera que terminaba a media línea sin ninguna señal.
+        """
+        return bool(getattr(self._hilo, "cortada", False))
 
     def completar(
         self,
@@ -273,6 +286,7 @@ class AnthropicChat(ChatProvider):
             f"anthropic:{model}",
         )
         self.uso.registrar(model, resp.usage.input_tokens, resp.usage.output_tokens)
+        self._hilo.cortada = resp.stop_reason == "max_tokens"
         return "".join(b.text for b in resp.content if b.type == "text")
 
     def completar_con_herramientas(
@@ -311,6 +325,10 @@ class AnthropicChat(ChatProvider):
 
             if resp.stop_reason != "tool_use":
                 texto = "".join(b.text for b in resp.content if b.type == "text")
+                if resp.stop_reason == "max_tokens":
+                    # Como el límite de vueltas: se marca en la traza, no se
+                    # entrega como si estuviera entera.
+                    traza.append({"respuesta_truncada": True, "max_tokens": max_tokens})
                 return texto, traza
 
             mensajes.append({"role": "assistant", "content": resp.content})
@@ -386,6 +404,9 @@ class GeminiChat(ChatProvider):
                 getattr(meta, "prompt_token_count", 0) or 0,
                 getattr(meta, "candidates_token_count", 0) or 0,
             )
+        candidatos = getattr(resp, "candidates", None) or []
+        motivo = getattr(candidatos[0], "finish_reason", None) if candidatos else None
+        self._hilo.cortada = str(motivo).endswith("MAX_TOKENS")
         return resp.text
 
 

@@ -32,7 +32,7 @@ from src.agent import Sistema
 from src.config import Config, load_config
 from src.fallos import mensaje_para_el_usuario
 from src.ingest import construir_indice, indice_existe
-from src.observabilidad import desde_config, leer, resumir
+from src.observabilidad import almacen_del_entorno, desde_config, leer, resumir
 
 st.set_page_config(page_title="Asistente multi-tenant", layout="wide")
 
@@ -125,7 +125,7 @@ with st.sidebar:
         "no pase por esta interfaz: es un suelo (HALLAZGOS.md §16 y §37)."
     ))
     st.caption(f"Tope blando: {tope:.2f} USD. El tope duro es el prepago del proveedor.")
-    propio = resumir(leer(cfg.tenant.id))
+    propio = resumir(leer(cfg.tenant.id, almacen=almacen_del_entorno()))
     if propio.get("consultas"):
         st.caption(
             f"Este inquilino: {propio['consultas']} consultas, "

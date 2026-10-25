@@ -140,6 +140,9 @@ class ChatConHerramientas:
         self.llamadas.append((system, user, model))
         return self.respuestas.pop(0) if self.respuestas else self.respuesta_final
 
+    def ultima_cortada(self) -> bool:
+        return False
+
     def completar_con_herramientas(
         self, system, user, model, herramientas, ejecutar, **_kwargs
     ):

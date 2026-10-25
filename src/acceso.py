@@ -39,7 +39,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, ValidationError
 
 from .gobernanza import Usuario
-from .observabilidad import RAIZ_POR_DEFECTO, inquilinos, leer, resumir
+from .observabilidad import RAIZ_POR_DEFECTO, almacen_del_entorno, inquilinos, leer, resumir
 
 FICHERO_USUARIOS = Path("usuarios.local.json")
 FICHERO_EJEMPLO = Path("usuarios.example.json")
@@ -113,20 +113,34 @@ def tope_gasto_usd() -> float:
     return float(bruto) if bruto else TOPE_GASTO_POR_DEFECTO_USD
 
 
-def gasto_registrado_usd(raiz: Path | str = RAIZ_POR_DEFECTO) -> float:
+_DEL_ENTORNO = object()
+
+
+def gasto_registrado_usd(raiz: Path | str = RAIZ_POR_DEFECTO, almacen=_DEL_ENTORNO) -> float:
     """Lo gastado según el registro de producción, todos los inquilinos.
 
     Excluye los embeddings y todo lo que no pase por la interfaz: es un suelo
     (HALLAZGOS.md §16 y §37), y por eso el tope que lo usa es blando.
+
+    Por defecto lee el almacén persistente si lo hay (`REGISTRO_DB_URL`), que
+    es el que sobrevive a un reinicio; `almacen=None` fuerza el fichero.
     """
+    if almacen is _DEL_ENTORNO:
+        almacen = almacen_del_entorno()
     return round(
-        sum(resumir(leer(t, raiz)).get("coste_usd_acumulado", 0.0) for t in inquilinos(raiz)), 6
+        sum(
+            resumir(leer(t, raiz, almacen)).get("coste_usd_acumulado", 0.0)
+            for t in inquilinos(raiz, almacen)
+        ),
+        6,
     )
 
 
-def tope_superado(raiz: Path | str = RAIZ_POR_DEFECTO) -> tuple[bool, float, float]:
+def tope_superado(
+    raiz: Path | str = RAIZ_POR_DEFECTO, almacen=_DEL_ENTORNO
+) -> tuple[bool, float, float]:
     """(superado, gastado, tope)."""
-    gastado = gasto_registrado_usd(raiz)
+    gastado = gasto_registrado_usd(raiz, almacen)
     tope = tope_gasto_usd()
     return gastado >= tope, gastado, tope
 
