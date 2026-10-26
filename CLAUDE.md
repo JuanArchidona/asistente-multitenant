@@ -40,6 +40,13 @@ enlace al repositorio, el servicio y los cuatro usuarios `eval_*` con sus
 contraseñas (las pegó Juan; no constan en ningún registro). Quedan 2
 intentos hasta el 31-10 a las 12 de la noche; cuenta la mejor.
 
+**Calificado el 25-10 a las 20:30: 93/100** (`docs/CORRECCION_TFM_2026-10-25.md`).
+Módulos 9,8 / 9,7 / 9,5 / 9,9, pero los pesos del informe suman 96 % (el
+módulo 3 al 21 %); con los cuatro al 25 % saldría 97,25. Juan lo señaló al
+corrector el 26-10, pendiente de respuesta. Las cinco mejoras del informe son
+la tabla de pendientes de la memoria (8.2). **No se reentrega**, decidido por
+Juan el 26-10.
+
 Funciona de extremo a extremo con tres inquilinos, las dos ramas de recuperación,
 control de acceso estructural, una escritura con aprobación humana y un
 servicio público desplegado. **1.255 tests en verde** (con el grupo `langgraph`; 10 menos sin él), `ruff` limpio.
