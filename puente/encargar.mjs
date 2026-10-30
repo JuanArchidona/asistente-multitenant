@@ -29,8 +29,11 @@
  * `supervisado`: necesita el navegador con sesion (campus, formularios) o una
  * decision de Juan. Lo atiende un chat con Juan delante, y para eso esta
  * `--abrir`: abre la app en el proyecto con el encargo ya escrito en la caja.
- * **La app no auto-envia** —esta documentado y es deliberado—, asi que queda
- * una pulsacion humana. No es friccion: es el punto donde alguien mira.
+ * El enlace no envia la orden (es deliberado en la app). Desde el 30-10-2026
+ * (decidido por Juan, desde Tecnicas) `--abrir` ademas la envia: un script de
+ * PowerShell espera a que nadie teclee, trae la ventana de la app al frente,
+ * comprueba que es la activa, pulsa Intro y devuelve el foco. Si no puede, no
+ * pulsa nada y la orden sigue en la caja. `--sin-enviar` deja el paso a Juan.
  *
  * ## El enlace profundo, y por que no abre el proyecto
  *
@@ -47,13 +50,14 @@
  * el texto lleva un preambulo que las suple en lo esencial. El puente MCP si
  * esta, porque se declara a nivel de aplicacion y no de proyecto.
  */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { anadirEncargo, encargosTfm, leerBuzon, parsearEncargos } from "./servidor.mjs";
 
 const BASE_ENLACE = "claude://cowork/new";
 
 const CAMPOS = ["titular", "pide", "para", "terminado", "donde", "modo"];
 const OBLIGATORIOS = ["titular", "pide", "para", "terminado", "donde"];
+const ESPERA_ENVIO_MS = 6000;
 
 const AYUDA = `Uso:
   node puente/encargar.mjs --titular T --pide P --para Q --terminado C --donde D [--modo M] [--abrir]
@@ -70,9 +74,16 @@ Campos:
                 una tarea programada) o 'supervisado' (necesita a Juan en el
                 chat). Por defecto, supervisado.
   --abrir       Abre una conversacion nueva de Cowork en la app de Claude con
-                la orden de atender el encargo escrita en la caja. Falta pulsar
-                enviar: la app no auto-envia.
-  --enlace ID   Imprime el enlace profundo de un encargo ya existente.
+                la orden de atender el encargo escrita en la caja y la envia
+                (pulsa Intro en su ventana).
+  --sin-enviar  Con --abrir, deja la orden en la caja: Juan la revisa y pulsa
+                enviar.
+  --espera MS   Milisegundos que se espera a que la app cargue la orden antes
+                de pulsar Intro (por defecto ${ESPERA_ENVIO_MS}).
+  --enviar      Solo pulsa Intro en la app, sin abrir enlace: para enviar una
+                orden que se quedo en la caja (reabrir el enlace la duplica).
+  --enlace ID   Imprime el enlace profundo de un encargo ya existente; con
+                --abrir, abre la app y envia la orden.
 `;
 
 function parsear(argv) {
@@ -81,11 +92,11 @@ function parsear(argv) {
     const a = argv[i];
     if (!a.startsWith("--")) throw new Error(`Argumento inesperado: ${a}`);
     const clave = a.slice(2);
-    if (["listar", "help", "abrir"].includes(clave)) {
+    if (["listar", "help", "abrir", "sin-enviar", "enviar"].includes(clave)) {
       args[clave] = true;
       continue;
     }
-    if (!CAMPOS.includes(clave) && clave !== "enlace") {
+    if (!CAMPOS.includes(clave) && !["enlace", "espera"].includes(clave)) {
       throw new Error(`Opcion desconocida: --${clave}`);
     }
     const valor = argv[i + 1];
@@ -141,6 +152,103 @@ function abrir(url) {
   hijo.unref();
 }
 
+// Trae al frente la ventana de la app (proceso `claude` con ventana; Claude Code
+// no tiene ventana propia), comprueba que es la activa, pulsa Intro y devuelve el foco. Responde ENVIADO,
+// ENVIADO_FOCO_EN_APP, SIN_VENTANA, OTRA_VENTANA o PERSONA_ACTIVA; en los tres
+// ultimos no pulsa nada.
+const SCRIPT_ENVIO = `
+$ErrorActionPreference = 'Stop'
+Add-Type -TypeDefinition @"
+using System; using System.Runtime.InteropServices;
+public static class VentanaActiva {
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int n);
+  [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr h);
+  [DllImport("user32.dll")] public static extern void keybd_event(byte vk, byte scan, uint flags, UIntPtr extra);
+  [StructLayout(LayoutKind.Sequential)] public struct UltimaEntrada { public uint cbSize; public uint dwTime; }
+  [DllImport("user32.dll")] public static extern bool GetLastInputInfo(ref UltimaEntrada e);
+  public static uint MsSinTocar() {
+    UltimaEntrada e = new UltimaEntrada(); e.cbSize = (uint)Marshal.SizeOf(e);
+    GetLastInputInfo(ref e); return (uint)Environment.TickCount - e.dwTime;
+  }
+}
+"@
+Start-Sleep -Milliseconds ([int]$env:ESPERA_ENVIO_MS)
+# Si la persona esta tecleando, sus pulsaciones irian a la caja de la app al
+# cambiar de ventana (medido el 30-10-2026: se colo un "/ci", y un Intro de la
+# persona para otra sesion acabo en la app, E-0017). Se espera a 3 s sin
+# teclado ni raton, hasta 30 s; si no llega, no se toca nada.
+$limite = (Get-Date).AddSeconds(30)
+while ([VentanaActiva]::MsSinTocar() -lt 3000) {
+  if ((Get-Date) -gt $limite) { 'PERSONA_ACTIVA'; exit 0 }
+  Start-Sleep -Milliseconds 250
+}
+$app = Get-Process claude -ErrorAction SilentlyContinue | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+if (-not $app) { 'SIN_VENTANA'; exit 0 }
+$h = $app.MainWindowHandle
+if ([VentanaActiva]::IsIconic($h)) { [void][VentanaActiva]::ShowWindow($h, 9) }
+$previa = [VentanaActiva]::GetForegroundWindow()
+$activa = 0
+[void][VentanaActiva]::GetWindowThreadProcessId($previa, [ref]$activa)
+if ($activa -ne $app.Id) {
+  # Windows no deja a un proceso de fondo cambiar la ventana activa; una
+  # pulsacion propia levanta ese bloqueo. F24, porque Alt abre la barra de menus
+  # de la app si cae en ella y el Intro va al menu (medido el 30-10-2026, E-0016).
+  [VentanaActiva]::keybd_event(0x87, 0, 0, [UIntPtr]::Zero)
+  [VentanaActiva]::keybd_event(0x87, 0, 2, [UIntPtr]::Zero)
+  [void][VentanaActiva]::SetForegroundWindow($h)
+  Start-Sleep -Milliseconds 300
+}
+$shell = New-Object -ComObject WScript.Shell
+$activa = 0
+[void][VentanaActiva]::GetWindowThreadProcessId([VentanaActiva]::GetForegroundWindow(), [ref]$activa)
+if ($activa -ne $app.Id) { 'OTRA_VENTANA'; exit 0 }
+$shell.SendKeys('~')
+# Devolver el foco a la ventana en la que se estaba, para que la app este al
+# frente lo menos posible y lo que la persona teclee despues no vaya a ella.
+if ($previa -ne $h) {
+  Start-Sleep -Milliseconds 200
+  [void][VentanaActiva]::SetForegroundWindow($previa)
+  Start-Sleep -Milliseconds 200
+  if ([VentanaActiva]::GetForegroundWindow() -ne $previa) { 'ENVIADO_FOCO_EN_APP'; exit 0 }
+}
+'ENVIADO'
+`;
+
+/** Pulsa Intro en la app tras abrir el enlace. Devuelve ENVIADO, ENVIADO_FOCO_EN_APP, SIN_VENTANA, OTRA_VENTANA, PERSONA_ACTIVA o NO_WINDOWS. */
+function enviar(esperaMs) {
+  if (process.platform !== "win32") return "NO_WINDOWS";
+  const codificado = Buffer.from(SCRIPT_ENVIO, "utf16le").toString("base64");
+  const r = spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", codificado], {
+    env: { ...process.env, ESPERA_ENVIO_MS: String(esperaMs) },
+    encoding: "utf8",
+    timeout: esperaMs + 20000,
+    windowsHide: true,
+  });
+  const salida = (r.stdout || "").trim().split(/\r?\n/).pop();
+  return ["ENVIADO", "ENVIADO_FOCO_EN_APP", "SIN_VENTANA", "OTRA_VENTANA", "PERSONA_ACTIVA"].includes(salida) ? salida : `ERROR ${(r.stderr || r.error?.message || "").trim().slice(0, 200)}`;
+}
+
+// Volver a abrir el enlace no crea otra conversacion si la anterior quedo sin
+// enviar: la app anade el texto a esa caja y la orden llega duplicada (medido el
+// 30-10-2026, encargo E-0015). Para reintentar, solo se pulsa Intro.
+const REINTENTO = "Para enviarla sin volver a abrir el enlace (que la duplicaria): node puente/encargar.mjs --enviar";
+
+function abrirYEnviar(id, args) {
+  abrir(enlace(id));
+  if (args["sin-enviar"]) {
+    return `Abierta una conversacion nueva de la app con la orden en la caja. Falta pulsar enviar (--sin-enviar).\n`;
+  }
+  const espera = args.espera ? Number(args.espera) : ESPERA_ENVIO_MS;
+  if (!Number.isFinite(espera) || espera < 0) throw new Error("--espera necesita un numero de milisegundos.");
+  const r = enviar(espera);
+  if (r === "ENVIADO") return `Abierta una conversacion nueva de la app y enviada la orden (Intro pulsado en su ventana; el foco volvio a la ventana anterior).\n`;
+  if (r === "ENVIADO_FOCO_EN_APP") return `Abierta una conversacion nueva de la app y enviada la orden (Intro pulsado en su ventana); la app se quedo al frente.\n`;
+  return `Abierta una conversacion nueva de la app con la orden en la caja, pero no se pudo enviar (${r}): falta pulsar enviar.\n${REINTENTO}\n`;
+}
+
 try {
   const args = parsear(process.argv.slice(2));
 
@@ -154,12 +262,16 @@ try {
     process.exit(0);
   }
 
+  if (args.enviar) {
+    const r = enviar(0);
+    process.stdout.write(r.startsWith("ENVIADO") ? "Enviada la orden que estaba en la caja de la app.\n" : `No se pudo enviar (${r}): falta pulsar enviar.\n`);
+    process.exit(0);
+  }
+
   if (args.enlace) {
     const existe = parsearEncargos(leerBuzon()).some((e) => e.id === args.enlace);
     if (!existe) throw new Error(`El encargo ${args.enlace} no esta en el buzon.`);
-    const url = enlace(args.enlace);
-    if (args.abrir) abrir(url);
-    process.stdout.write(`${args.abrir ? "Abierta la app con el encargo en la caja. Falta pulsar enviar.\n" : ""}${url}\n`);
+    process.stdout.write(args.abrir ? abrirYEnviar(args.enlace, args) : `${enlace(args.enlace)}\n`);
     process.exit(0);
   }
 
@@ -179,15 +291,11 @@ try {
     );
   }
   if (args.abrir) {
-    const url = enlace(id);
-    abrir(url);
-    process.stdout.write(
-      `Abierta una conversacion nueva de Cowork con el encargo en la caja. Falta pulsar enviar.\n` +
-        `Si la app no se abre o la caja llega vacia, el enlace es:\n${url}\n`
-    );
+    process.stdout.write(abrirYEnviar(id, args));
+    process.stdout.write(`Si la app no se abre o la caja llega vacia: node puente/encargar.mjs --enlace ${id} --abrir\n`);
   } else if (modo === "supervisado") {
     process.stdout.write(
-      `Necesita a Juan en el chat. Para abrirle la app con el encargo en la caja: node puente/encargar.mjs --enlace ${id}\n`
+      `Necesita a Juan en el chat. Para abrirle la app y enviarle la orden: node puente/encargar.mjs --enlace ${id} --abrir\n`
     );
   }
 } catch (e) {

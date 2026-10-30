@@ -241,7 +241,7 @@ uv run python scripts/generar_anexo_b.py               # regenera el anexo B de 
 uv run python docs/entrega/construir_pdf.py            # memoria -> docs/entrega/TFM_Juan_Archidona.pdf (ignorado por git)
 uv run python scripts/transcribir_material.py --entrada URL --salida RUTA --referer URL   # vídeos del máster, fuera del repo (uv sync --group material)
 TENANT_ID=X uv run python scripts/borrar_documento.py --archivo F --restaurar --etiqueta E
-node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app, con la orden en la caja
+node puente/encargar.mjs --modo supervisado --abrir ...  # encargo a la app: abre la caja con la orden y la envía (--sin-enviar para revisarla)
 node puente/avisos.mjs --listar                        # avisos de la app; el hook los inyecta solo
 node puente/vigilar.mjs                                # el vigilante que arma /arranque (Monitor): una línea por aviso nuevo
 ```

@@ -16,7 +16,7 @@ es la puesta en marcha y lo medido.
 Claude Code                    puente                         app de Claude
 -----------                    ------                         -------------
 encargar.mjs  ── escribe ──>  ENCARGOS_APP.md  <── lee ──    encargos_tfm
-   --abrir    ── enlace claude:// con el encargo en la caja ──>  (chat; Juan pulsa enviar)
+   --abrir    ── enlace claude:// con el encargo en la caja ──>  (chat; encargar.mjs pulsa Intro)
                                                               o tarea programada
                                                                  (desatendido)
                               REGISTRO_APP.md  <── escribe ── registrar_tfm
@@ -58,9 +58,10 @@ herramientas y rutas de los cuatro ficheros son constantes de `servidor.mjs`.
 
 ```bash
 node puente/encargar.mjs --titular T --pide P --para Q --terminado C --donde D \
-                         [--modo desatendido|supervisado] [--abrir]
+                         [--modo desatendido|supervisado] [--abrir] [--sin-enviar] [--espera MS]
 node puente/encargar.mjs --listar
-node puente/encargar.mjs --enlace E-0003 [--abrir]
+node puente/encargar.mjs --enlace E-0003 [--abrir]   # --abrir solo si la caja llego vacia
+node puente/encargar.mjs --enviar                    # la orden se quedo en la caja: solo pulsa Intro (reabrir la duplica)
 ```
 
 Los cinco campos son obligatorios. Un encargo sin criterio de terminado o sin
@@ -75,10 +76,13 @@ navegador o sesion:
 | `supervisado` (por defecto) | Navegador con sesion (campus, formularios), una decision de Juan | Un **chat con Juan delante** |
 
 `--abrir` abre la app de Claude con la orden de atender el encargo ya escrita
-en la caja, por el enlace profundo `claude://cowork/new?q=...`. **La app no
-auto-envia**: esta documentado como decision deliberada y no como carencia,
-asi que queda una pulsacion humana. No es friccion: es el punto donde alguien
-mira.
+en la caja, por el enlace profundo `claude://cowork/new?q=...`. **El enlace
+no envia la orden**: esta documentado como decision deliberada de la app.
+Desde el 30-10-2026 (decidido por Juan, desde Tecnicas) `encargar.mjs` la
+envia: un script de PowerShell espera a que nadie teclee, trae la ventana de
+la app al frente, comprueba que es la activa, pulsa Intro y devuelve el foco.
+Si no puede, no pulsa nada y la orden sigue en la caja. Con `--sin-enviar`
+queda la pulsacion humana, para cuando Juan quiera revisar la orden antes.
 
 **El enlace no abre el proyecto, y esta medido dos veces** (21-09 en un puente
 equivalente de este equipo, 23-09 aqui): `claude://claude.ai/project/<uuid>?q=`
