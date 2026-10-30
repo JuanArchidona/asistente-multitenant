@@ -605,6 +605,8 @@ function encargosTfm({ solo_desatendidos } = {}) {
       "el puente marca el encargo, deja el rastro cruzado y avisa a Claude Code.",
       "Si no puedes terminarlo, registralo igual diciendo que fallo y por que:",
       "un encargo a medias sin registro es un encargo perdido.",
+      "Antes de registrar, cierra las pestanas de Chrome que hayas abierto para",
+      "el encargo, o su grupo de pestanas; nunca las que ya estaban abiertas.",
       "",
       pendientes.map((e) => e.texto).join("\n\n"),
     ].join("\n"),
