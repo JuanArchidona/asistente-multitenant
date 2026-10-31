@@ -73,7 +73,7 @@ servicio público desplegado. **1.255 tests en verde** (con el grupo `langgraph`
 | Conmutación de proveedor a Gemini | Arreglada: era una forma y no un hecho; verificada de extremo a extremo (§29). **Generador comparado el 27-09** (§57), tras activar la facturación (E-0014) con límite de inversión de 5 EUR en el proyecto del sistema y en el del juez: empate en generación, 73/73 en los casos bien enrutados por los dos; 51/53 y 27/29 frente a 48 y 28, toda la diferencia es de enrutado (cobertura del riesgo del heredado 0,636 → 1,0, pierde actas); mitad de coste y 1,9x latencia. Haiku se queda; la conmutación es contingencia medida |
 | Canales (correo, WhatsApp) | **WhatsApp construido** el 23-09 (`src/canal_whatsapp.py`, `docs/CANAL_WHATSAPP.md`): el número es la credencial y fija el inquilino, artículo 50 en la primera conversación, aprobación humana por texto, firma del webhook obligatoria, teléfono nunca en el registro; 25 pruebas con mensajes simulados y tres mensajes simulados contra el sistema real (5,1 s una consulta). **Conectado en vivo el 24-09** por la app de Claude con Juan (E-0009, §51): app de Meta publicada, webhook verificado, mensajes reales llegando; las dos primeras consultas dieron `NotFoundError` porque el servidor no construía el índice en el disco efímero de Render, corregido el mismo día. **Probado en vivo tras el redespliegue** (12:03): la pregunta de vacaciones responde como en la web citando el convenio, y la del salario deniega sin el dato y sin fuga, con la línea "Retenido por permiso"; menos de un minuto por pregunta a precisión de minuto. **Token permanente el 25-09** (E-0010): usuario del sistema de Meta, caducidad *Nunca* según el depurador, despliegue de 1 min 35 s y las dos preguntas de control respondidas igual a las 07:32 y 07:33; 18 min desde el encargo. **Pruebas en vivo restantes canceladas el 26-09** (aislamiento con dos números, aprobación por texto): mismo mecanismo que la credencial de la web, cubierto por las pruebas simuladas. **Latencia interna leída en los Logs el 27-09** (E-0015, §59): 4,19 y 4,30 s en caliente, 13,90 s en frío tras 41 s de despertar (8 s de construir sistema e índice, que el disco efímero rehace); un reintento real de Meta destapó que el duplicado esperaba la construcción del sistema y el arranque de un inquilino bloqueaba a los demás, corregido con un lock por inquilino y una línea `duplicado` propia (tres pruebas). **Correo construido el 26-09** (`src/canal_correo.py`, `src/canal_correo_servidor.py`, `docs/CANAL_CORREO.md`): la dirección es la credencial, se exige DKIM/SPF en `pass` (R-24), aprobación en la primera línea, sondeo IMAP y respuesta SMTP enhebrada, sin paquetes nuevos; 34 pruebas y una consulta simulada contra el sistema real en 5,26 s. **Desplegado el 27-09** (E-0011, §55): buzón de Gmail dedicado creado, servicio `asistente-correo` *Live* en 61 s, IMAP leyendo a la primera; **no puede contestar porque el plan gratuito de Render bloquea los puertos SMTP** (documentado por Render). **Plan de pago `0.5c-512mb` desde el 27-09 a las 11:31** (7 USD/mes, E-0012; Render ya no lo llama Starter). El primer correo real dejó el sondeo mudo: la configuración se cargaba dentro del hilo y un `SystemExit` por clave ausente lo mataba sin rastro; corregido (configuración al arrancar, `SystemExit` capturado, tope IMAP, `ciclo_en_curso_s` en `/salud`, `PYTHONUNBUFFERED`), 46 pruebas. **E-0013 el 27-09 por la tarde (§56): causa confirmada** (faltaban las dos claves; los despliegues sin ellas fallaron a la vista con el mensaje) **y fase C superada**: vacaciones 24 s de extremo a extremo y 7,82 s dentro (índice construido en ese ciclo), salario denegado en 19 s y 4,60 s, dirección desconocida rechazada en 0,67 s, ninguna dirección en los Logs. Corregidos el mismo día el "Re: Re:" del asunto y el Markdown en el cuerpo. Remitente falsificado cerrado en simulación el 27-09 (§58): prueba en vivo descartada, y al comprobarlo se vio que `gmail.com` publica DMARC `p=none`, así que el control se sostiene por exigir un `pass` positivo y no por que Gmail rechace; residual nuevo, no comprueba alineación DKIM/DMARC, acotado por la lista cerrada. Sin medir en vivo queda la aprobación por correo. De paso, los tres primeros correos del buzón eran avisos de Google y el canal ahora descarta el correo automático sin contestar (41 pruebas). Límites declarados: dormido no sondea y, en el plan gratuito, despierto no envía |
 | Human-in-the-loop | **Hecho y medido** el 23-09: la agencia declara `crm__registrar_visita` como escritura, el servidor la anota, el modelo la propone y una persona la aprueba desde la interfaz con registro; métrica `accion_sin_aprobar` 40/40 y ninguna visita escrita tras el banco (§42) |
-| Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). **Vivo a propósito** desde el 23-09 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan) para seguir probando ahí. **Arranque en frío medido** el 25-09 (§52): el plan gratuito duerme a los 15 min y despertar cuesta 32 s la web y 42-61 s WhatsApp, sin perder peticiones |
+| Despliegue con autenticación y tope de gasto | **Interfaz hecha** el 23-09 (`app.py`, `docs/DESPLIEGUE.md`): usuario y contraseña, inquilino fijado por la credencial, roles al control de acceso, aviso del artículo 50, tope blando sobre el registro; arranca y responde en local. **Render hecho** el 23-09: `https://asistente-multitenant.onrender.com`, 1 min 32 s el primer despliegue, prueba funcional con dos usuarios registrada por la app (§38, §39). Vivo del 23-09 al 31-10 con credenciales propias (seis usuarios, dos por inquilino, en `APP_USUARIOS_JSON`; las contraseñas solo las tiene Juan); **suspendido el 31-10** tras la calificación (§8). **Arranque en frío medido** el 25-09 (§52): el plan gratuito duerme a los 15 min y despertar cuesta 32 s la web y 42-61 s WhatsApp, sin perder peticiones |
 | Clasificador con modelo pequeño o afinado | **Hecho y medido** el 23-09 (§48): enrutador por embeddings conmutable con `ROUTER_KIND`, umbral calibrado en el heredado y congelado; en transferencia 0,735 frente a 0,882 de Haiku, 4x más rápido, sin coste de chat y 13/13 en casos de riesgo. Haiku sigue por defecto |
 | Alta cronometrada de un inquilino nuevo | **Hecha y medida** el 23-09: `gestoria_laboral` en **5 min 42 s**, dos iteraciones, cero ficheros de código; banco 20/28 a la primera y 25/28 tras reescribir tres descripciones; control de acceso y AI Act gratis con el manifiesto (§43). Revisado en frío: dos de los tres rojos eran del banco, **27/28** (§45) |
 | Análisis de IA responsable y AI Act (absorbe el Módulo 4) | **Esqueleto hecho** el 23-09: registro de riesgos y clasificación por inquilino; quedan los huecos ordenados de `docs/RIESGOS.md` §5. Es **requisito nombrado por el tutor** el 22-09. **Entregas 4.2 y 4.3 extraídas de aquí y enviadas el 10-10** por la app (E-0016, E-0017), dos páginas cada una. Al redactarlas salieron los huecos que la rúbrica podría pedir: filtro de entrada contra jailbreak, enmascarado de datos personales en la consulta, escaneo de la salida, límite de consultas por usuario, moderación (R-21), red-teaming con herramienta y guardarraíles de gateway; del 4.2, además, base jurídica del art. 9.2 y EIPD, transferencias (R-18) y SSO/OAuth |
@@ -87,7 +87,7 @@ servicio público desplegado. **1.255 tests en verde** (con el grupo `langgraph`
 | Auditoría de dependencias | **Hecha** el 11-10 (§61): `pip-audit` en la CI sobre lo desplegado; 23 vulnerabilidades en 6 paquetes, 18 cerradas subiendo versiones, 5 de chromadb (modo servidor) como excepción escrita |
 | PromptOps | **Hecho** el 11-10: `docs/PROMPTS.md` generado y vigilado por test (16 prompts, juez incluido); commit y huella de los prompts activos en cada línea del registro y cada `resumen.json` |
 | Calidad en producción | **Hecha y medida** el 11-10 (§62, §66): verificador de citas sobre el 100 % y juez de Gemini sobre la mitad (`EVAL_PRODUCCION_FRACCION=0.5`) al servir, sin guardar la respuesta; el primer veredicto salió ilegible por un límite de tokens (corregido) y los siguientes, fiel |
-| Registro de producción persistente | **Hecho** el 11-10: Postgres gratuito de Render `asistente-registro` (caduca el 10-11), misma supresión y purga con lápida; `observabilidad_cli` lo lee con `REGISTRO_DB_URL_EXTERNA` |
+| Registro de producción persistente | **Hecho** el 11-10: Postgres gratuito de Render `asistente-registro`, **borrado el 31-10** tras copiarlo fuera del repositorio (§8), misma supresión y purga con lápida; `observabilidad_cli` lo lee con `REGISTRO_DB_URL_EXTERNA` |
 | Plan B ante caída del proveedor | **Hecho y medido** el 11-10 (§63): mensaje determinista con el `contacto_alternativo` del manifiesto en los tres canales; 6 s con clave revocada, 13 s con proveedor inalcanzable; conmutación automática decidida en contra |
 | Recuperación híbrida | **Medida** el 11-10 (§64): nulo, BM25 solo es peor y RRF empata; se queda la densa. Destapó que los fallos de recuperación de la agencia son de enrutado |
 | Red-teaming con herramienta | **Hecho** el 11-10 (§65): DeepTeam, 64 ataques, ninguna fuga por criterio determinista, pero solo 7 llegaron al control (7 de 7 retenidos); tres defectos de la herramienta cazados (el peor, negativas del atacante contadas como ataques superados) |
@@ -261,31 +261,31 @@ y §14).
 
 ## 8. Riesgos abiertos
 
-- **El correo es el único servicio de pago del despliegue**: 7 USD al mes
-  desde el 27-09 (plan `0.5c-512mb`), porque el plan gratuito de Render
-  bloquea la salida SMTP (§55). Los otros dos servicios siguen gratuitos y
-  duermen. Vigilar el cargo mensual junto con el crédito de Anthropic.
-- **Google factura desde el 27-09** en los dos proyectos de Gemini
-  (sistema y juez), cada uno con un límite de inversión mensual de 5 EUR
-  puesto en AI Studio (experimental: hasta unos 10 minutos de exceso). Es el
-  tope duro que sustituye al presupuesto con alertas; vigilarlo junto al
-  crédito de Anthropic y el cargo de Render (§57).
-- **Al entregar el TFM, revisar todos los servicios y gastos** del TFM y del
-  máster y **apagar lo que ya no se use**, para dejar de pagar por ello.
-  Inventario conocido a 27-09: servicio de pago `asistente-correo` en Render
-  (`0.5c-512mb`, 7 USD/mes); servicios gratuitos `asistente-multitenant` y
-  `asistente-whatsapp` en Render (duermen, 0 USD pero siguen desplegados y
-  vivos a propósito); app de Meta `asistente-multitenant-tfm` con usuario del
-  sistema y token permanente; buzón de Gmail dedicado del canal de correo;
-  facturación de Google en los dos proyectos de Gemini (sistema y juez) con
-  tope de 5 EUR cada uno; crédito de prepago de Anthropic (recarga automática
-  desactivada a propósito, §16). Añadidos el 11-10: Postgres gratuito
-  `asistente-registro` en Render (caduca el 10-11), espacio `tfm-produccion`
-  de la consola de Anthropic con su clave `tfm-despliegue` (caduca el 31-12),
-  beneficio de Google Developer Program aplicado a la cuenta de facturación
-  de Gemini y los cuatro usuarios `eval_*` de la web. Decidido por Juan el
-  27-09. La lista se cierra el día de la entrega, no antes: hasta entonces
-  hacen falta vivos.
+- **El correo fue el único servicio de pago del despliegue** (7 USD al mes
+  del 27-09 al 31-10, plan `0.5c-512mb`, porque el plan gratuito de Render
+  bloquea la salida SMTP, §55), y **Google facturó del 27-09 al 31-10** en los
+  dos proyectos de Gemini con un límite de 5 EUR cada uno (§57). Los dos
+  gastos están cortados desde el 31-10 (siguiente punto).
+- **Servicios y gastos apagados el 31-10** (E-0029, con Juan delante),
+  cerrado el plazo de reentrega. Estado comprobado en cada consola:
+  - **Render**: `asistente-multitenant`, `asistente-whatsapp` y
+    `asistente-correo` **suspendidos, no borrados** (se reactivan con un clic,
+    con su configuración); el correo dejó 6,85 USD en octubre y la
+    proyección no añade más. Los usuarios `eval_*` caen con la web.
+  - **Postgres `asistente-registro` borrado.** Antes se copió entero (45
+    líneas: 28 de la agencia, 17 del heredado, cotejadas contra la base) en
+    `Master/TFM/respaldos/registro_produccion_2026-10-31.json`, fuera del
+    repositorio; se recarga con `AlmacenRegistro.escribir`.
+  - **Anthropic**: clave `tfm-despliegue` desactivada, no borrada.
+    `tfm-sistema` y `tfm-juez` siguen activas, en el espacio Default.
+  - **Gemini**: facturación inhabilitada en los dos proyectos (sistema y
+    juez); proyectos y claves intactos, en nivel gratuito.
+  - **Meta**: token del usuario del sistema revocado y app
+    `asistente-multitenant-tfm` en modo desarrollo, no borrada.
+  - **Gmail**: cuenta del buzón del canal de correo eliminada (Google permite
+    recuperarla durante un tiempo).
+  Reactivar cualquier canal exige, como mínimo, reanudar el servicio y, en
+  WhatsApp, un token nuevo; en el correo, un buzón nuevo.
 - **Opus por defecto desde el 27-09**; Fable solo para revisiones hostiles
   de la memoria, diagnósticos sin traza y decisiones de línea base, y se
   avisa antes de empezar.
