@@ -5,6 +5,76 @@
 > `BITACORA_3.3.md`.
 
 
+## 2026-10-31 — Sesión 16: la nota sube a 97, el despliegue se apaga y el máster queda respaldado
+
+**9 commits desde el cierre de la sesión 15** (26-10 a 31-10, contados con
+`git log 56db3cf..HEAD` más el de este cierre), ningún hallazgo nuevo,
+ninguna línea de código del sistema tocada. Coste en modelos: cero en el
+sistema; el trabajo de navegador lo hizo la app.
+
+**Hecho:**
+
+- **Nota corregida a 97/100.** El 26-10 se anotó la primera calificación (93)
+  y Juan señaló al corrector que los pesos sumaban 96 %. El 28-10 Iraitz
+  contestó que era "errata de la plantilla del asistente" y ajustó la nota;
+  el informe de Drive se rehízo con los cuatro módulos al 25 % (9,725, que el
+  campus redondea a 97,00). Leído en solo lectura por la app (E-0028) y
+  releído a petición de Juan (E-0030), sin cambios entre las dos lecturas.
+  Registrado en `docs/CORRECCION_TFM_2026-10-25.md` y en CLAUDE.md §2.
+- **Puente (30-10, desde la sesión de Técnicas):** los encargos cierran las
+  pestañas de Chrome que abren (`3f1df3b`) y los abiertos con `--abrir` se
+  envían solos (`c22d0f2`). Hoy el primer envío falló dos veces con
+  `ERROR #< CLIXML` y los tres siguientes salieron solos.
+- **Despliegue apagado** (E-0029, con Juan delante), cerrado el plazo de
+  reentrega. Antes, el registro de producción se copió entero a
+  `Master/TFM/respaldos/registro_produccion_2026-10-31.json` (45 líneas,
+  cotejadas tabla a tabla contra la base). La copia mostró que el corrector
+  no consultó nunca el servicio desplegado: la última consulta es del 25-10
+  a las 12:26, antes de entregar. Estado final en CLAUDE.md §8: Render
+  suspendido (la web da 503), Postgres borrado, clave `tfm-despliegue`
+  desactivada, facturación de Gemini quitada, token de Meta revocado y app
+  en desarrollo, buzón de Gmail eliminado. Octubre deja 6,85 USD de Render.
+- **Notas a Técnicas y Freelance** en sus `_inbox/`: técnicas medidas en el
+  máster y el TFM, el patrón de apagado, y para Freelance las cifras
+  citables, el encaje con los tres paquetes de la oferta, lo que cambia con
+  un cliente real y cómo revivir la demo. Aviso a la sesión de Técnicas.
+- **El máster entero en Drive** (carpeta privada "Master IA Generativa"):
+  1.971 ficheros y 390 MB, sin `.venv`, cachés ni los siete `.env`, con el
+  historial git; cotejado nombre y tamaño fichero a fichero con el conector
+  de Drive. La copia de preparación se borró.
+
+**Decisiones:**
+
+- **Suspender, no borrar, los servicios de Render**; borrar lo que caduca o
+  da acceso (Postgres, buzón) y desactivar las claves (Juan): lo suspendido
+  se reactiva con un clic si hace falta enseñar algo.
+- **No revivir la demo para las capturas de Freelance** (Juan): no hay
+  Destacados de momento, y si hacen falta se sacan en local.
+- **Subir a Drive sin claves ni entornos, como carpeta navegable en la raíz**
+  (Juan): los entornos se rehacen con `uv sync` y las claves no salen de la
+  máquina.
+
+**Pendiente para la próxima sesión:**
+
+- [ ] Nada obligatorio: el TFM está calificado y cerrado. Si se reactiva la
+      demo, la receta está en la nota de Freelance (reanudar la web,
+      reactivar la clave, quitar `REGISTRO_DB_URL`, cambiar las contraseñas
+      `eval_*`).
+- [ ] Opcional: diagnosticar el `ERROR #< CLIXML` intermitente del envío
+      automático de `puente/encargar.mjs --abrir`.
+- [ ] Los cinco puntos del informe (alertas, enmascarado de la pregunta,
+      moderación, preproducción, migrar los vectores) quedan como evolución,
+      no como deuda: son la tabla 8.2 de la memoria.
+
+**Notas:**
+
+- Antes de apagar no se miró si otro proyecto dependía de la demo, y
+  Freelance tenía pendientes capturas hasta el 10-11. Queda como paso del
+  patrón de apagado anotado en Técnicas.
+- `encargar.mjs` corta `--pide` en 1.000 caracteres y lo dice en la primera
+  línea; con `| tail` el error no se ve.
+
+
 ## 2026-10-25 — Sesión 15: dos correcciones simuladas, la memoria reescrita para leerse, y el TFM entregado
 
 **11 commits, 2 hallazgos (§67, §68), 1.255 tests** (JUnit; la sesión empezó

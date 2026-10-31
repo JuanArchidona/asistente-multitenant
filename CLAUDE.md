@@ -31,7 +31,10 @@ decisión técnica en términos de calidad, coste, escalabilidad, riesgo y
 mantenimiento"*. **Ante cualquier propuesta, la pregunta es si se puede medir.
 Una afirmación sin número no vale.**
 
-## 2. Estado (2026-10-25)
+## 2. Estado (2026-10-31)
+
+**Cerrado.** Calificado 97/100, despliegue apagado (§8) y todo `Master/`
+respaldado en Drive el 31-10. Lo que sigue es el histórico de la entrega.
 
 **TFM entregado el 25-10-2026 a las 13:19** (campus, tarea Proyecto final,
 assign 62999): "Enviado para calificar", intento 1 de 3, PDF de la memoria
@@ -80,7 +83,7 @@ servicio público desplegado. **1.255 tests en verde** (con el grupo `langgraph`
 | Análisis de sesgos | **Hecho y medido en las tres capas**: recuperación y enrutado (§34) y, desde el 23-09, generación con criterio sin juez (§44). Ningún eje alcanza el doble de su suelo en ninguna; R-13 cerrado como medido |
 | Buzón de encargos para la app | Hecho: `encargos_tfm`, y escribir en él no es herramienta MCP a propósito |
 | Análisis del material del Módulo 4 | Hecho: `docs/MODULO_4.md`, con el mapa de huecos ordenado |
-| Plan hasta la entrega | **`docs/PLAN_ENTREGA.md`** (11-10): bloques A (documento), B (tramo 9-10) y C (materias del máster como experimentos medidos), calendario con primera entrega hacia el 20-10 y definitiva el 27-10. Hechos el 11-10: A1-A7, B0-B6, C1-C3. **Primera entrega hecha el 25-10** (no el 20); B7, B8 y C4-C7 siguen pendientes de feedback |
+| Plan hasta la entrega | **`docs/PLAN_ENTREGA.md`** (11-10): bloques A (documento), B (tramo 9-10) y C (materias del máster como experimentos medidos), calendario con primera entrega hacia el 20-10 y definitiva el 27-10. Hechos el 11-10: A1-A7, B0-B6, C1-C3. **Primera entrega hecha el 25-10** (no el 20); B7, B8 y C4-C7 no se hicieron: sin reentrega, quedan como evolución (tabla 8.2 de la memoria) |
 | Correcciones simuladas antes de entregar | **Hechas el 25-10** (E-0022, E-0023; §67, §68): la app hizo de tutor con los `eval_*`. Nota estimada 8,5 y luego 9,0. Destaparon la CI en rojo por avisos nuevos de `pip-audit` (subidos 7 paquetes, pillow 13 con streamlit 1.66.1), dos recortes silenciosos (respuesta cortada por `max_tokens` y resultado de herramienta cortado a 6.000 caracteres, ahora `respuesta_truncada` y `resultados_recortados` en traza y registro y aviso al usuario), el tope blando leyendo el disco efímero (ahora Postgres), el README de la 3.3 (hoy el del TFM; el viejo en `docs/README_3.3.md`) y un guion que un tercero no podía seguir (rehecho con `eval_*` y OP-2026-110) |
 | Memoria reescrita para leerse | **Hecha el 25-10** tras dos análisis de legibilidad de Gemini y ChatGPT con el mismo prompt (E-0025, E-0026; prompts en `puente/PROMPT_LEGIBILIDAD*.md`): índice en el PDF, capítulos en el orden del enunciado, cada decisión como problema-decisión-por qué-resultado-límite, **ninguna `§` en la prosa** (una línea `*Evidencia: hallazgos ...*` por apartado y anexo B con el título de cada hallazgo, generado y vigilado por `tests/test_anexo_b.py`), glosario, detalle a anexos. Cuerpo de 17.843 a unas 11.800 palabras; notas de legibilidad/estructura/adecuación de 4-5/5-6/7 a 8/10/9 (Gemini) y 7/8/8,5 (ChatGPT). Cada cifra comprobada contra la versión anterior y los hallazgos |
 | Despliegue condicionado a la CI | **Hecho y medido** el 11-10 (§60): `autoDeployTrigger: checksPass` en los tres servicios, vigilado por test; un commit rojo se quedó fuera más de 4 min, los verdes desplegaron en 77 y 109 s |
