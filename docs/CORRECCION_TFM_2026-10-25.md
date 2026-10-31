@@ -7,8 +7,9 @@
 
 ## La calificación
 
-- **93,00 / 100**, calificado el domingo 25-10-2026 a las 20:30 por Iraitz
-  Montalbán, siete horas después de la entrega (13:19).
+- **93,00 / 100** la primera nota, calificada el domingo 25-10-2026 a las
+  20:30 por Iraitz Montalbán, siete horas después de la entrega (13:19).
+  Corregida a **97,00** el 28-10 (apartado "Nota corregida").
 - Comentario en el campus: el trabajo está "blindado", las decisiones están
   fundamentadas con números (evaluaciones, red-teaming, costes, latencias) y
   la elección de Python sin framework frente a LangGraph es "la mejor opción
@@ -35,7 +36,25 @@ parece una errata del informe. De los 6,55 puntos que faltan hasta 100, 4
 vienen del peso que no se reparte y 2,55 de las notas de los módulos.
 
 **Juan lo señaló al corrector el 26-10** con un mensaje breve, planteado como
-duda y aceptando el peso si es intencionado. Pendiente de respuesta.
+duda y aceptando el peso si es intencionado.
+
+## Nota corregida: 97 / 100 (28-10)
+
+El corrector contestó el miércoles 28-10 a las 08:33 en los comentarios de la
+entrega: *"Es errata de la plantilla del asistente. Para que veáis lo
+importante que es validar los cambios de modelo :D Disculpa por las molestias.
+Ya debería estar arreglado y la nota ajustada."* El campus muestra desde
+entonces **97,00 / 100**, calificado a esa misma hora.
+
+El informe es el mismo fichero de Drive, modificado el 28-10 a las 08:32
+(hora de Madrid): los cuatro módulos al 25 %, las mismas notas por módulo
+(9,8 / 9,7 / 9,5 / 9,9), "Nota Final Sugerida: 9,7 / 10" y las mismas cinco
+áreas de mejora. La media exacta es 9,725; el informe la redondea a 9,7 y el
+campus a 97,00. No se reclama la diferencia.
+
+Leído en solo lectura por la app de Claude el 31-10 (encargo E-0028; la
+transcripción literal del campus y del informe está en el registro del
+puente, fuera de git).
 
 ## Las áreas de mejora ya estaban declaradas
 
@@ -71,4 +90,4 @@ informe con el sentido cambiado.
 subiría como mucho unas décimas con un corrector que puede variar entre
 pasadas, y las cinco ya tienen su motivo y su momento escritos. Lo único que
 vale puntos es el peso del módulo 3, y eso se resuelve con el mensaje, no con
-otra entrega.
+otra entrega. Así fue: el mensaje subió la nota de 93 a 97.
